@@ -1,0 +1,41 @@
+# glad
+message("Adding glad...")
+project(glad C)
+add_library(glad STATIC ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c)
+target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include)
+
+# glfw
+message("Adding glfw...")
+set(GLFW_BUILD_TESTS OFF)
+set(GLFW_BUILD_EXAMPLES OFF)
+set(GLFW_BUILD_DOCS OFF)
+set(GLFW_INSTALL OFF)
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(glfw)
+
+# fmt
+message("Adding fmt...")
+set(BUILD_SHARED_LIBS FALSE)
+add_subdirectory(fmt)
+
+# quill
+message("Adding quill...")
+set(QUILL_NO_EXCEPTIONS ON)
+set(QUILL_X86ARCH OFF)
+set(QUILL_DISABLE_NON_PREFIXED_MACROS ON)
+add_subdirectory(quill)
+
+# hlslpp
+message("Adding hlslpp...")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/vendor/hlslpp")
+include(hlslpp-config)
+
+# Assign dependencies to folders
+set_property(TARGET glad PROPERTY FOLDER "vendor")
+
+set_property(TARGET glfw PROPERTY FOLDER "vendor/glfw")
+set_property(TARGET update_mappings PROPERTY FOLDER "vendor/glfw")
+
+set_property(TARGET fmt PROPERTY FOLDER "vendor")
+
+set_property(TARGET quill PROPERTY FOLDER "vendor")
