@@ -1,0 +1,15 @@
+[submodule "vendor/glfw"]
+	path = vendor/glfw
+	url = https://github.com/glfw/glfw
+[submodule "vendor/quill"]
+	path = vendor/quill
+	url = https://github.com/odygrd/quill
+[submodule "vendor/hlslpp"]
+	path = vendor/hlslpp
+	url = https://github.com/redorav/hlslpp
+[submodule "vendor/fmt"]
+	path = vendor/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "vendor/eventbus"]
+	path = vendor/eventbus
+	url = https://github.com/DeveloperPaul123/eventbus
