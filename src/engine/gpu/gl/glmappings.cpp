@@ -37,10 +37,10 @@ namespace gpu::gl {
     }
 
     static const GlUsageMapping c_usageMappings[] = {
-        { Usage::Default, GL_STATIC_DRAW },
-        { Usage::Immutable, GL_STATIC_DRAW },
-        { Usage::Dynamic, GL_DYNAMIC_DRAW },
-        { Usage::Staging, GL_STREAM_READ },
+        { Usage::Default,       GL_STATIC_DRAW },
+        { Usage::Immutable,     GL_STATIC_DRAW },
+        { Usage::Dynamic,       GL_DYNAMIC_DRAW },
+        { Usage::Staging,       GL_STREAM_READ },
     };
 
     GlUsageMapping getGlUsage(gpu::Usage usage) {
@@ -54,14 +54,14 @@ namespace gpu::gl {
 
     static const GlBufferTypeMapping c_bufferTypeMappings[] = {
 
-        { BufferType::VertexBuffer, GL_ARRAY_BUFFER },
-        { BufferType::BufferCopySource, GL_COPY_READ_BUFFER },
-        { BufferType::BufferCopyDestination, GL_COPY_WRITE_BUFFER },
-        { BufferType::IndexBuffer, GL_ELEMENT_ARRAY_BUFFER },
-        { BufferType::PixelReadTarget, GL_PIXEL_PACK_BUFFER },
-        { BufferType::TextureDataSource, GL_PIXEL_UNPACK_BUFFER },
-        { BufferType::TransformFeedbackBuffer, GL_TRANSFORM_FEEDBACK_BUFFER },
-        { BufferType::ConstantBuffer, GL_UNIFORM_BUFFER },
+        { BufferType::VertexBuffer,             GL_ARRAY_BUFFER },
+        { BufferType::IndexBuffer,              GL_ELEMENT_ARRAY_BUFFER },
+        { BufferType::ConstantBuffer,           GL_UNIFORM_BUFFER },
+        { BufferType::BufferCopySource,         GL_COPY_READ_BUFFER },
+        { BufferType::BufferCopyDestination,    GL_COPY_WRITE_BUFFER },
+        { BufferType::PixelReadTarget,          GL_PIXEL_PACK_BUFFER },
+        { BufferType::TextureDataSource,        GL_PIXEL_UNPACK_BUFFER },
+        { BufferType::TransformFeedbackBuffer,  GL_TRANSFORM_FEEDBACK_BUFFER },
 
     };
 

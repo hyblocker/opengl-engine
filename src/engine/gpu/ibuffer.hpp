@@ -24,13 +24,13 @@ namespace gpu {
 	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBufferData.xhtml
 	enum class BufferType {
 		VertexBuffer,
+		IndexBuffer,
+		ConstantBuffer,
 		BufferCopySource,
 		BufferCopyDestination,
-		IndexBuffer,
 		PixelReadTarget,
 		TextureDataSource,
 		TransformFeedbackBuffer,
-		ConstantBuffer,
 		Count,
 	};
 
