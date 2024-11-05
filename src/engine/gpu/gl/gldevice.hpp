@@ -84,6 +84,7 @@ namespace gpu::gl {
 	private:
 		// Binds a buffer if necessary
 		void bindBuffer(IBuffer* handle);
+		void unbindBuffer(gpu::BufferType bufferType);
 
 	private:
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};

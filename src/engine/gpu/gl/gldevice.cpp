@@ -141,14 +141,13 @@ namespace gpu::gl {
 		// Bind vertex buffer
 		bindBuffer(drawCallState.vertexBufer);
 		// Unbind index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		unbindBuffer(BufferType::IndexBuffer);
 
 		// Show how to interpret vertex format attributes
 		glUseProgram(drawCallState.shader->getNativeObject());
 		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
 
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
-		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
 
 		// Issue draw call
 		glDrawArrays(primitiveType.glType, static_cast<GLint>(elementCount), static_cast<GLsizei>(offset));
