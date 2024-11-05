@@ -45,7 +45,8 @@ void App::run() {
 
 		// @NOTE: deltaTime is 0 for the first frame of the app's lifetime
 		auto currentTime = std::chrono::high_resolution_clock::now();
-		double frameTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
+		auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
+		double frameTime = static_cast<double>(duration);
 		lastTime = currentTime;
 		
 		// Based on https://www.gafferongames.com/post/fix_your_timestep/
