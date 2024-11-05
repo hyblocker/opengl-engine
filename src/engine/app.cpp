@@ -68,7 +68,7 @@ void App::run() {
 }
 
 void App::pushLayer(engine::ILayer* layer) {
-	LOG_INFO("Starting execution loop...");
+	LOG_INFO("Push layer...");
 	m_layerStack.push_back(layer);
 }
 
