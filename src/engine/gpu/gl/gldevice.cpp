@@ -69,6 +69,7 @@ namespace gpu::gl {
 		ASSERT(shaderDesc.VS.byteCode[0] != 0);
 		ASSERT(shaderDesc.PS.byteCode != nullptr);
 		ASSERT(shaderDesc.PS.byteCode[0] != 0);
+		ASSERT(shaderDesc.graphicsState.vertexLayout != nullptr);
 
 		GLuint vertexShader = 0;
 		GLuint pixelShader = 0;
@@ -125,7 +126,7 @@ namespace gpu::gl {
 		buffer->m_pointer = glBuffer;
 
 		// Bind buffer internally
-		m_currentBuffers[(uint32_t)bufferDesc.type] = glBuffer;
+		m_currentBuffers[(uint32_t)bufferDesc.type] = buffer->m_pointer;
 
 		return BufferHandle::Create(buffer);
 	}

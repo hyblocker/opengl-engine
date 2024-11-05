@@ -10,6 +10,7 @@
 #include "engine/events.hpp"
 #include "engine/gpu/device_manager.hpp"
 #include "engine/ilayer.hpp"
+#include "engine/log.hpp"
 
 struct AppDesc {
 	// Window props

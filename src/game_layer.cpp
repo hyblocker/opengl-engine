@@ -32,12 +32,13 @@ void main()
 } 
 )";
 
-PositionColorVertex vertices[3] = {
-    {{ -1, -1, 0 }, { 1, 0, 0 }},
-    {{  1, -1, 0 }, { 0, 1, 0 }},
-    {{  1,  1, 0 }, { 0, 0, 1 }}
+PositionColorVertex vertices[] = {
+    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 } },
+    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 } },
+    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 } },
+    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 } },
 };
-uint16_t indices[3] = { 0, 1, 2 };
+uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
 GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     : ILayer(deviceManager) {
@@ -57,7 +58,14 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // Triangle indices (connectivity)
     m_indexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::IndexBuffer, .usage = gpu::Usage::Default, .format = gpu::GpuFormat::Uint16_TYPELESS });
-    getDevice()->writeBuffer(m_vertexBuffer, sizeof(indices), indices);
+    getDevice()->writeBuffer(m_indexBuffer, sizeof(indices), indices);
+
+    // VertexLayout
+    gpu::VertexAttributeDesc vDesc[2] = {
+        {.name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(PositionColorVertex, position), .elementStride = sizeof(PositionColorVertex)},
+        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(PositionColorVertex, color), .elementStride = sizeof(PositionColorVertex)}
+    };
+    m_vertexLayout = getDevice()->createInputLayout(vDesc, sizeof(vDesc) / sizeof(vDesc[0]));
 
     // Make a shader but awesome
     m_shader = getDevice()->makeShader({
@@ -68,13 +76,6 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
             .depthState = gpu::COMPARE::GREATER_OR_EQUAL, // inverse Z
             .vertexLayout = m_vertexLayout,
     }   });
-
-    // VertexLayout
-    gpu::VertexAttributeDesc vDesc[2] = {
-        { .name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(PositionColorVertex, position), .elementStride = sizeof(PositionColorVertex)},
-        { .name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(PositionColorVertex, color), .elementStride = sizeof(PositionColorVertex)}
-    };
-    m_vertexLayout = getDevice()->createInputLayout(vDesc, sizeof(vDesc) / sizeof(vDesc[0]));
 
     // Prepare cbuffer to populate it with transform matrices
     m_cbufferData = {
@@ -105,6 +106,7 @@ void GameLayer::render(double deltaTime) {
     // Draw
     // DrawIndexed
     glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_SHORT, 0);
+
     // Present
     glFlush();
 }
