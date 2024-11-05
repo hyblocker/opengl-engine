@@ -27,4 +27,11 @@ namespace gpu::gl {
 	};
 
 	GlBufferTypeMapping getGlBufferType(gpu::BufferType type);
+
+	struct GlPrimitiveTypeMapping {
+		gpu::PrimitiveType type;
+		GLenum glType;
+	};
+
+	GlPrimitiveTypeMapping getGlPrimitiveType(gpu::PrimitiveType type);
 }

@@ -131,10 +131,35 @@ namespace gpu::gl {
 		return BufferHandle::Create(buffer);
 	}
 
-	void GlDevice::draw(DrawCallState drawCallState) {
+	void GlDevice::draw(DrawCallState drawCallState, size_t elementCount, size_t offset) {
+		ASSERT(drawCallState.vertexBufer != nullptr);
+		ASSERT(drawCallState.indexBuffer == nullptr);
+		ASSERT(drawCallState.shader != nullptr);
+		ASSERT(elementCount > 0);
+		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
 
+		// Bind vertex buffer
+		bindBuffer(drawCallState.vertexBufer);
+		// Unbind index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		// Show how to interpret vertex format attributes
+		glUseProgram(drawCallState.shader->getNativeObject());
+		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
+
+		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
+		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
+
+		// Issue draw call
+		glDrawArrays(primitiveType.glType, static_cast<GLint>(elementCount), static_cast<GLsizei>(offset));
 	}
-	void GlDevice::drawIndexed(DrawCallState drawCallState) {
+	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset) {
+		ASSERT(drawCallState.vertexBufer != nullptr);
+		ASSERT(drawCallState.indexBuffer != nullptr);
+		ASSERT(drawCallState.shader != nullptr);
+		ASSERT(elementCount > 0);
+		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
+
 		// Bind vertex buffer
 		bindBuffer(drawCallState.vertexBufer);
 		// Bind index buffer
@@ -144,8 +169,23 @@ namespace gpu::gl {
 		glUseProgram(drawCallState.shader->getNativeObject());
 		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
 
-		// Draw
-		// DrawIndexed
-		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_SHORT, 0);
+		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
+		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
+
+		// Issue draw call
+		glDrawElements(primitiveType.glType, static_cast<GLsizei>(elementCount), indexFormat.glType, reinterpret_cast<void*>(offset));
+	}
+
+	void GlDevice::clearColor(Color color) {
+
+		if (m_clearColor.r != color.r || m_clearColor.g != color.g || m_clearColor.b != color.b || m_clearColor.a != color.a) {
+			glClearColor(color.r, color.g, color.b, color.a);
+			m_clearColor = color;
+		}
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	void GlDevice::present() {
+		glFlush();
 	}
 } 

@@ -16,10 +16,7 @@ namespace gpu::gl {
 
     void GlDevice::bindBuffer(IBuffer* handle) {
         ASSERT(handle != nullptr);
-        if (m_currentBuffers[(uint32_t)handle->getDesc().type] != handle->getNativeObject()) {
-            glBindBuffer(getGlBufferType(handle->getDesc().type).glType, handle->getNativeObject());
-            m_currentBuffers[(uint32_t)handle->getDesc().type] = handle->getNativeObject();
-        }
+        glBindBuffer(getGlBufferType(handle->getDesc().type).glType, handle->getNativeObject());
     }
 
     void GlDevice::writeBuffer(IBuffer* handle, size_t size, const void* data) {

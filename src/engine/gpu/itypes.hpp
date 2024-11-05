@@ -28,6 +28,9 @@ namespace gpu {
 
 	enum class PrimitiveType {
 		Triangles,
+		Points,
+		Lines,
+		Count,
 	};
 
 	struct Rect {
@@ -39,5 +42,12 @@ namespace gpu {
 	public:
 		inline uint32_t getWidth() const { return right - left; }
 		inline uint32_t getHeight() const { return bottom - top; }
+	};
+
+	struct Color {
+		float r;
+		float g;
+		float b;
+		float a;
 	};
 }

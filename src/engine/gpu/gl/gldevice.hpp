@@ -73,10 +73,13 @@ namespace gpu::gl {
 		InputLayoutHandle createInputLayout(const VertexAttributeDesc* desc, uint32_t attributeCount) override;
 		ShaderHandle makeShader(const ShaderDesc shaderDesc) override;
 		BufferHandle makeBuffer(const BufferDesc bufferDesc) override;
-		void writeBuffer(IBuffer* handle, size_t size, void* data) override;
+		void writeBuffer(IBuffer* handle, size_t size, const void* data) override;
 
-		void draw(DrawCallState drawCallState) override;
-		void drawIndexed(DrawCallState drawCallState) override;
+		void draw(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
+		void drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
+
+		void clearColor(Color color) override;
+		void present() override;
 
 	private:
 		// Binds a buffer if necessary
@@ -84,5 +87,6 @@ namespace gpu::gl {
 
 	private:
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};
+		Color m_clearColor = {};
 	};
 }

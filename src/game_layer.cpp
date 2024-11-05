@@ -1,7 +1,5 @@
 #include "game_layer.hpp"
 
-#include <glad/glad.h>
-
 struct PositionColorVertex {
     float position[3];
     float color[3];
@@ -50,7 +48,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
         .bottom = App::getInstance()->getWindow()->getHeight(),
         });
 
-    glClearColor(0, 0, 0, 1);
+    getDevice()->clearColor({ 0, 0, 0, 1 });
 
     // Vertex buffer
     m_vertexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::VertexBuffer, .usage = gpu::Usage::Default });
@@ -92,23 +90,16 @@ void GameLayer::update(double timeElapsed, double deltaTime) {
 
 void GameLayer::render(double deltaTime) {
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    getDevice()->clearColor({ 0, 0, 0, 1 });
 
-    // Bind vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer->getNativeObject());
-    // Bind index buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer->getNativeObject());
-
-    // Show how to interpret vertex format attributes
-    glUseProgram(m_shader->getNativeObject());
-    glBindVertexArray(m_vertexLayout->getNativeObject());
-
-    // Draw
-    // DrawIndexed
-    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_SHORT, 0);
+    getDevice()->drawIndexed({
+        .vertexBufer = m_vertexBuffer,
+        .indexBuffer = m_indexBuffer,
+        .shader = m_shader,
+        }, (sizeof(indices) / sizeof(indices[0])));
 
     // Present
-    glFlush();
+    getDevice()->present();
 }
 
 void GameLayer::backBufferResizing() {

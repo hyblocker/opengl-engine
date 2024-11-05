@@ -73,4 +73,20 @@ namespace gpu::gl {
         ASSERT(mapping.type == type);
         return mapping;
     }
+
+    static const GlPrimitiveTypeMapping c_primitiveTypeMappings[] = {
+
+        { PrimitiveType::Triangles,     GL_TRIANGLES },
+        { PrimitiveType::Points,        GL_POINTS },
+        { PrimitiveType::Lines,         GL_LINES },
+    };
+
+    GlPrimitiveTypeMapping getGlPrimitiveType(gpu::PrimitiveType type) {
+        static_assert(sizeof(c_primitiveTypeMappings) / sizeof(GlPrimitiveTypeMapping) == size_t(PrimitiveType::Count),
+            "The usage buffer type table doesn't have the correct number of elements");
+
+        const GlPrimitiveTypeMapping mapping = c_primitiveTypeMappings[uint32_t(type)];
+        ASSERT(mapping.type == type);
+        return mapping;
+    }
 }

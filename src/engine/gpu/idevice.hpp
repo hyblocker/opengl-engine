@@ -84,13 +84,13 @@ namespace gpu {
 		virtual InputLayoutHandle createInputLayout(const VertexAttributeDesc* desc, uint32_t attributeCount) = 0;
 		virtual ShaderHandle makeShader(const ShaderDesc shaderDesc) = 0;
 		virtual BufferHandle makeBuffer(const BufferDesc bufferDesc) = 0;
-		virtual void writeBuffer(IBuffer* handle, size_t size, void* data) = 0;
+		virtual void writeBuffer(IBuffer* handle, size_t size, const  void* data) = 0;
 
-		virtual void draw(DrawCallState drawState) = 0;
-		virtual void drawIndexed(DrawCallState drawState, size_t elementCount) = 0;
+		virtual void draw(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
+		virtual void drawIndexed(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
 
-		// virtual void SetDrawState(const DrawState drawState) = 0;
-		// virtual void Draw(const DrawState drawState) = 0;
+		virtual void clearColor(Color color) = 0;
+		virtual void present() = 0;
 	};
 
 	typedef engine::RefCounter<IDevice> DeviceHandle;
