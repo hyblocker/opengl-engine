@@ -77,7 +77,17 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // Prepare cbuffer to populate it with transform matrices
     m_cbufferData = {
-        // .model = hlslpp::float4x4::look_at(pos, target, up) :
+        .model = hlslpp::float4x4::identity(),
+        .view = hlslpp::float4x4::identity(),
+        .projection = hlslpp::float4x4::perspective(
+            hlslpp::projection(
+                hlslpp::frustum(
+                    App::getInstance()->getWindow()->getWidth(),
+                    App::getInstance()->getWindow()->getHeight(),
+                    0.01f,
+                    1000.0f), 
+                hlslpp::zclip::t::minus_one)
+        ),
     };
 }
 
