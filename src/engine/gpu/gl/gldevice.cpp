@@ -141,7 +141,7 @@ namespace gpu::gl {
 		// Bind vertex buffer
 		bindBuffer(drawCallState.vertexBufer);
 		// Unbind index buffer
-		unbindBuffer(BufferType::IndexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		// Show how to interpret vertex format attributes
 		glUseProgram(drawCallState.shader->getNativeObject());

@@ -19,17 +19,41 @@ namespace gpu::gl {
         glBindBuffer(getGlBufferType(handle->getDesc().type).glType, handle->getNativeObject());
     }
     
-    void GlDevice::unbindBuffer(BufferType type) {
-        ASSERT(type < BufferType::Count);
-        glBindBuffer(getGlBufferType(type).glType, 0);
+    void GlDevice::unbindBuffer(IBuffer* handle) {
+        ASSERT(handle != nullptr);
+        glBindBuffer(getGlBufferType(handle->getDesc().type).glType, 0);
     }
 
     void GlDevice::writeBuffer(IBuffer* handle, size_t size, const void* data) {
         ASSERT(handle != nullptr);
         ASSERT(size > 0);
-        ASSERT(data != nullptr);
+        if (handle->getDesc().type != BufferType::ConstantBuffer) {
+            ASSERT(data != nullptr);
+        }
         bindBuffer(handle);
         glBufferData(getGlBufferType(handle->getDesc().type).glType, size, data, getGlUsage(handle->getDesc().usage).glUsage);
+    }
+
+    void GlDevice::mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) {
+        ASSERT(buffer != nullptr);
+        ASSERT(mappedDataPtr != nullptr);
+
+        void* bufferPtr = glMapBufferRange(getGlBufferType(buffer->getDesc().type).glType, offset, length, getGlAccessFlags(accessFlags).glFlag);
+        *mappedDataPtr = bufferPtr;
+    }
+
+    void GlDevice::unmapBuffer(IBuffer* buffer) {
+        ASSERT(buffer != nullptr);
+
+        glUnmapBuffer(getGlBufferType(buffer->getDesc().type).glType);
+    }
+
+    void GlDevice::setBufferBinding(IShader* shader, const std::string& name, uint32_t index) {
+        ASSERT(shader != nullptr);
+        ASSERT(!name.empty());
+
+        uint32_t uniformBlockIndex = glGetUniformBlockIndex(shader->getNativeObject(), name.c_str());
+        glUniformBlockBinding(shader->getNativeObject(), uniformBlockIndex, index);
     }
 
     GlInputLayout::GlInputLayout() {}
