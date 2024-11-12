@@ -34,4 +34,11 @@ namespace gpu::gl {
 	};
 
 	GlPrimitiveTypeMapping getGlPrimitiveType(gpu::PrimitiveType type);
+
+	struct GlAccessFlagsMapping {
+		gpu::MapAccessFlags accessFlags;
+		GLbitfield glFlag;
+	};
+
+	GlAccessFlagsMapping getGlAccessFlags(gpu::MapAccessFlags type);
 }

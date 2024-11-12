@@ -72,19 +72,20 @@ namespace gpu::gl {
 		void setViewport(const Rect viewportRect) override;
 		InputLayoutHandle createInputLayout(const VertexAttributeDesc* desc, uint32_t attributeCount) override;
 		ShaderHandle makeShader(const ShaderDesc shaderDesc) override;
+
 		BufferHandle makeBuffer(const BufferDesc bufferDesc) override;
 		void writeBuffer(IBuffer* handle, size_t size, const void* data) override;
+		void mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) override;
+		void unmapBuffer(IBuffer* buffer) override;
+		void bindBuffer(IBuffer* buffer) override;
+		void unbindBuffer(IBuffer* buffer) override;
+		void setBufferBinding(IShader* shader, const std::string& name, uint32_t index) override;
 
 		void draw(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
 		void drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
 
 		void clearColor(Color color) override;
 		void present() override;
-
-	private:
-		// Binds a buffer if necessary
-		void bindBuffer(IBuffer* handle);
-		void unbindBuffer(gpu::BufferType bufferType);
 
 	private:
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};

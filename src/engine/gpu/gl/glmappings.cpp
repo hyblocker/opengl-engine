@@ -89,4 +89,37 @@ namespace gpu::gl {
         ASSERT(mapping.type == type);
         return mapping;
     }
+
+    static const GlAccessFlagsMapping c_accessFlagsMappings[] = {
+
+        { MapAccessFlags::Write,        GL_MAP_WRITE_BIT },
+        { MapAccessFlags::Read,         GL_MAP_READ_BIT },
+        // { MapAccessFlags::Persistent,   GL_MAP_PERSISTENT_BIT },
+        // { MapAccessFlags::Coherent,     GL_MAP_COHERENT_BIT },
+    };
+
+    GlAccessFlagsMapping getGlAccessFlags(gpu::MapAccessFlags flags) {
+
+        // can't do asserts due to how this enum is defined in the spec
+        uint8_t flagsUnique = uint32_t(flags) & 0x01;
+        uint8_t flagsBitwise = uint32_t(flags) & 0x10;
+        const GlAccessFlagsMapping mapping = c_accessFlagsMappings[flagsUnique];
+
+        switch (flagsBitwise) {
+        case 0x10:
+            mapping.glFlag != GL_MAP_INVALIDATE_RANGE_BIT;
+            break;
+        case 0x20:
+            mapping.glFlag != GL_MAP_INVALIDATE_BUFFER_BIT;
+            break;
+        case 0x40:
+            mapping.glFlag != GL_MAP_FLUSH_EXPLICIT_BIT;
+            break;
+        case 0x80:
+            mapping.glFlag != GL_MAP_UNSYNCHRONIZED_BIT;
+            break;
+        }
+
+        return mapping;
+    }
 }

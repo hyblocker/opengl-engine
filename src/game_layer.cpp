@@ -11,12 +11,17 @@ constexpr const char shader_vert[] = SHADER_HEADER R"(
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec3 iColor;
 
+layout (std140) uniform DataBuffer
+{
+    vec4 coolColor;
+};
+
 out vec3 color;
 
 void main()
 {
     gl_Position = vec4(iPosition.x, iPosition.y, iPosition.z, 1.0);
-    color = iColor;
+    color = iColor * coolColor.rgb;
 }
 )";
 constexpr const char shader_pixel[] = SHADER_HEADER R"(
@@ -77,6 +82,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // Prepare cbuffer to populate it with transform matrices
     m_cbufferData = {
+        /*
         .model = hlslpp::float4x4::identity(),
         .view = hlslpp::float4x4::identity(),
         .projection = hlslpp::float4x4::perspective(
@@ -85,10 +91,16 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
                     App::getInstance()->getWindow()->getWidth(),
                     App::getInstance()->getWindow()->getHeight(),
                     0.01f,
-                    1000.0f), 
+                    1000.0f),
                 hlslpp::zclip::t::minus_one)
         ),
+        */
+        .color = hlslpp::float4(0,0,.5f,1),
     };
+    // Allocate buffer on the gpu
+    m_cbuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Default });
+    getDevice()->writeBuffer(m_cbuffer, sizeof(m_cbufferData), nullptr); // Reserve size
+    getDevice()->setBufferBinding(m_shader, "Databuffer", 0);
 }
 
 GameLayer::~GameLayer() {
@@ -101,6 +113,14 @@ void GameLayer::update(double timeElapsed, double deltaTime) {
 void GameLayer::render(double deltaTime) {
 
     getDevice()->clearColor({ 0, 0, 0, 1 });
+
+    // Terrible test
+    CBuffer* cbufferView = nullptr;
+    getDevice()->mapBuffer(m_cbuffer, 0, sizeof(CBuffer), gpu::MapAccessFlags::Write, reinterpret_cast<void**>(&cbufferView));
+    if (cbufferView != nullptr) {
+        cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
+        getDevice()->unmapBuffer(m_cbuffer);
+    }
 
     getDevice()->drawIndexed({
         .vertexBufer = m_vertexBuffer,

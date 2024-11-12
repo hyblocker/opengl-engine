@@ -4,9 +4,11 @@
 #include <hlsl++.h>
 
 struct CBuffer {
-    hlslpp::float4x4 model;
-    hlslpp::float4x4 view;
-    hlslpp::float4x4 projection;
+    // hlslpp::float4x4 model;
+    // hlslpp::float4x4 view;
+    // hlslpp::float4x4 projection;
+
+    hlslpp::float4   color;
 };
 
 class GameLayer : public engine::ILayer {

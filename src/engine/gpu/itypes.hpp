@@ -26,11 +26,25 @@ namespace gpu {
 		Count,
 	};
 
-	enum class PrimitiveType {
+	enum class PrimitiveType : uint8_t {
 		Triangles,
 		Points,
 		Lines,
 		Count,
+	};
+
+	enum class MapAccessFlags : uint8_t {
+		Write = 0x00,
+		Read = 0x01,
+		// Unsupported in GLES3
+		// Persistent = 0x02,
+		// Coherent = 0x03,
+	
+		// These are bitwise flags
+		InvalidateRange = 0x10,
+		InvalidateBuffer = 0x20,
+		FlushEexplicit = 0x40,
+		Unsychronised = 0x80,
 	};
 
 	struct Rect {
