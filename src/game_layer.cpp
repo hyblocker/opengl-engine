@@ -11,7 +11,7 @@ constexpr const char shader_vert[] = SHADER_HEADER R"(
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec3 iColor;
 
-layout (std140) uniform DataBuffer
+layout(std140) uniform DataBuffer
 {
     vec4 coolColor;
 };
@@ -79,6 +79,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
             .depthState = gpu::COMPARE::GREATER_OR_EQUAL, // inverse Z
             .vertexLayout = m_vertexLayout,
     }   });
+    getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
 
     // Prepare cbuffer to populate it with transform matrices
     m_cbufferData = {
@@ -98,9 +99,8 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
         .color = hlslpp::float4(0,0,.5f,1),
     };
     // Allocate buffer on the gpu
-    m_cbuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Default });
+    m_cbuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic });
     getDevice()->writeBuffer(m_cbuffer, sizeof(m_cbufferData), nullptr); // Reserve size
-    getDevice()->setBufferBinding(m_shader, "Databuffer", 0);
 }
 
 GameLayer::~GameLayer() {
@@ -121,6 +121,7 @@ void GameLayer::render(double deltaTime) {
         cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
         getDevice()->unmapBuffer(m_cbuffer);
     }
+    getDevice()->bindBufferBinding(m_cbuffer, 0);
 
     getDevice()->drawIndexed({
         .vertexBufer = m_vertexBuffer,

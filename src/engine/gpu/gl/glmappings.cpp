@@ -103,20 +103,20 @@ namespace gpu::gl {
         // can't do asserts due to how this enum is defined in the spec
         uint8_t flagsUnique = uint32_t(flags) & 0x01;
         uint8_t flagsBitwise = uint32_t(flags) & 0x10;
-        const GlAccessFlagsMapping mapping = c_accessFlagsMappings[flagsUnique];
+        GlAccessFlagsMapping mapping = c_accessFlagsMappings[flagsUnique];
 
         switch (flagsBitwise) {
         case 0x10:
-            mapping.glFlag != GL_MAP_INVALIDATE_RANGE_BIT;
+            mapping.glFlag |= GL_MAP_INVALIDATE_RANGE_BIT;
             break;
         case 0x20:
-            mapping.glFlag != GL_MAP_INVALIDATE_BUFFER_BIT;
+            mapping.glFlag |= GL_MAP_INVALIDATE_BUFFER_BIT;
             break;
         case 0x40:
-            mapping.glFlag != GL_MAP_FLUSH_EXPLICIT_BIT;
+            mapping.glFlag |= GL_MAP_FLUSH_EXPLICIT_BIT;
             break;
         case 0x80:
-            mapping.glFlag != GL_MAP_UNSYNCHRONIZED_BIT;
+            mapping.glFlag |= GL_MAP_UNSYNCHRONIZED_BIT;
             break;
         }
 

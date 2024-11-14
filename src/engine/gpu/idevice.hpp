@@ -89,8 +89,9 @@ namespace gpu {
 		virtual void mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) = 0;
 		virtual void unmapBuffer(IBuffer* buffer) = 0;
 		virtual void bindBuffer(IBuffer* buffer) = 0;
+		virtual void bindBufferBinding(IBuffer* buffer, uint32_t bindIndex) = 0;
 		virtual void unbindBuffer(IBuffer* buffer) = 0;
-		virtual void setBufferBinding(IShader* shader, const std::string& name, uint32_t index) = 0;
+		virtual void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) = 0;
 
 		virtual void draw(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
 		virtual void drawIndexed(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;

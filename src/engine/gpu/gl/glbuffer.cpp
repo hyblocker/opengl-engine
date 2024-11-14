@@ -18,6 +18,11 @@ namespace gpu::gl {
         ASSERT(handle != nullptr);
         glBindBuffer(getGlBufferType(handle->getDesc().type).glType, handle->getNativeObject());
     }
+
+    void GlDevice::bindBufferBinding(IBuffer* handle, uint32_t bindIndex) {
+        ASSERT(handle != nullptr);
+        glBindBufferBase(getGlBufferType(handle->getDesc().type).glType, bindIndex, handle->getNativeObject());
+    }
     
     void GlDevice::unbindBuffer(IBuffer* handle) {
         ASSERT(handle != nullptr);
@@ -48,12 +53,15 @@ namespace gpu::gl {
         glUnmapBuffer(getGlBufferType(buffer->getDesc().type).glType);
     }
 
-    void GlDevice::setBufferBinding(IShader* shader, const std::string& name, uint32_t index) {
+    void GlDevice::setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) {
         ASSERT(shader != nullptr);
         ASSERT(!name.empty());
+        ASSERT(bindIndex < GL_MAX_UNIFORM_BUFFER_BINDINGS);
 
         uint32_t uniformBlockIndex = glGetUniformBlockIndex(shader->getNativeObject(), name.c_str());
-        glUniformBlockBinding(shader->getNativeObject(), uniformBlockIndex, index);
+        ASSERT(uniformBlockIndex != GL_INVALID_INDEX);
+        ASSERT(uniformBlockIndex != GL_INVALID_OPERATION);
+        glUniformBlockBinding(shader->getNativeObject(), uniformBlockIndex, bindIndex);
     }
 
     GlInputLayout::GlInputLayout() {}
