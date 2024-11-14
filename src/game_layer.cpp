@@ -121,7 +121,7 @@ void GameLayer::render(double deltaTime) {
         cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
         getDevice()->unmapBuffer(m_cbuffer);
     }
-    getDevice()->bindBufferBinding(m_cbuffer, 0);
+    getDevice()->setConstantBuffer(m_cbuffer, 0);
 
     getDevice()->drawIndexed({
         .vertexBufer = m_vertexBuffer,

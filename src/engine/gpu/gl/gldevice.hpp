@@ -78,7 +78,7 @@ namespace gpu::gl {
 		void mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) override;
 		void unmapBuffer(IBuffer* buffer) override;
 		void bindBuffer(IBuffer* buffer) override;
-		void bindBufferBinding(IBuffer* buffer, uint32_t bindIndex) override;
+		void setConstantBuffer(IBuffer* buffer, uint32_t bindIndex) override;
 		void unbindBuffer(IBuffer* buffer) override;
 		void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) override;
 

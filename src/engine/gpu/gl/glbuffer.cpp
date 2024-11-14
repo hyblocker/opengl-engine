@@ -19,8 +19,9 @@ namespace gpu::gl {
         glBindBuffer(getGlBufferType(handle->getDesc().type).glType, handle->getNativeObject());
     }
 
-    void GlDevice::bindBufferBinding(IBuffer* handle, uint32_t bindIndex) {
+    void GlDevice::setConstantBuffer(IBuffer* handle, uint32_t bindIndex) {
         ASSERT(handle != nullptr);
+        ASSERT(handle->getDesc().type == gpu::BufferType::ConstantBuffer);
         glBindBufferBase(getGlBufferType(handle->getDesc().type).glType, bindIndex, handle->getNativeObject());
     }
     
