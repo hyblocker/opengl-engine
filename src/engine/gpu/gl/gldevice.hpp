@@ -88,7 +88,12 @@ namespace gpu::gl {
 		void clearColor(Color color) override;
 		void present() override;
 
+		// Textures
+		TextureHandle makeTexture(TextureDesc desc) override;
+		TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) override;
+
 	private:
+		uint32_t m_boundShader = -1;
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};
 		Color m_clearColor = {};
 	};

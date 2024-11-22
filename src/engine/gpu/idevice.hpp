@@ -51,6 +51,10 @@ namespace gpu {
 
 	typedef engine::RefCounter<IShader> ShaderHandle;
 
+	struct TextureSamplerDesc {
+
+	};
+
 	class ITextureSampler {
 		// @TODO: AAAAAAAAAAA
 	};
@@ -99,6 +103,10 @@ namespace gpu {
 
 		virtual void clearColor(Color color) = 0;
 		virtual void present() = 0;
+
+		// Textures
+		virtual TextureHandle makeTexture(TextureDesc desc) = 0;
+		virtual TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) = 0;
 	};
 
 	typedef engine::RefCounter<IDevice> DeviceHandle;

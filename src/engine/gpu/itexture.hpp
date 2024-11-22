@@ -6,6 +6,11 @@
 #include "engine/refcounter.hpp"
 
 namespace gpu {
+	struct TextureDesc {
+		uint32_t width;
+		uint32_t height;
+	};
+
 	class ITexture {
 
 	};

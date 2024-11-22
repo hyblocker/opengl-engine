@@ -165,7 +165,9 @@ namespace gpu::gl {
 		bindBuffer(drawCallState.indexBuffer);
 
 		// Show how to interpret vertex format attributes
-		glUseProgram(drawCallState.shader->getNativeObject());
+		if (m_boundShader != drawCallState.shader->getNativeObject()) {
+			glUseProgram(drawCallState.shader->getNativeObject());
+		}
 		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
 
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);

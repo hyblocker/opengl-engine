@@ -31,4 +31,7 @@ private:
     gpu::ShaderHandle m_shader;
 
     gpu::BufferHandle m_cbuffer;
+
+    gpu::TextureHandle m_texture;
+    gpu::TextureSamplerHandle m_textureSampler;
 };

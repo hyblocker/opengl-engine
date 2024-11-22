@@ -3,6 +3,7 @@
 struct PositionColorVertex {
     float position[3];
     float color[3];
+    float uv[2];
 };
 
 #define SHADER_HEADER "#version 330 core"
@@ -10,6 +11,7 @@ struct PositionColorVertex {
 constexpr const char shader_vert[] = SHADER_HEADER R"(
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec3 iColor;
+layout (location = 2) in vec2 iUv;
 
 layout(std140) uniform DataBuffer
 {
@@ -36,10 +38,10 @@ void main()
 )";
 
 PositionColorVertex vertices[] = {
-    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 } },
-    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 } },
-    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 } },
-    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 } },
+    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 }, .uv = { 0, 0, } },
+    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 }, .uv = { 1, 0, } },
+    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 1, 1, } },
+    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 0, 1, } },
 };
 uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
@@ -64,9 +66,10 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     getDevice()->writeBuffer(m_indexBuffer, sizeof(indices), indices);
 
     // VertexLayout
-    gpu::VertexAttributeDesc vDesc[2] = {
+    gpu::VertexAttributeDesc vDesc[] = {
         {.name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(PositionColorVertex, position), .elementStride = sizeof(PositionColorVertex)},
-        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(PositionColorVertex, color), .elementStride = sizeof(PositionColorVertex)}
+        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(PositionColorVertex, color), .elementStride = sizeof(PositionColorVertex)},
+        {.name = "TEXCOORD0", .format = gpu::GpuFormat::RG8_TYPELESS, .bufferIndex = 2, .offset = offsetof(PositionColorVertex, uv), .elementStride = sizeof(PositionColorVertex)}
     };
     m_vertexLayout = getDevice()->createInputLayout(vDesc, sizeof(vDesc) / sizeof(vDesc[0]));
 
@@ -101,6 +104,11 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     // Allocate buffer on the gpu
     m_cbuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic });
     getDevice()->writeBuffer(m_cbuffer, sizeof(m_cbufferData), nullptr); // Reserve size
+
+    // Load texture
+
+    // Define trilinnear aniso 16 texture sampler
+    m_texture = getDevice()->makeTextureSampler({});
 }
 
 GameLayer::~GameLayer() {
