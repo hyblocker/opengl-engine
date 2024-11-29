@@ -12,7 +12,11 @@ namespace gpu {
 	};
 
 	class ITexture {
-
+	public:
+		ITexture() = default;
+		virtual ~ITexture() = default;
+		[[nodiscard]] virtual const TextureDesc getDesc() const = 0;
+		[[nodiscard]] virtual const uint32_t getNativeObject() const = 0;
 	};
 
 	typedef engine::RefCounter<ITexture> TextureHandle;

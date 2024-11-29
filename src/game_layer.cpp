@@ -108,7 +108,8 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     // Load texture
 
     // Define trilinnear aniso 16 texture sampler
-    m_texture = getDevice()->makeTextureSampler({});
+    m_texture = getDevice()->makeTexture({});
+    // m_textureSampler = getDevice()->makeTextureSampler({});
 }
 
 GameLayer::~GameLayer() {

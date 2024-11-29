@@ -38,7 +38,12 @@ namespace gpu::gl {
 	//
 	// Textures
 	//
-	
+	class GlTexture : public gpu::ITexture {
+	public:
+		~GlTexture() override;
+		[[nodiscard]] const TextureDesc getDesc() const override;
+		[[nodiscard]] const uint32_t getNativeObject() const override;
+	};
 
 	//
 	// Shaders
