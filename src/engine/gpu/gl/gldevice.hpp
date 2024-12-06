@@ -43,6 +43,23 @@ namespace gpu::gl {
 		~GlTexture() override;
 		[[nodiscard]] const TextureDesc getDesc() const override;
 		[[nodiscard]] const uint32_t getNativeObject() const override;
+	private:
+		TextureDesc m_desc;
+		uint32_t m_pointer = 0;
+
+		friend class gpu::gl::GlDevice;
+	};
+
+	class GlTextureSampler : public gpu::ITextureSampler {
+	public:
+		~GlTextureSampler() override;
+		[[nodiscard]] const TextureSamplerDesc& getDesc() const override;
+		[[nodiscard]] const uint32_t getNativeObject() const override;
+	private:
+		TextureSamplerDesc m_desc;
+		uint32_t m_pointer = 0;
+
+		friend class gpu::gl::GlDevice;
 	};
 
 	//
@@ -94,8 +111,10 @@ namespace gpu::gl {
 		void present() override;
 
 		// Textures
-		TextureHandle makeTexture(TextureDesc desc) override;
+		TextureHandle makeTexture(TextureDesc desc, void* textureData) override;
 		TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) override;
+
+		void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) override;
 
 	private:
 		uint32_t m_boundShader = -1;

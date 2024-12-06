@@ -41,4 +41,18 @@ namespace gpu::gl {
 	};
 
 	GlAccessFlagsMapping getGlAccessFlags(gpu::MapAccessFlags type);
+
+	struct GlTextureWrapMapping {
+		gpu::TextureWrap textureWrap;
+		GLenum glEnum;
+	};
+
+	GlTextureWrapMapping getGlWrapMode(gpu::TextureWrap wrapMode);
+
+	struct GlTextureTypeMapping {
+		gpu::TextureType textureType;
+		GLenum glEnum;
+	};
+
+	GlTextureTypeMapping getGlTextureType(gpu::TextureType type);
 }

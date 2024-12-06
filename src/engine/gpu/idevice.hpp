@@ -11,19 +11,19 @@
 
 namespace gpu {
 
-	enum class COMPARE : uint8_t {
-		NEVER = 1,
-		LESS = 2,
-		EQUAL = 3,
-		LESS_OR_EQUAL = 4,
-		GREATER = 5,
-		NOT_EQUAL = 6,
-		GREATER_OR_EQUAL = 7,
-		ALWAYS = 8,
+	enum class CompareFunc : uint8_t {
+		Never = 1,
+		Less = 2,
+		Equal = 3,
+		LessOrEqual = 4,
+		Greater = 5,
+		NotEqual = 6,
+		GreaterOrEqual = 7,
+		Always = 8,
 	};
 
 	struct GraphicsState {
-		COMPARE depthState = COMPARE::GREATER_OR_EQUAL;
+		CompareFunc depthState = CompareFunc::GreaterOrEqual;
 		IInputLayout* vertexLayout;
 	};
 
@@ -37,7 +37,7 @@ namespace gpu {
 		ShaderProgram VS;
 		ShaderProgram PS;
 		GraphicsState graphicsState = {
-			.depthState = COMPARE::GREATER_OR_EQUAL
+			.depthState = CompareFunc::GreaterOrEqual
 		};
 	};
 
@@ -51,19 +51,10 @@ namespace gpu {
 
 	typedef engine::RefCounter<IShader> ShaderHandle;
 
-	struct TextureSamplerDesc {
-
-	};
-
-	class ITextureSampler {
-		// @TODO: AAAAAAAAAAA
-	};
-	typedef engine::RefCounter<ITextureSampler*> TextureSamplerHandle;
-
 	class IBlendState {
 		// @TODO: AAAAAAAAAAAA
 	};
-	typedef engine::RefCounter<IBlendState*> BlendStateHandle;
+	typedef engine::RefCounter<IBlendState> BlendStateHandle;
 
 	struct DrawCallState {
 		// Buffers to draw
@@ -105,8 +96,10 @@ namespace gpu {
 		virtual void present() = 0;
 
 		// Textures
-		virtual TextureHandle makeTexture(TextureDesc desc) = 0;
+		virtual TextureHandle makeTexture(TextureDesc desc, void* textureData) = 0;
 		virtual TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) = 0;
+
+		virtual void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) = 0;
 	};
 
 	typedef engine::RefCounter<IDevice> DeviceHandle;

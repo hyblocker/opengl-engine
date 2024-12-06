@@ -1,4 +1,5 @@
 #include "game_layer.hpp"
+#include <stb_image.h>
 
 struct PositionColorVertex {
     float position[3];
@@ -79,7 +80,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
         .VS { .byteCode = (uint8_t*) shader_vert, .entryFunc = "main" },
         .PS { .byteCode = (uint8_t*) shader_pixel, .entryFunc = "main" },
         .graphicsState = {
-            .depthState = gpu::COMPARE::GREATER_OR_EQUAL, // inverse Z
+            .depthState = gpu::CompareFunc::GreaterOrEqual, // inverse Z
             .vertexLayout = m_vertexLayout,
     }   });
     getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
@@ -108,8 +109,17 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     // Load texture
 
     // Define trilinnear aniso 16 texture sampler
-    m_texture = getDevice()->makeTexture({});
-    // m_textureSampler = getDevice()->makeTextureSampler({});
+    {
+        int texWidth, texHeight, nrChannels;
+        unsigned char* texData = stbi_load("brick_wall.png", &texWidth, &texHeight, &nrChannels, 0);
+
+        m_texture = getDevice()->makeTexture({
+            .width = (uint32_t) texWidth,
+            .height = (uint32_t) texHeight,
+            .type = gpu::TextureType::Texture2D,
+            }, texData);
+        m_textureSampler = getDevice()->makeTextureSampler({}); // defaults to trilinnear repeat
+    }
 }
 
 GameLayer::~GameLayer() {

@@ -189,4 +189,14 @@ namespace gpu::gl {
 	void GlDevice::present() {
 		glFlush();
 	}
+
+	void GlDevice::bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) {
+		ASSERT(texture != nullptr);
+		ASSERT(sampler != nullptr);
+		ASSERT(index < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(getGlTextureType(texture->getDesc().type).glEnum, texture->getNativeObject());
+		glBindSampler(index, sampler->getNativeObject());
+	}
 } 

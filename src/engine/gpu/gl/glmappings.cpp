@@ -83,7 +83,7 @@ namespace gpu::gl {
 
     GlPrimitiveTypeMapping getGlPrimitiveType(gpu::PrimitiveType type) {
         static_assert(sizeof(c_primitiveTypeMappings) / sizeof(GlPrimitiveTypeMapping) == size_t(PrimitiveType::Count),
-            "The usage buffer type table doesn't have the correct number of elements");
+            "The primitive type table doesn't have the correct number of elements");
 
         const GlPrimitiveTypeMapping mapping = c_primitiveTypeMappings[uint32_t(type)];
         ASSERT(mapping.type == type);
@@ -120,6 +120,48 @@ namespace gpu::gl {
             break;
         }
 
+        return mapping;
+    }
+
+    static const GlTextureWrapMapping c_textureWrapMappings[] = {
+
+        { TextureWrap::Repeat,              GL_REPEAT },
+        { TextureWrap::MirrorRepeat,        GL_MIRRORED_REPEAT },
+        { TextureWrap::MirrorClampToEdge,   GL_MIRROR_CLAMP_TO_EDGE },
+        { TextureWrap::ClampToEdge,         GL_CLAMP_TO_EDGE },
+        { TextureWrap::ClampToBorder,       GL_CLAMP_TO_BORDER },
+    };
+
+    GlTextureWrapMapping getGlWrapMode(gpu::TextureWrap wrapMode) {
+        static_assert(sizeof(c_textureWrapMappings) / sizeof(GlTextureWrapMapping) == size_t(TextureWrap::Count),
+            "The wrap mode table doesn't have the correct number of elements");
+
+        const GlTextureWrapMapping mapping = c_textureWrapMappings[uint32_t(wrapMode)];
+        ASSERT(mapping.textureWrap == wrapMode);
+        return mapping;
+    }
+
+    static const GlTextureTypeMapping c_textureTypeMappings[] = {
+
+        { TextureType::Texture1D,                   GL_TEXTURE_1D },
+        { TextureType::Texture2D,                   GL_TEXTURE_2D },
+        { TextureType::Texture3D,                   GL_TEXTURE_3D },
+        { TextureType::TextureArray1D,              GL_TEXTURE_1D_ARRAY },
+        { TextureType::TextureArray2D,              GL_TEXTURE_2D_ARRAY },
+        { TextureType::TextureRectangle,            GL_TEXTURE_RECTANGLE },
+        { TextureType::TextureCubeMap,              GL_TEXTURE_CUBE_MAP },
+        { TextureType::TextureArrayCubeMap,         GL_TEXTURE_CUBE_MAP_ARRAY },
+        { TextureType::TextureBuffer,               GL_TEXTURE_BUFFER },
+        { TextureType::TextureMultisample2D,        GL_TEXTURE_2D_MULTISAMPLE },
+        { TextureType::TextureArrayMultisample2D,   GL_TEXTURE_2D_MULTISAMPLE_ARRAY },
+    };
+
+    GlTextureTypeMapping getGlTextureType(gpu::TextureType type) {
+        static_assert(sizeof(c_textureTypeMappings) / sizeof(GlTextureTypeMapping) == size_t(TextureType::Count),
+            "The texture type table doesn't have the correct number of elements");
+
+        const GlTextureTypeMapping mapping = c_textureTypeMappings[uint32_t(type)];
+        ASSERT(mapping.textureType == type);
         return mapping;
     }
 }
