@@ -32,6 +32,9 @@ void main()
 constexpr const char shader_pixel[] = SHADER_HEADER R"(
 precision mediump float;
 
+// gl_FragColor is deprecated in GLSL 4.4+
+layout (location = 0) out vec4 fragColor;
+
 layout (binding = 0) uniform sampler2D brickTex;
 
 in vec3 color;
@@ -39,7 +42,7 @@ in vec2 uv;
 
 void main()
 {
-    gl_FragColor = vec4(mix(color, texture(brickTex, uv).rgb, 0.5f), 1.0f);
+    fragColor = vec4(mix(color, texture(brickTex, uv).rgb, 0.5f), 1.0f);
 } 
 )";
 
@@ -176,10 +179,16 @@ void GameLayer::render(double deltaTime) {
 }
 
 void GameLayer::backBufferResizing() {
-    LOG_INFO("Backbuffer resizing");
+    // @TODO: invalidate post processing textures
 }
 
 void GameLayer::backBufferResized(uint32_t width, uint32_t height, uint32_t samples) {
-    LOG_INFO("Backbuffer resized to {}x{} with {} samples!", width, height, samples);
 
+    // Set viewport dimensions
+    getDevice()->setViewport({
+        .left = 0,
+        .right = width,
+        .top = 0,
+        .bottom = height,
+        });
 }

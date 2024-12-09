@@ -71,7 +71,8 @@ void App::run() {
 }
 
 void App::pushLayer(engine::ILayer* layer) {
-	LOG_INFO("Push layer...");
+	ASSERT(layer != nullptr);
+	LOG_INFO("Pushing layer...");
 	m_layerStack.push_back(layer);
 }
 
