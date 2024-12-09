@@ -7,7 +7,7 @@ struct PositionColorVertex {
     float uv[2];
 };
 
-#define SHADER_HEADER "#version 330 core"
+#define SHADER_HEADER "#version 460 core"
 
 constexpr const char shader_vert[] = SHADER_HEADER R"(
 layout (location = 0) in vec3 iPosition;
@@ -20,29 +20,34 @@ layout(std140) uniform DataBuffer
 };
 
 out vec3 color;
+out vec2 uv;
 
 void main()
 {
     gl_Position = vec4(iPosition.x, iPosition.y, iPosition.z, 1.0);
     color = iColor * coolColor.rgb;
+    uv = iUv.xy;
 }
 )";
 constexpr const char shader_pixel[] = SHADER_HEADER R"(
 precision mediump float;
 
+layout (binding = 0) uniform sampler2D brickTex;
+
 in vec3 color;
+in vec2 uv;
 
 void main()
 {
-    gl_FragColor = vec4(color, 1.0f);
+    gl_FragColor = vec4(mix(color, texture(brickTex, uv).rgb, 0.5f), 1.0f);
 } 
 )";
 
 PositionColorVertex vertices[] = {
-    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 }, .uv = { 0, 0, } },
-    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 }, .uv = { 1, 0, } },
-    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 1, 1, } },
-    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 0, 1, } },
+    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 }, .uv = { 0, 0 } },
+    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 }, .uv = { 1, 0 } },
+    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 1, 1 } },
+    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 0, 1 } },
 };
 uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
@@ -118,7 +123,22 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
             .height = (uint32_t) texHeight,
             .type = gpu::TextureType::Texture2D,
             }, texData);
-        m_textureSampler = getDevice()->makeTextureSampler({}); // defaults to trilinnear repeat
+
+        m_trillinearClampSampler = getDevice()->makeTextureSampler({
+            .minFilter = gpu::SamplingMode::Linear,
+            .magFilter = gpu::SamplingMode::Linear,
+            .mipFilter = gpu::SamplingMode::Linear, // Trilinear sampling, Nearest = Bilinear sampling
+
+            .wrapX = gpu::TextureWrap::Repeat,
+            .wrapY = gpu::TextureWrap::Repeat,
+            .wrapZ = gpu::TextureWrap::Repeat,
+
+            // do not bias mip-map sampling
+            .lodBias = 0,
+
+            // 16x anisotropic filtering
+            .anisotropy = 16.0f,
+        });
     }
 }
 
@@ -142,6 +162,9 @@ void GameLayer::render(double deltaTime) {
     }
     getDevice()->setConstantBuffer(m_cbuffer, 0);
 
+    // Bind texture with textureSampler at slot 0
+    getDevice()->bindTexture(m_texture, m_trillinearClampSampler, 0);
+
     getDevice()->drawIndexed({
         .vertexBufer = m_vertexBuffer,
         .indexBuffer = m_indexBuffer,
@@ -153,9 +176,10 @@ void GameLayer::render(double deltaTime) {
 }
 
 void GameLayer::backBufferResizing() {
-
+    LOG_INFO("Backbuffer resizing");
 }
 
 void GameLayer::backBufferResized(uint32_t width, uint32_t height, uint32_t samples) {
+    LOG_INFO("Backbuffer resized to {}x{} with {} samples!", width, height, samples);
 
 }

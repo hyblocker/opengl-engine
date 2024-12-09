@@ -127,9 +127,9 @@ namespace gpu::gl {
 
         { TextureWrap::Repeat,              GL_REPEAT },
         { TextureWrap::MirrorRepeat,        GL_MIRRORED_REPEAT },
-        { TextureWrap::MirrorClampToEdge,   GL_MIRROR_CLAMP_TO_EDGE },
+        // { TextureWrap::MirrorClampToEdge,   GL_MIRROR_CLAMP_TO_EDGE },
         { TextureWrap::ClampToEdge,         GL_CLAMP_TO_EDGE },
-        { TextureWrap::ClampToBorder,       GL_CLAMP_TO_BORDER },
+        // { TextureWrap::ClampToBorder,       GL_CLAMP_TO_BORDER },
     };
 
     GlTextureWrapMapping getGlWrapMode(gpu::TextureWrap wrapMode) {
@@ -143,17 +143,17 @@ namespace gpu::gl {
 
     static const GlTextureTypeMapping c_textureTypeMappings[] = {
 
-        { TextureType::Texture1D,                   GL_TEXTURE_1D },
+        // { TextureType::Texture1D,                   GL_TEXTURE_1D },
         { TextureType::Texture2D,                   GL_TEXTURE_2D },
         { TextureType::Texture3D,                   GL_TEXTURE_3D },
-        { TextureType::TextureArray1D,              GL_TEXTURE_1D_ARRAY },
+        // { TextureType::TextureArray1D,              GL_TEXTURE_1D_ARRAY },
         { TextureType::TextureArray2D,              GL_TEXTURE_2D_ARRAY },
-        { TextureType::TextureRectangle,            GL_TEXTURE_RECTANGLE },
+        // { TextureType::TextureRectangle,            GL_TEXTURE_RECTANGLE },
         { TextureType::TextureCubeMap,              GL_TEXTURE_CUBE_MAP },
-        { TextureType::TextureArrayCubeMap,         GL_TEXTURE_CUBE_MAP_ARRAY },
-        { TextureType::TextureBuffer,               GL_TEXTURE_BUFFER },
-        { TextureType::TextureMultisample2D,        GL_TEXTURE_2D_MULTISAMPLE },
-        { TextureType::TextureArrayMultisample2D,   GL_TEXTURE_2D_MULTISAMPLE_ARRAY },
+        // { TextureType::TextureArrayCubeMap,         GL_TEXTURE_CUBE_MAP_ARRAY },
+        // { TextureType::TextureBuffer,               GL_TEXTURE_BUFFER },
+        // { TextureType::TextureMultisample2D,        GL_TEXTURE_2D_MULTISAMPLE },
+        // { TextureType::TextureArrayMultisample2D,   GL_TEXTURE_2D_MULTISAMPLE_ARRAY },
     };
 
     GlTextureTypeMapping getGlTextureType(gpu::TextureType type) {

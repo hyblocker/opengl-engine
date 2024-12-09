@@ -43,7 +43,7 @@ namespace gpu {
 	class IBuffer {
 	public:
 		[[nodiscard]] virtual const BufferDesc& getDesc() const = 0;
-		[[nodiscard]] virtual const uint32_t getNativeObject() const = 0;
+		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
 	};
 
 	typedef engine::RefCounter<IBuffer> BufferHandle;
@@ -64,7 +64,7 @@ namespace gpu {
 		IInputLayout() = default;
 		virtual ~IInputLayout() = default;
 		std::vector<VertexAttributeDesc> attributes;
-		[[nodiscard]] virtual const uint32_t getNativeObject() const = 0;
+		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
 	};
 
 	typedef engine::RefCounter<IInputLayout> InputLayoutHandle;

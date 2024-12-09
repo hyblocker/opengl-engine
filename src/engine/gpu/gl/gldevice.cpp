@@ -1,3 +1,6 @@
+#include <fmt/format.h>
+#include <stb_image.h>
+
 #include "gldevice.hpp"
 #include "glmappings.hpp"
 #include "engine/core.hpp"
@@ -18,6 +21,14 @@ namespace gpu::gl {
 		m_pointer = 0;
 		m_pixelShaderPtr = 0;
 		m_vertexShaderPtr = 0;
+	}
+
+	GlDevice::GlDevice() {
+		LOG_INFO("OpenGL Version: {}", std::string((char*)glGetString(GL_VERSION)));
+		LOG_INFO("GLSL Version: {}", std::string((char*)glGetString(GL_SHADING_LANGUAGE_VERSION)));
+
+		// Tell stbi to flip textures to conform with OpenGL correctly
+		stbi_set_flip_vertically_on_load(true);
 	}
 
 	GlDevice::~GlDevice() {
@@ -77,6 +88,9 @@ namespace gpu::gl {
 
 		int  success = 0;
 		char infoLog[4096] = {};
+
+		// We prepend a common "global" header into every shader before passing them into the shader compiler.
+		// Also we resolve #include pragma directives, so that we can better modularise the code
 
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, (const GLchar**)&shaderDesc.VS.byteCode, NULL);
@@ -190,12 +204,12 @@ namespace gpu::gl {
 		glFlush();
 	}
 
-	void GlDevice::bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) {
+	void GlDevice::bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index) {
 		ASSERT(texture != nullptr);
 		ASSERT(sampler != nullptr);
 		ASSERT(index < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
 
-		glActiveTexture(GL_TEXTURE0 + index);
+		glActiveTexture(GL_TEXTURE0 + index); // we need to offset the binding offset for texture 0 with the user supplied index
 		glBindTexture(getGlTextureType(texture->getDesc().type).glEnum, texture->getNativeObject());
 		glBindSampler(index, sampler->getNativeObject());
 	}

@@ -13,10 +13,10 @@ App::App(AppDesc desc) {
 	::engine::log::init();
 	m_eventBus = std::make_shared<dp::event_bus>();
 
-	const dp::handler_registration registration_handler = m_eventBus->register_handler<engine::events::EventWindowResize>(&windowResizeEventHandler);
-
 	m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor, m_eventBus);
 	m_window->createNativeWindow();
+
+	const dp::handler_registration registration_handler = m_window->m_eventBus->register_handler<engine::events::EventWindowResize>(&windowResizeEventHandler);
 
 	m_graphicsDeviceManager = gpu::DeviceManager::create();
 	m_graphicsDevice = m_graphicsDeviceManager->getDevice();

@@ -11,23 +11,13 @@
 
 namespace gpu {
 
-	enum class CompareFunc : uint8_t {
-		Never = 1,
-		Less = 2,
-		Equal = 3,
-		LessOrEqual = 4,
-		Greater = 5,
-		NotEqual = 6,
-		GreaterOrEqual = 7,
-		Always = 8,
-	};
-
 	struct GraphicsState {
 		CompareFunc depthState = CompareFunc::GreaterOrEqual;
 		IInputLayout* vertexLayout;
 	};
 
 	struct ShaderProgram {
+		// In the case of OpenGL, this points to a glsl file on disk
 		uint8_t* byteCode = nullptr;
 		std::string entryFunc = "main";
 	};
@@ -46,7 +36,7 @@ namespace gpu {
 		IShader() = default;
 		virtual ~IShader() = default;
 		[[nodiscard]] virtual const ShaderDesc& getDesc() const = 0;
-		[[nodiscard]] virtual const uint32_t getNativeObject() const = 0;
+		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
 	};
 
 	typedef engine::RefCounter<IShader> ShaderHandle;

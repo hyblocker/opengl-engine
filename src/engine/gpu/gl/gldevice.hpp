@@ -10,7 +10,7 @@ namespace gpu::gl {
 		~GlBuffer();
 
 		[[nodiscard]] inline const BufferDesc& getDesc() const override { return m_bufferDesc; }
-		[[nodiscard]] inline const uint32_t getNativeObject() const override { return m_pointer; }
+		[[nodiscard]] inline const GpuPtr getNativeObject() const override { return m_pointer; }
 	private:
 		gpu::BufferDesc m_bufferDesc;
 		uint32_t m_pointer = 0;
@@ -26,7 +26,7 @@ namespace gpu::gl {
 		GlInputLayout();
 		~GlInputLayout() override;
 
-		[[nodiscard]] inline const uint32_t getNativeObject() const override { return m_pointer; }
+		[[nodiscard]] inline const GpuPtr getNativeObject() const override { return m_pointer; }
 		// Inherited:
 		//	   std::vector<VertexAttributeDesc> attributes;
 	private:
@@ -42,7 +42,7 @@ namespace gpu::gl {
 	public:
 		~GlTexture() override;
 		[[nodiscard]] const TextureDesc getDesc() const override;
-		[[nodiscard]] const uint32_t getNativeObject() const override;
+		[[nodiscard]] const GpuPtr getNativeObject() const override;
 	private:
 		TextureDesc m_desc;
 		uint32_t m_pointer = 0;
@@ -54,7 +54,7 @@ namespace gpu::gl {
 	public:
 		~GlTextureSampler() override;
 		[[nodiscard]] const TextureSamplerDesc& getDesc() const override;
-		[[nodiscard]] const uint32_t getNativeObject() const override;
+		[[nodiscard]] const GpuPtr getNativeObject() const override;
 	private:
 		TextureSamplerDesc m_desc;
 		uint32_t m_pointer = 0;
@@ -70,7 +70,7 @@ namespace gpu::gl {
 		GlShader(ShaderDesc shaderDesc);
 		~GlShader();
 		[[nodiscard]] inline const ShaderDesc& getDesc() const override { return m_shaderDesc; }
-		[[nodiscard]] inline const uint32_t getNativeObject() const override { return m_pointer; }
+		[[nodiscard]] inline const GpuPtr getNativeObject() const override { return m_pointer; }
 		// Inherited:
 		//	   uint32_t pointer;
 		//     uint32_t vertexShaderPtr;
@@ -89,6 +89,7 @@ namespace gpu::gl {
 	//
 	class GlDevice : public ::gpu::IDevice {
 	public:
+		GlDevice();
 		~GlDevice() override;
 
 		void setViewport(const Rect viewportRect) override;
