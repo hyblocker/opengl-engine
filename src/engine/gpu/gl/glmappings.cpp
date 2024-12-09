@@ -164,4 +164,25 @@ namespace gpu::gl {
         ASSERT(mapping.textureType == type);
         return mapping;
     }
+
+    static const GlDepthFuncMapping c_depthCompareFuncMappings[] = {
+
+        { CompareFunc::Never,           GL_NEVER },
+        { CompareFunc::Less,            GL_LESS },
+        { CompareFunc::Equal,           GL_EQUAL },
+        { CompareFunc::LessOrEqual,     GL_LEQUAL },
+        { CompareFunc::Greater,         GL_GREATER },
+        { CompareFunc::NotEqual,        GL_NOTEQUAL },
+        { CompareFunc::GreaterOrEqual,  GL_GEQUAL },
+        { CompareFunc::Always,          GL_ALWAYS },
+    };
+
+    GlDepthFuncMapping getGlDepthFunc(gpu::CompareFunc func) {
+        static_assert(sizeof(c_depthCompareFuncMappings) / sizeof(GlDepthFuncMapping) == size_t(CompareFunc::Count),
+            "The depth compare function table doesn't have the correct number of elements");
+
+        const GlDepthFuncMapping mapping = c_depthCompareFuncMappings[uint32_t(func)];
+        ASSERT(mapping.compareFunc == func);
+        return mapping;
+    }
 }

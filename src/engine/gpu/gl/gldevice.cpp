@@ -29,6 +29,9 @@ namespace gpu::gl {
 
 		// Tell stbi to flip textures to conform with OpenGL correctly
 		stbi_set_flip_vertically_on_load(true);
+
+		// Enable depth testing
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	GlDevice::~GlDevice() {
@@ -145,10 +148,54 @@ namespace gpu::gl {
 		return BufferHandle::Create(buffer);
 	}
 
+	void GlDevice::bindShader(IShader* shader) {
+		ASSERT(shader != nullptr);
+
+		// shader program
+		glUseProgram(shader->getNativeObject());
+		// associated vertex layout
+		glBindVertexArray(shader->getDesc().graphicsState.vertexLayout->getNativeObject());
+
+		// culling mode
+		switch (shader->getDesc().graphicsState.faceCullingMode) {
+			case gpu::FaceCullMode::Never:
+			{
+				glDisable(GL_CULL_FACE);
+				break;
+			}
+			case gpu::FaceCullMode::Back:
+			{
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_BACK);
+				break;
+			}
+			case gpu::FaceCullMode::Front:
+			{
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT);
+				break;
+			}
+			case gpu::FaceCullMode::Both:
+			{
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT_AND_BACK);
+				break;
+			}
+		}
+
+		// winding order
+		glFrontFace(shader->getDesc().graphicsState.faceWindingOrder == gpu::WindingOrder::Clockwise ? GL_CW : GL_CCW);
+
+		// depth state
+		glDepthFunc(getGlDepthFunc(shader->getDesc().graphicsState.depthState).glEnum);
+		glDepthMask(shader->getDesc().graphicsState.depthWrite ? GL_TRUE : GL_FALSE);
+	}
+
 	void GlDevice::draw(DrawCallState drawCallState, size_t elementCount, size_t offset) {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer == nullptr);
 		ASSERT(drawCallState.shader != nullptr);
+		ASSERT(drawCallState.shader->getDesc().graphicsState.vertexLayout != nullptr);
 		ASSERT(elementCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
 
@@ -157,9 +204,8 @@ namespace gpu::gl {
 		// Unbind index buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		// Show how to interpret vertex format attributes
-		glUseProgram(drawCallState.shader->getNativeObject());
-		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
+		// Bind shader
+		bindShader(drawCallState.shader);
 
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
 
@@ -170,6 +216,7 @@ namespace gpu::gl {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer != nullptr);
 		ASSERT(drawCallState.shader != nullptr);
+		ASSERT(drawCallState.shader->getDesc().graphicsState.vertexLayout != nullptr);
 		ASSERT(elementCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
 
@@ -178,11 +225,8 @@ namespace gpu::gl {
 		// Bind index buffer
 		bindBuffer(drawCallState.indexBuffer);
 
-		// Show how to interpret vertex format attributes
-		if (m_boundShader != drawCallState.shader->getNativeObject()) {
-			glUseProgram(drawCallState.shader->getNativeObject());
-		}
-		glBindVertexArray(drawCallState.shader->getDesc().graphicsState.vertexLayout->getNativeObject());
+		// Bind shader
+		bindShader(drawCallState.shader);
 
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
 		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
@@ -191,13 +235,18 @@ namespace gpu::gl {
 		glDrawElements(primitiveType.glType, static_cast<GLsizei>(elementCount), indexFormat.glType, reinterpret_cast<void*>(offset));
 	}
 
-	void GlDevice::clearColor(Color color) {
+	void GlDevice::clearColor(Color color, float depth) {
 
 		if (m_clearColor.r != color.r || m_clearColor.g != color.g || m_clearColor.b != color.b || m_clearColor.a != color.a) {
 			glClearColor(color.r, color.g, color.b, color.a);
 			m_clearColor = color;
 		}
-		glClear(GL_COLOR_BUFFER_BIT);
+		if (m_depth != depth) {
+			glClearDepthf(depth);
+			m_depth = depth;
+		}
+		// clear colour and depth buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void GlDevice::present() {

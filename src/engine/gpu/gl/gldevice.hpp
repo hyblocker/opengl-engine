@@ -108,7 +108,7 @@ namespace gpu::gl {
 		void draw(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
 		void drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
 
-		void clearColor(Color color) override;
+		void clearColor(Color color, float depth) override;
 		void present() override;
 
 		// Textures
@@ -118,8 +118,11 @@ namespace gpu::gl {
 		void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) override;
 
 	private:
+		void bindShader(IShader* shader);
+
 		uint32_t m_boundShader = -1;
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};
 		Color m_clearColor = {};
+		float m_depth = 0.0f;
 	};
 }

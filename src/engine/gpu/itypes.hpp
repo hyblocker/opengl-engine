@@ -69,13 +69,28 @@ namespace gpu {
 	};
 
 	enum class CompareFunc : uint8_t {
-		Never = 1,
-		Less = 2,
-		Equal = 3,
-		LessOrEqual = 4,
-		Greater = 5,
-		NotEqual = 6,
-		GreaterOrEqual = 7,
-		Always = 8,
+		Never,
+		Less,
+		Equal,
+		LessOrEqual,
+		Greater,
+		NotEqual,
+		GreaterOrEqual,
+		Always,
+		Count,
+	};
+
+	enum class FaceCullMode : uint8_t {
+		Back,
+		Front,
+		// Culls both front and back faces
+		Both,
+		// Disables culling
+		Never,
+	};
+
+	enum class WindingOrder : uint8_t {
+		Clockwise = 0,
+		CounterClockwise = 1,
 	};
 }

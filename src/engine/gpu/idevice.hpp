@@ -12,7 +12,10 @@
 namespace gpu {
 
 	struct GraphicsState {
-		CompareFunc depthState = CompareFunc::GreaterOrEqual;
+		CompareFunc depthState = CompareFunc::GreaterOrEqual; // inverse Z
+		bool depthWrite = true;
+		FaceCullMode faceCullingMode = FaceCullMode::Back;
+		WindingOrder faceWindingOrder = WindingOrder::CounterClockwise;
 		IInputLayout* vertexLayout;
 	};
 
@@ -27,7 +30,11 @@ namespace gpu {
 		ShaderProgram VS;
 		ShaderProgram PS;
 		GraphicsState graphicsState = {
-			.depthState = CompareFunc::GreaterOrEqual
+			.depthState = CompareFunc::GreaterOrEqual,
+			.depthWrite = true,
+			.faceCullingMode = FaceCullMode::Back,
+			.faceWindingOrder = WindingOrder::CounterClockwise,
+			.vertexLayout = nullptr,
 		};
 	};
 
@@ -82,7 +89,7 @@ namespace gpu {
 		virtual void draw(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
 		virtual void drawIndexed(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
 
-		virtual void clearColor(Color color) = 0;
+		virtual void clearColor(Color color, float depth = 0.0f) = 0;
 		virtual void present() = 0;
 
 		// Textures

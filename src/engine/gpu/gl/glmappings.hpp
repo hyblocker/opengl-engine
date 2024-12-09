@@ -55,4 +55,12 @@ namespace gpu::gl {
 	};
 
 	GlTextureTypeMapping getGlTextureType(gpu::TextureType type);
+
+	struct GlDepthFuncMapping {
+		gpu::CompareFunc compareFunc;
+		GLenum glEnum;
+	};
+
+	GlDepthFuncMapping getGlDepthFunc(gpu::CompareFunc func);
+
 }
