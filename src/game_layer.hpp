@@ -33,5 +33,5 @@ private:
     gpu::BufferHandle m_cbuffer;
 
     gpu::TextureHandle m_texture;
-    gpu::TextureSamplerHandle m_trillinearClampSampler;
+    gpu::TextureSamplerHandle m_trillinearAniso16ClampSampler;
 };

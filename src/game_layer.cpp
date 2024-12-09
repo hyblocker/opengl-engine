@@ -113,7 +113,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // Load texture
 
-    // Define trilinnear aniso 16 texture sampler
+    // Define tri-linear aniso 16 texture sampler
     {
         int texWidth, texHeight, nrChannels;
         unsigned char* texData = stbi_load("brick_wall.png", &texWidth, &texHeight, &nrChannels, 0);
@@ -124,7 +124,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
             .type = gpu::TextureType::Texture2D,
             }, texData);
 
-        m_trillinearClampSampler = getDevice()->makeTextureSampler({
+        m_trillinearAniso16ClampSampler = getDevice()->makeTextureSampler({
             .minFilter = gpu::SamplingMode::Linear,
             .magFilter = gpu::SamplingMode::Linear,
             .mipFilter = gpu::SamplingMode::Linear, // Trilinear sampling, Nearest = Bilinear sampling
@@ -162,8 +162,8 @@ void GameLayer::render(double deltaTime) {
     }
     getDevice()->setConstantBuffer(m_cbuffer, 0);
 
-    // Bind texture with textureSampler at slot 0
-    getDevice()->bindTexture(m_texture, m_trillinearClampSampler, 0);
+    // Bind texture with trillinearAniso16ClampSampler at slot 0
+    getDevice()->bindTexture(m_texture, m_trillinearAniso16ClampSampler, 0);
 
     getDevice()->drawIndexed({
         .vertexBufer = m_vertexBuffer,
