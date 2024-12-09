@@ -17,7 +17,7 @@
 // Initialise to 0 windows
 uint32_t Window::s_windowCount = 0;
 
-Window::Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor, std::shared_ptr<dp::event_bus> eventBus)
+Window::Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor, std::shared_ptr<dexode::EventBus>& eventBus)
     : m_desc(desc),
     m_windowHandle(0),
     m_openglMajor(openglMajor),
@@ -102,16 +102,18 @@ void Window::setTitle(std::string& title) {
 }
 
 void Window::onResizeCallback(GLFWwindow* glfwWindow, int width, int height) {
+
+    // update window desc to have new dimensions
     Window* window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWindow));
     window->m_desc.width = width;
     window->m_desc.height = height;
 
+    // send callback to inform other parts of the engine
     engine::events::EventWindowResize eventData{
         .newWidth = static_cast<uint32_t>(width),
         .newHeight = static_cast<uint32_t>(height),
     };
-
-    window->m_eventBus->fire_event(eventData);
+    window->m_eventBus->postpone(eventData);
 }
 
 int Window::shouldCloseWindow() const {

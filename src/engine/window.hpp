@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <string>
 #include <memory>
-#include <eventbus/event_bus.hpp>
+#include <dexode/EventBus.hpp>
 
 typedef uintptr_t WindowHandle;
 
@@ -17,7 +17,7 @@ struct GLFWwindow;
 
 class Window {
 public:
-	Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor, std::shared_ptr<dp::event_bus> eventBus);
+	Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor, std::shared_ptr<dexode::EventBus>& eventBus);
 	~Window();
 
 	void createNativeWindow();
@@ -46,7 +46,7 @@ private:
 	WindowDesc m_desc;
 	int32_t m_openglMajor;
 	int32_t m_openglMinor;
-	std::shared_ptr<dp::event_bus> m_eventBus;
+	std::shared_ptr<dexode::EventBus> m_eventBus;
 
 	static uint32_t s_windowCount;
 

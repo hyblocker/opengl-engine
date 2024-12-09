@@ -13,7 +13,9 @@ namespace engine {
 
         virtual void update(double timeElapsed, double deltaTime) { }
         virtual void render(double deltaTime) { }
+        // invalidate backbuffer/post-process textures
         virtual void backBufferResizing() { }
+        // re-create new backbuffer/post-process textures
         virtual void backBufferResized(uint32_t width, uint32_t height, uint32_t samples) { }
 
         [[nodiscard]] gpu::DeviceManager* getDeviceManager() const { return m_deviceManager; }

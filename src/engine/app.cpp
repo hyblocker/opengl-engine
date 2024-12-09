@@ -11,12 +11,11 @@ App::App(AppDesc desc) {
 	ASSERT(s_instance == nullptr);
 	s_instance = this;
 	::engine::log::init();
-	m_eventBus = std::make_shared<dp::event_bus>();
 
 	m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor, m_eventBus);
 	m_window->createNativeWindow();
 
-	const dp::handler_registration registration_handler = m_window->m_eventBus->register_handler<engine::events::EventWindowResize>(&windowResizeEventHandler);
+	m_listener.listen<engine::events::EventWindowResize>(std::bind(&App::windowResizeEventHandler, this, std::placeholders::_1));
 
 	m_graphicsDeviceManager = gpu::DeviceManager::create();
 	m_graphicsDevice = m_graphicsDeviceManager->getDevice();
@@ -42,6 +41,9 @@ void App::run() {
 	double physicsAccumulator = 0.0;
 
 	while (!m_window->shouldCloseWindow()) {
+
+		// Propagate queued events
+		m_eventBus->process();
 
 		// @NOTE: deltaTime is 0 for the first frame of the app's lifetime
 		auto currentTime = std::chrono::high_resolution_clock::now();
@@ -73,9 +75,9 @@ void App::pushLayer(engine::ILayer* layer) {
 	m_layerStack.push_back(layer);
 }
 
-void App::windowResizeEventHandler(engine::events::EventWindowResize evt)
-{
-	// event callback logic...
-	// getInstance()->m_graphicsDevice->setVertexLayout();
-	LOG_INFO("Got resize window event with target size of {}x{}!", evt.newWidth, evt.newHeight);
+void App::windowResizeEventHandler(const engine::events::EventWindowResize& evt) {
+	for (auto layer : m_layerStack) {
+		layer->backBufferResizing();
+		layer->backBufferResized(evt.newWidth, evt.newHeight, 1);
+	}
 }

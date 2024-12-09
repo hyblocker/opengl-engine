@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include <eventbus/event_bus.hpp>
+#include <dexode/EventBus.hpp>
 
 #include "engine/window.hpp"
 #include "engine/events.hpp"
@@ -34,15 +34,16 @@ public:
 	// Getters
 	[[nodiscard]] inline Window* getWindow() { return m_window.get(); };
 	[[nodiscard]] inline gpu::DeviceManager* getDeviceManager() { return m_graphicsDeviceManager; };
-	[[nodiscard]] inline dp::event_bus* getEventBus() { return m_eventBus.get(); };
+	[[nodiscard]] inline dexode::EventBus* getEventBus() { return m_eventBus.get(); };
 
 	[[nodiscard]] inline static App* getInstance() { return s_instance; };
 private:
-	static void windowResizeEventHandler(engine::events::EventWindowResize evt);
+	void windowResizeEventHandler(const engine::events::EventWindowResize& evt);
 private:
 	AppDesc m_appProps;
 	std::unique_ptr<Window> m_window;
-	std::shared_ptr<dp::event_bus> m_eventBus;
+	std::shared_ptr<dexode::EventBus> m_eventBus = std::make_shared<dexode::EventBus>();
+	dexode::EventBus::Listener m_listener{ m_eventBus };
 
 	// Graphics
 	gpu::DeviceManager* m_graphicsDeviceManager = nullptr;

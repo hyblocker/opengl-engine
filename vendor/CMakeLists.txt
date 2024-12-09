@@ -30,6 +30,13 @@ message("Adding hlslpp...")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/vendor/hlslpp")
 include(hlslpp-config)
 
+# eventbus
+message("Adding EventBus...")
+set(ENABLE_TEST OFF)
+set(ENABLE_PERFORMANCE OFF)
+set(ENABLE_LIBCXX OFF)
+add_subdirectory(EventBus)
+
 # Assign dependencies to folders
 set_property(TARGET glad PROPERTY FOLDER "vendor")
 
@@ -39,3 +46,7 @@ set_property(TARGET update_mappings PROPERTY FOLDER "vendor/glfw")
 set_property(TARGET fmt PROPERTY FOLDER "vendor")
 
 set_property(TARGET quill PROPERTY FOLDER "vendor")
+
+set_property(TARGET EventBus PROPERTY FOLDER "vendor/EventBus")
+set_property(TARGET UseCase_Basic PROPERTY FOLDER "vendor/EventBus")
+set_property(TARGET UseCase_TaggedEvents PROPERTY FOLDER "vendor/EventBus")
