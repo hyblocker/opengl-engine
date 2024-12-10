@@ -32,9 +32,9 @@ include(hlslpp-config)
 
 # eventbus
 message("Adding EventBus...")
-set(ENABLE_TEST OFF)
-set(ENABLE_PERFORMANCE OFF)
-set(ENABLE_LIBCXX OFF)
+set(ENABLE_TEST OFF CACHE BOOL "Enable test")
+set(ENABLE_PERFORMANCE OFF CACHE BOOL "Enable performance subproject")
+set(ENABLE_LIBCXX OFF CACHE BOOL "Enable build with libc++")
 add_subdirectory(EventBus)
 
 # Assign dependencies to folders
