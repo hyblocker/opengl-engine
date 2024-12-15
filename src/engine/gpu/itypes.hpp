@@ -93,4 +93,52 @@ namespace gpu {
 		Clockwise = 0,
 		CounterClockwise = 1,
 	};
+
+	enum class TextureType : uint8_t {
+		// Texture1D,
+		Texture2D,
+		Texture3D,
+		// TextureArray1D,
+		TextureArray2D,
+		// TextureRectangle,
+		TextureCubeMap,
+		// TextureArrayCubeMap,
+		// TextureBuffer,
+		// TextureMultisample2D,
+		// TextureArrayMultisample2D,
+		Count,
+	};
+
+	enum class SamplingMode : uint8_t {
+		Nearest,
+		Linear,
+	};
+
+	enum class TextureWrap : uint8_t {
+		Repeat,
+		MirrorRepeat,
+		// MirrorClampToEdge,
+		ClampToEdge,
+		// ClampToBorder,
+		Count
+	};
+
+	enum class TextureFormat : uint8_t {
+		RGBA4,
+		RGB5_A1,
+		RGBA8,
+		RGB10_A2,
+		R11G11B10,
+		SRGB8,
+		SRGB8_A8,
+
+		Depth16,
+		Depth24,
+		Depth32,
+
+		Depth24_Stencil8,
+		Depth32_Stencil8,
+		
+		Count
+	};
 }

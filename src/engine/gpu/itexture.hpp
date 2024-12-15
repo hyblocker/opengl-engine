@@ -8,21 +8,6 @@
 
 namespace gpu {
 
-	enum class TextureType : uint8_t {
-		// Texture1D,
-		Texture2D,
-		Texture3D,
-		// TextureArray1D,
-		TextureArray2D,
-		// TextureRectangle,
-		TextureCubeMap,
-		// TextureArrayCubeMap,
-		// TextureBuffer,
-		// TextureMultisample2D,
-		// TextureArrayMultisample2D,
-		Count,
-	};
-
 	struct TextureDesc {
 		uint32_t width = 0;
 		uint32_t height = 0;
@@ -42,25 +27,8 @@ namespace gpu {
 
 	typedef engine::RefCounter<ITexture> TextureHandle;
 
-	class IFramebuffer {
-
-	};
-
-	typedef engine::RefCounter<IFramebuffer> FramebufferHandle;
-
-	enum class SamplingMode : uint8_t {
-		Nearest,
-		Linear,
-	};
-
-	enum class TextureWrap : uint8_t {
-		Repeat,
-		MirrorRepeat,
-		// MirrorClampToEdge,
-		ClampToEdge,
-		// ClampToBorder,
-		Count
-	};
+	// default texture constant, used to unbind texture
+	constexpr ITexture* k_unbindTexture = static_cast<ITexture*>(nullptr);
 
 	struct TextureSamplerDesc {
 
@@ -85,4 +53,41 @@ namespace gpu {
 		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
 	};
 	typedef engine::RefCounter<ITextureSampler> TextureSamplerHandle;
+
+	struct FramebufferAttachmentDesc {
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint8_t samples = 1; // MSAA , clamped between 1 and max supported in hardware. Call device->getMaxMSAA() to get the max value from the driver. MSAA 1 disables MSAA
+		gpu::TextureFormat format;
+	};
+
+	struct FramebufferDesc {
+		FramebufferAttachmentDesc colorDesc = {
+			.width = 1,
+			.height = 1,
+			.samples = 1,
+			.format = gpu::TextureFormat::RGBA8,
+		};
+		FramebufferAttachmentDesc depthStencilDesc = {
+			.width = 1,
+			.height = 1,
+			.samples = 1,
+			.format = gpu::TextureFormat::Depth24_Stencil8,
+		};
+		// must be set to true for depth stencil attachment to be valid
+		bool hasDepth = true;
+	};
+
+	class IFramebuffer {
+	public:
+		virtual ~IFramebuffer() = default;
+		[[nodiscard]] virtual const FramebufferDesc& getDesc() const = 0;
+		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
+		[[nodiscard]] virtual const GpuPtr getTextureNativeObject() const = 0;
+	};
+
+	typedef engine::RefCounter<IFramebuffer> FramebufferHandle;
+	
+	// default framebuffer constant, maps to backbuffer
+	constexpr IFramebuffer* k_defaultFramebuffer = static_cast<IFramebuffer*>(nullptr);
 }

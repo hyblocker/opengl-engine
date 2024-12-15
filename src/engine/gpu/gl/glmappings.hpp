@@ -63,4 +63,11 @@ namespace gpu::gl {
 
 	GlDepthFuncMapping getGlDepthFunc(gpu::CompareFunc func);
 
+	struct GlTextureFormatMapping {
+		gpu::TextureFormat format;
+		GLenum glEnum;
+	};
+
+	GlTextureFormatMapping getGlTextureFormat(gpu::TextureFormat format);
+
 }

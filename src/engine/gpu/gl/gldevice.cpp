@@ -188,7 +188,7 @@ namespace gpu::gl {
 
 		// depth state
 		glDepthFunc(getGlDepthFunc(shader->getDesc().graphicsState.depthState).glEnum);
-		glDepthMask(shader->getDesc().graphicsState.depthWrite ? GL_TRUE : GL_FALSE);
+		glDepthMask(shader->getDesc().graphicsState.depthWrite == true ? GL_TRUE : GL_FALSE);
 	}
 
 	void GlDevice::draw(DrawCallState drawCallState, size_t elementCount, size_t offset) {
@@ -242,10 +242,11 @@ namespace gpu::gl {
 			m_clearColor = color;
 		}
 		if (m_depth != depth) {
-			glClearDepthf(depth);
+			glClearDepth(depth);
 			m_depth = depth;
 		}
 		// clear colour and depth buffer
+		glDepthMask(GL_TRUE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -261,5 +262,27 @@ namespace gpu::gl {
 		glActiveTexture(GL_TEXTURE0 + index); // we need to offset the binding offset for texture 0 with the user supplied index
 		glBindTexture(getGlTextureType(texture->getDesc().type).glEnum, texture->getNativeObject());
 		glBindSampler(index, sampler->getNativeObject());
+	}
+
+	void GlDevice::bindTexture(IFramebuffer* texture, ITextureSampler* sampler, uint32_t index) {
+		ASSERT(texture != nullptr);
+		ASSERT(sampler != nullptr);
+		ASSERT(index < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+
+		glActiveTexture(GL_TEXTURE0 + index); // we need to offset the binding offset for texture 0 with the user supplied index
+		glBindTexture(GL_TEXTURE_2D, texture->getTextureNativeObject());
+		glBindSampler(index, sampler->getNativeObject());
+	}
+
+	void GlDevice::bindFramebuffer(IFramebuffer* texture) {
+		glBindFramebuffer(GL_RENDERBUFFER, texture != nullptr ? texture->getNativeObject() : 0);
+	}
+
+	void GlDevice::blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) {
+		ASSERT(textureSrc != nullptr);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, textureSrc->getNativeObject());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, textureDst != nullptr ? textureDst->getNativeObject() : 0);
+		glBlitFramebuffer(0, 0, textureSrc->getDesc().colorDesc.width, textureSrc->getDesc().colorDesc.height, 0, 0, (textureDst != nullptr ? textureDst->getDesc().colorDesc.width : textureSrc->getDesc().colorDesc.width), (textureDst != nullptr ? textureDst->getDesc().colorDesc.height : textureSrc->getDesc().colorDesc.height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	}
 } 

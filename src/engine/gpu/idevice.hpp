@@ -12,7 +12,7 @@
 namespace gpu {
 
 	struct GraphicsState {
-		CompareFunc depthState = CompareFunc::GreaterOrEqual; // inverse Z
+		CompareFunc depthState = CompareFunc::LessOrEqual; // inverse Z
 		bool depthWrite = true;
 		FaceCullMode faceCullingMode = FaceCullMode::Back;
 		WindingOrder faceWindingOrder = WindingOrder::CounterClockwise;
@@ -30,7 +30,7 @@ namespace gpu {
 		ShaderProgram VS;
 		ShaderProgram PS;
 		GraphicsState graphicsState = {
-			.depthState = CompareFunc::GreaterOrEqual,
+			.depthState = CompareFunc::LessOrEqual,
 			.depthWrite = true,
 			.faceCullingMode = FaceCullMode::Back,
 			.faceWindingOrder = WindingOrder::CounterClockwise,
@@ -95,8 +95,13 @@ namespace gpu {
 		// Textures
 		virtual TextureHandle makeTexture(TextureDesc desc, void* textureData) = 0;
 		virtual TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) = 0;
-
 		virtual void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) = 0;
+		virtual void bindTexture(IFramebuffer* texture, ITextureSampler* sampler, uint32_t index = 0) = 0;
+
+		// Framebuffers
+		virtual FramebufferHandle makeFramebuffer(FramebufferDesc desc) = 0;
+		virtual void bindFramebuffer(IFramebuffer* texture) = 0;
+		virtual void blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) = 0;
 	};
 
 	typedef engine::RefCounter<IDevice> DeviceHandle;

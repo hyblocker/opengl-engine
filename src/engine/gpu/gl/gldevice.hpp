@@ -62,6 +62,21 @@ namespace gpu::gl {
 		friend class gpu::gl::GlDevice;
 	};
 
+	class GlFramebuffer : public gpu::IFramebuffer {
+	public:
+		~GlFramebuffer() override;
+		[[nodiscard]] const FramebufferDesc& getDesc() const override;
+		[[nodiscard]] const GpuPtr getNativeObject() const override;
+		[[nodiscard]] const GpuPtr getTextureNativeObject() const override;
+	private:
+		FramebufferDesc m_desc;
+		uint32_t m_textureAttachment = 0;
+		uint32_t m_depthStencilAttachment = 0;
+		uint32_t m_pointer = 0;
+
+		friend class gpu::gl::GlDevice;
+	};
+
 	//
 	// Shaders
 	//
@@ -114,8 +129,12 @@ namespace gpu::gl {
 		// Textures
 		TextureHandle makeTexture(TextureDesc desc, void* textureData) override;
 		TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) override;
-
 		void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) override;
+		void bindTexture(IFramebuffer* texture, ITextureSampler* sampler, uint32_t index = 0) override;
+
+		FramebufferHandle makeFramebuffer(FramebufferDesc desc) override;
+		void bindFramebuffer(IFramebuffer* texture) override;
+		void blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) override;
 
 	private:
 		void bindShader(IShader* shader);

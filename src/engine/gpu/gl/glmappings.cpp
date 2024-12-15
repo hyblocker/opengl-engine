@@ -185,4 +185,30 @@ namespace gpu::gl {
         ASSERT(mapping.compareFunc == func);
         return mapping;
     }
+
+    static const GlTextureFormatMapping c_textureFormatMappings[] = {
+
+        { TextureFormat::RGBA4,             GL_RGBA4 },
+        { TextureFormat::RGB5_A1,           GL_RGB5_A1 },
+        { TextureFormat::RGBA8,             GL_RGBA8 },
+        { TextureFormat::RGB10_A2,          GL_RGB10_A2 },
+        { TextureFormat::R11G11B10,         GL_R11F_G11F_B10F },
+        { TextureFormat::SRGB8,             GL_SRGB8 },
+        { TextureFormat::SRGB8_A8,          GL_SRGB8_ALPHA8 },
+
+        { TextureFormat::Depth16,           GL_DEPTH_COMPONENT16 },
+        { TextureFormat::Depth24,           GL_DEPTH_COMPONENT24 },
+        { TextureFormat::Depth32,           GL_DEPTH_COMPONENT32F },
+        { TextureFormat::Depth24_Stencil8,  GL_DEPTH24_STENCIL8 },
+        { TextureFormat::Depth32_Stencil8,  GL_DEPTH32F_STENCIL8 },
+    };
+
+    GlTextureFormatMapping getGlTextureFormat(gpu::TextureFormat format) {
+        static_assert(sizeof(c_textureFormatMappings) / sizeof(GlTextureFormatMapping) == size_t(TextureFormat::Count),
+            "The texture format table doesn't have the correct number of elements");
+
+        const GlTextureFormatMapping mapping = c_textureFormatMappings[uint32_t(format)];
+        ASSERT(mapping.format == format);
+        return mapping;
+    }
 }
