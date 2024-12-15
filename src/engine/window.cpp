@@ -80,7 +80,9 @@ void Window::createNativeWindow() {
 
     s_windowCount++;
 
+    // assign callbacks
     glfwSetFramebufferSizeCallback(window, Window::onResizeCallback);
+    glfwSetKeyCallback(window, Window::onKeyCallback);
 }
 
 void Window::close() const {
@@ -113,6 +115,17 @@ void Window::onResizeCallback(GLFWwindow* glfwWindow, int width, int height) {
         .newWidth = static_cast<uint32_t>(width),
         .newHeight = static_cast<uint32_t>(height),
     };
+    window->m_eventBus->postpone(eventData);
+}
+
+void Window::onKeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods) {
+    Window* window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWindow));
+
+    engine::events::EventKeyboard eventData{
+        .keyboardState = static_cast<engine::events::InputState>(action),
+        .keyCode = static_cast<char>(key)
+    };
+
     window->m_eventBus->postpone(eventData);
 }
 

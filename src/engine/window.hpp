@@ -40,6 +40,7 @@ private:
 
 private:
 	static void onResizeCallback(GLFWwindow* glfwWindow, int width, int height);
+	static void onKeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods);
 
 private:
 	WindowHandle m_windowHandle;
