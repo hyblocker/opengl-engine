@@ -61,7 +61,7 @@ void Window::createNativeWindow() {
     if (s_windowCount == 0) {
         // Load GLAD
         glfwMakeContextCurrent(window);
-        if (!gladLoadGLES2Loader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
             LOG_FATAL("Failed to initialise GLAD");
             return;
         }
