@@ -88,7 +88,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
         .VS { .byteCode = (uint8_t*) shader_vert, .entryFunc = "main" },
         .PS { .byteCode = (uint8_t*) shader_pixel, .entryFunc = "main" },
         .graphicsState = {
-            .depthState = gpu::CompareFunc::GreaterOrEqual, // inverse Z
+            .depthState = gpu::CompareFunc::LessOrEqual, // inverse Z
             .vertexLayout = m_vertexLayout,
     }   });
     getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
