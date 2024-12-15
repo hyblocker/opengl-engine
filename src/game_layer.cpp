@@ -143,6 +143,22 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
             .anisotropy = 16.0f,
         });
     }
+
+    auto fbo = getDevice()->makeFramebuffer({
+        .colorDesc = {
+            .width = App::getInstance()->getWindow()->getWidth(),
+            .height = App::getInstance()->getWindow()->getHeight(),
+            .samples = 4,
+            .format = gpu::TextureFormat::RGB10_A2,
+        },
+        .depthStencilDesc = {
+            .width = App::getInstance()->getWindow()->getWidth(),
+            .height = App::getInstance()->getWindow()->getHeight(),
+            .samples = 1,
+            .format = gpu::TextureFormat::Depth24_Stencil8,
+        },
+        .hasDepth = true
+    });
 }
 
 GameLayer::~GameLayer() {
