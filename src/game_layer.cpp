@@ -165,7 +165,7 @@ GameLayer::~GameLayer() {
 }
 
 void GameLayer::update(double timeElapsed, double deltaTime) {
-
+    // @TODO: Box2D state update
 }
 
 void GameLayer::render(double deltaTime) {

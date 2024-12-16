@@ -37,6 +37,12 @@ set(ENABLE_PERFORMANCE OFF CACHE BOOL "Enable performance subproject")
 set(ENABLE_LIBCXX OFF CACHE BOOL "Enable build with libc++")
 add_subdirectory(EventBus)
 
+# box2d
+message("Adding box2D...")
+set(BOX2D_ENABLE_SIMD ON CACHE BOOL "Enable SIMD math (faster)")
+set(BOX2D_SANITIZE OFF CACHE BOOL "Enable sanitizers for some builds")
+add_subdirectory(box2d)
+
 # Assign dependencies to folders
 set_property(TARGET glad PROPERTY FOLDER "vendor")
 
@@ -50,3 +56,5 @@ set_property(TARGET quill PROPERTY FOLDER "vendor")
 set_property(TARGET EventBus PROPERTY FOLDER "vendor/EventBus")
 set_property(TARGET UseCase_Basic PROPERTY FOLDER "vendor/EventBus")
 set_property(TARGET UseCase_TaggedEvents PROPERTY FOLDER "vendor/EventBus")
+
+set_property(TARGET box2d PROPERTY FOLDER "vendor")

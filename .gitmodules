@@ -16,3 +16,6 @@
 [submodule "vendor/eventbus"]
 	path = vendor/eventbus
 	url = https://github.com/gelldur/EventBus
+[submodule "vendor/box2d"]
+	path = vendor/box2d
+	url = https://github.com/erincatto/box2d
