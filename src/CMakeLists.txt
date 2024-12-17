@@ -55,14 +55,16 @@ target_include_directories(OpenGlEngine
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/fmt/include
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/hlslpp/include
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/EventBus/lib/src
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/box2d/include
 )
 
 target_link_libraries(OpenGlEngine
-  PRIVATE glad
-  PRIVATE fmt
-  PRIVATE quill
-  PRIVATE EventBus
-  PRIVATE setupapi.lib)
+    PRIVATE glad
+    PRIVATE fmt
+    PRIVATE quill
+    PRIVATE EventBus
+    PRIVATE box2d
+    PRIVATE setupapi)
 
 target_compile_definitions(OpenGlEngine
 	PRIVATE NOMINMAX
