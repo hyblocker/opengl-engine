@@ -77,9 +77,19 @@ target_compile_definitions(OpenGlEngine
 
 # Compile definitions
 target_compile_definitions(OpenGlEngine
-  PRIVATE
-  # If the debug configuration pass the DEBUG define to the compiler
-  $<$<CONFIG:Debug>:ENABLE_ASSERT>
+    PRIVATE
+    # If the debug configuration pass the DEBUG define to the compiler
+    $<$<CONFIG:Debug>:ENABLE_ASSERT>
+)
+
+# Copy application assets to output folder
+add_custom_command(
+    TARGET OpenGlEngine
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>/assets
+    COMMENT "Copying assets..."
 )
 
 # Set as startup project

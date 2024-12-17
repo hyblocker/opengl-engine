@@ -119,7 +119,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     // Define tri-linear aniso 16 texture sampler
     {
         int texWidth, texHeight, nrChannels;
-        unsigned char* texData = stbi_load("brick_wall.png", &texWidth, &texHeight, &nrChannels, 0);
+        unsigned char* texData = stbi_load("assets/textures/brick_wall.png", &texWidth, &texHeight, &nrChannels, 0);
 
         m_texture = getDevice()->makeTexture({
             .width = (uint32_t) texWidth,
