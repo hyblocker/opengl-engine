@@ -37,6 +37,10 @@ set(ENABLE_PERFORMANCE OFF CACHE BOOL "Enable performance subproject")
 set(ENABLE_LIBCXX OFF CACHE BOOL "Enable build with libc++")
 add_subdirectory(EventBus)
 
+# Dear ImGui
+message("Adding ImGui...")
+# TODO: imgui cmake
+
 # box2d
 message("Adding box2D...")
 set(BOX2D_ENABLE_SIMD ON CACHE BOOL "Enable SIMD math (faster)")
