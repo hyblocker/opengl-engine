@@ -70,7 +70,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
     m_vertexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::VertexBuffer, .usage = gpu::Usage::Default });
     getDevice()->writeBuffer(m_vertexBuffer, sizeof(vertices), vertices);
 
-    // Triangle indices (connectivity)
+    // Triangle indices
     m_indexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::IndexBuffer, .usage = gpu::Usage::Default, .format = gpu::GpuFormat::Uint16_TYPELESS });
     getDevice()->writeBuffer(m_indexBuffer, sizeof(indices), indices);
 
