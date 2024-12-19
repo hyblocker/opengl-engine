@@ -133,7 +133,7 @@ namespace gpu::gl {
 		void bindTexture(IFramebuffer* texture, ITextureSampler* sampler, uint32_t index = 0) override;
 
 		FramebufferHandle makeFramebuffer(FramebufferDesc desc) override;
-		void bindFramebuffer(IFramebuffer* texture) override;
+		void bindFramebuffer(IFramebuffer* texture) override; 
 		void blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) override;
 
 	private:
