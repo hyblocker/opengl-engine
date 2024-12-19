@@ -19,3 +19,6 @@
 [submodule "vendor/box2d"]
 	path = vendor/box2d
 	url = https://github.com/erincatto/box2d
+[submodule "vendor/tinyobjloader"]
+	path = vendor/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader
