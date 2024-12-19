@@ -39,7 +39,16 @@ add_subdirectory(EventBus)
 
 # Dear ImGui
 message("Adding ImGui...")
-# TODO: imgui cmake
+add_library(imgui STATIC
+	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui.cpp
+	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_demo.cpp
+	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_draw.cpp
+	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_widgets.cpp
+	${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_glfw.cpp
+	${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_opengl3.cpp)
+target_include_directories(imgui
+	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/imgui
+	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/imgui/backends)
 
 # box2d
 message("Adding box2D...")
@@ -62,3 +71,5 @@ set_property(TARGET UseCase_Basic PROPERTY FOLDER "vendor/EventBus")
 set_property(TARGET UseCase_TaggedEvents PROPERTY FOLDER "vendor/EventBus")
 
 set_property(TARGET box2d PROPERTY FOLDER "vendor")
+
+set_property(TARGET imgui PROPERTY FOLDER "vendor")
