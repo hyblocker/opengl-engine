@@ -56,6 +56,15 @@ set(BOX2D_ENABLE_SIMD ON CACHE BOOL "Enable SIMD math (faster)")
 set(BOX2D_SANITIZE OFF CACHE BOOL "Enable sanitizers for some builds")
 add_subdirectory(box2d)
 
+# tinyobj
+message("Adding tinyobjloader...")
+set(TINYOBJLOADER_USE_DOUBLE OFF CACHE BOOL "Build library with double precision instead of single (float)")
+set(TINYOBJLOADER_WITH_PYTHON OFF CACHE BOOL "Build Python module(for developer). Use pyproject.toml/setup.py to build Python module for end-users")
+set(TINYOBJLOADER_PREFER_LOCAL_PYTHON_INSTALLATION OFF CACHE BOOL "Prefer locally-installed Python interpreter than system or conda/brew installed Python. Please specify your Python interpreter   with `Python3_EXECUTABLE` cmake option if you enable this option.")
+set(TINYOBJLOADER_BUILD_TEST_LOADER OFF CACHE BOOL "Build Example Loader Application")
+set(TINYOBJLOADER_BUILD_OBJ_STICHER OFF CACHE BOOL "Build OBJ Sticher Application")
+add_subdirectory(tinyobjloader)
+
 # Assign dependencies to folders
 set_property(TARGET glad PROPERTY FOLDER "vendor")
 
@@ -73,3 +82,6 @@ set_property(TARGET UseCase_TaggedEvents PROPERTY FOLDER "vendor/EventBus")
 set_property(TARGET box2d PROPERTY FOLDER "vendor")
 
 set_property(TARGET imgui PROPERTY FOLDER "vendor")
+
+set_property(TARGET tinyobjloader PROPERTY FOLDER "vendor/tinyobj")
+set_property(TARGET uninstall PROPERTY FOLDER "vendor/tinyobj")
