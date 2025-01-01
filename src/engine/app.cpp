@@ -2,83 +2,128 @@
 #include "engine/log.hpp"
 #include "engine/core.hpp"
 #include "engine/gpu/device_manager.hpp"
+#include "engine/events/application_event.hpp"
 
 #include <chrono>
 
-App* App::s_instance = nullptr;
+namespace engine {
+	App* App::s_instance = nullptr;
 
-App::App(AppDesc desc) {
-	ASSERT(s_instance == nullptr);
-	s_instance = this;
-	::engine::log::init();
+	App::App(AppDesc desc) {
+		ASSERT(s_instance == nullptr);
+		s_instance = this;
+		::engine::log::init();
 
-	m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor, m_eventBus);
-	m_window->createNativeWindow();
+		m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor);
+		m_window->createNativeWindow();
 
-	m_listener.listen<engine::events::EventWindowResize>(std::bind(&App::windowResizeEventHandler, this, std::placeholders::_1));
+		m_graphicsDeviceManager = gpu::DeviceManager::create();
+		m_graphicsDevice = m_graphicsDeviceManager->getDevice();
 
-	m_graphicsDeviceManager = gpu::DeviceManager::create();
-	m_graphicsDevice = m_graphicsDeviceManager->getDevice();
+		// Set initial viewport to the window size
+		gpu::Rect viewport = {
+			.left = 0,
+			.right = desc.window.width,
+			.top = 0,
+			.bottom = desc.window.height,
+		};
+		m_graphicsDevice->setViewport(viewport);
 
-	// Set initial viewport to the window size
-	gpu::Rect viewport = {
-		.left = 0,
-		.right = desc.window.width,
-		.top = 0,
-		.bottom = desc.window.height,
-	};
-	m_graphicsDevice->setViewport(viewport);
-}
+		// make imgui layer
+		m_imguiLayer = new ImguiLayer(m_graphicsDeviceManager);
+		pushOverlay(m_imguiLayer);
+	}
 
-App::~App() {
-}
+	App::~App() {
+	}
 
-void App::run() {
-	LOG_INFO("Starting execution loop...");
-	
-	auto lastTime = std::chrono::high_resolution_clock::now();
-	double timeElapsed = 0.0;
-	double physicsAccumulator = 0.0;
+	void App::run() {
+		LOG_INFO("Starting execution loop...");
+		m_isRunning = true;
 
-	while (!m_window->shouldCloseWindow()) {
+		auto lastTime = std::chrono::high_resolution_clock::now();
+		double timeElapsed = 0.0;
+		double physicsAccumulator = 0.0;
 
-		// Propagate queued events
-		m_eventBus->process();
+		while (!m_window->shouldCloseWindow() && m_isRunning) {
 
-		// @NOTE: deltaTime is 0 for the first frame of the app's lifetime
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
-		double frameTime = static_cast<double>(duration);
-		lastTime = currentTime;
-		
-		// Based on https://www.gafferongames.com/post/fix_your_timestep/
-		physicsAccumulator += frameTime;
-		while (physicsAccumulator > k_FIXED_DELTA_TIME) {
-			for (auto layer : m_layerStack) {
-				layer->update(timeElapsed, k_FIXED_DELTA_TIME);
-				physicsAccumulator -= k_FIXED_DELTA_TIME;
-				timeElapsed += k_FIXED_DELTA_TIME;
+			// @NOTE: deltaTime is 0 for the first frame of the app's lifetime
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
+			double frameTime = static_cast<double>(duration);
+			lastTime = currentTime;
+
+			// Based on https://www.gafferongames.com/post/fix_your_timestep/
+			physicsAccumulator += frameTime;
+			while (physicsAccumulator > k_FIXED_DELTA_TIME) {
+				for (engine::ILayer* layer : m_layerStack) {
+					layer->update(timeElapsed, k_FIXED_DELTA_TIME);
+					physicsAccumulator -= k_FIXED_DELTA_TIME;
+					timeElapsed += k_FIXED_DELTA_TIME;
+				}
+			}
+
+			// don't issue draw calls while minimised
+			if (!m_minimised) {
+				// draw events
+				for (engine::ILayer* layer : m_layerStack) {
+					layer->render(frameTime);
+				}
+
+				// draw imgui data
+				m_imguiLayer->begin();
+				for (engine::ILayer* layer : m_layerStack) {
+					layer->imguiDraw();
+				}
+				m_imguiLayer->end();
+
+				// Present
+				m_graphicsDevice->present();
+				m_window->windowPresent();
 			}
 		}
-		for (auto layer : m_layerStack) {
-			layer->render(frameTime);
+		m_window->close();
+	}
+
+	void App::pushLayer(engine::ILayer* layer) {
+		ASSERT(layer != nullptr);
+		LOG_INFO("Pushing layer \"{}\"...", layer->getDebugName());
+		m_layerStack.pushLayer(layer);
+	}
+
+	void App::pushOverlay(engine::ILayer* overlay) {
+		ASSERT(overlay != nullptr);
+		LOG_INFO("Pushing overlay \"{}\"...", overlay->getDebugName());
+		m_layerStack.pushOverlay(overlay);
+	}
+
+	void App::event(events::Event& event) {
+		events::EventDispatcher dispatcher(event);
+		dispatcher.dispatch<events::WindowCloseEvent>(EVENT_BIND_FUNC(App::onWindowClose));
+		dispatcher.dispatch<events::WindowResizeEvent>(EVENT_BIND_FUNC(App::onWindowResize));
+
+		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
+		{
+			if (event.handled)
+				break;
+			(*it)->event(event);
+		}
+	}
+
+	bool App::onWindowClose(const events::WindowCloseEvent& event) {
+		m_isRunning = false;
+		return true;
+	}
+
+	bool App::onWindowResize(const events::WindowResizeEvent& event) {
+
+		if (event.width == 0 || event.height == 0) {
+			m_minimised = true;
+			return false;
 		}
 
-		m_window->windowPresent();
-	}
-	m_window->close();
+		m_minimised = false;
 
-}
-
-void App::pushLayer(engine::ILayer* layer) {
-	ASSERT(layer != nullptr);
-	LOG_INFO("Pushing layer...");
-	m_layerStack.push_back(layer);
-}
-
-void App::windowResizeEventHandler(const engine::events::EventWindowResize& evt) {
-	for (auto layer : m_layerStack) {
-		layer->backBufferResizing();
-		layer->backBufferResized(evt.newWidth, evt.newHeight, 1);
+		return false;
 	}
 }

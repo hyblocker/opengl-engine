@@ -1,6 +1,13 @@
 #include "game_layer.hpp"
 #include <stb_image.h>
 
+#include <imgui.h>
+
+void GameLayer::event(engine::events::Event& event) {
+    engine::events::EventDispatcher dispatcher(event);
+    dispatcher.dispatch<engine::events::WindowResizeEvent>(EVENT_BIND_FUNC(GameLayer::windowResized));
+}
+
 struct PositionColorVertex {
     float position[3];
     float color[3];
@@ -17,6 +24,7 @@ layout (location = 2) in vec2 iUv;
 layout(std140) uniform DataBuffer
 {
     vec4 coolColor;
+    float colorBlendFac;
 };
 
 out vec3 color;
@@ -32,9 +40,14 @@ void main()
 constexpr const char shader_pixel[] = SHADER_HEADER R"(
 precision mediump float;
 
+layout(std140) uniform DataBuffer
+{
+    vec4 coolColor;
+    float colorBlendFac;
+};
+
 // gl_FragColor is deprecated in GLSL 4.4+
 layout (location = 0) out vec4 fragColor;
-
 layout (binding = 0) uniform sampler2D brickTex;
 
 in vec3 color;
@@ -42,7 +55,7 @@ in vec2 uv;
 
 void main()
 {
-    fragColor = vec4(mix(color, texture(brickTex, uv).rgb, 0.5f), 1.0f);
+    fragColor = vec4(mix(color, texture(brickTex, uv).rgb, colorBlendFac), 1.0f);
 } 
 )";
 
@@ -55,13 +68,13 @@ PositionColorVertex vertices[] = {
 uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
 GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
-    : ILayer(deviceManager) {
+    : ILayer(deviceManager, "GameLayer") {
 
     getDevice()->setViewport({
         .left = 0,
-        .right = App::getInstance()->getWindow()->getWidth(),
+        .right = engine::App::getInstance()->getWindow()->getWidth(),
         .top = 0,
-        .bottom = App::getInstance()->getWindow()->getHeight(),
+        .bottom = engine::App::getInstance()->getWindow()->getHeight(),
         });
 
     getDevice()->clearColor({ 0, 0, 0, 1 });
@@ -146,14 +159,14 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     auto fbo = getDevice()->makeFramebuffer({
         .colorDesc = {
-            .width = App::getInstance()->getWindow()->getWidth(),
-            .height = App::getInstance()->getWindow()->getHeight(),
+            .width = engine::App::getInstance()->getWindow()->getWidth(),
+            .height = engine::App::getInstance()->getWindow()->getHeight(),
             .samples = 4,
             .format = gpu::TextureFormat::RGB10_A2,
         },
         .depthStencilDesc = {
-            .width = App::getInstance()->getWindow()->getWidth(),
-            .height = App::getInstance()->getWindow()->getHeight(),
+            .width = engine::App::getInstance()->getWindow()->getWidth(),
+            .height = engine::App::getInstance()->getWindow()->getHeight(),
             .samples = 1,
             .format = gpu::TextureFormat::Depth24_Stencil8,
         },
@@ -176,7 +189,8 @@ void GameLayer::render(double deltaTime) {
     CBuffer* cbufferView = nullptr;
     getDevice()->mapBuffer(m_cbuffer, 0, sizeof(CBuffer), gpu::MapAccessFlags::Write, reinterpret_cast<void**>(&cbufferView));
     if (cbufferView != nullptr) {
-        cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
+        // cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
+        memcpy(cbufferView, &m_cbufferData, sizeof(CBuffer)); // copy data to gpu
         getDevice()->unmapBuffer(m_cbuffer);
     }
     getDevice()->setConstantBuffer(m_cbuffer, 0);
@@ -189,22 +203,32 @@ void GameLayer::render(double deltaTime) {
         .indexBuffer = m_indexBuffer,
         .shader = m_shader,
         }, (sizeof(indices) / sizeof(indices[0])));
-
-    // Present
-    getDevice()->present();
 }
 
-void GameLayer::backBufferResizing() {
-    // @TODO: invalidate post processing textures
-}
+bool GameLayer::windowResized(const engine::events::WindowResizeEvent& event) {
 
-void GameLayer::backBufferResized(uint32_t width, uint32_t height, uint32_t samples) {
-
-    // Set viewport dimensions
     getDevice()->setViewport({
         .left = 0,
-        .right = width,
+        .right = event.width,
         .top = 0,
-        .bottom = height,
+        .bottom = event.height,
         });
+
+    // @TODO: Signal post-processing stack resize fbos
+
+    return false;
+}
+
+void GameLayer::imguiDraw() {
+    ImGui::ShowDemoWindow();
+
+    ImGui::Begin("Debug");
+    ImGui::ColorEdit3("triangleColour", m_cbufferData.color.f32,
+        ImGuiColorEditFlags_PickerHueWheel | // colour wheel picker
+        ImGuiColorEditFlags_Float | // display floats as f32 for easy copy paste when hardcoding values
+        ImGuiColorEditFlags_DisplayRGB | // preview as RGB values
+        ImGuiColorEditFlags_InputRGB // output in RGB
+    );
+    ImGui::SliderFloat("colorBlendFac", &m_cbufferData.colorBlendFac, 0, 1, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::End();
 }

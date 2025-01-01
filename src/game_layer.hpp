@@ -8,7 +8,8 @@ struct CBuffer {
     // hlslpp::float4x4 view;
     // hlslpp::float4x4 projection;
 
-    hlslpp::float4   color;
+    hlslpp::float4   color = { 0.0f,1.0f,1.0f,1.0f };
+    float colorBlendFac = 1.0f;
 };
 
 class GameLayer : public engine::ILayer {
@@ -18,8 +19,11 @@ public:
 
     void update(double timeElapsed, double deltaTime) override;
     void render(double deltaTime) override;
-    void backBufferResizing() override;
-    void backBufferResized(uint32_t width, uint32_t height, uint32_t samples) override;
+    void event(engine::events::Event& event) override;
+    void imguiDraw() override;
+
+private:
+    bool windowResized(const engine::events::WindowResizeEvent& event);
 
 private:
 

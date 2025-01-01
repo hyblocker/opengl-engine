@@ -2,8 +2,6 @@
 
 #include <inttypes.h>
 #include <string>
-#include <memory>
-#include <dexode/EventBus.hpp>
 
 typedef uintptr_t WindowHandle;
 
@@ -15,41 +13,39 @@ struct WindowDesc {
 
 struct GLFWwindow;
 
-class Window {
-public:
-	Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor, std::shared_ptr<dexode::EventBus>& eventBus);
-	~Window();
+namespace engine {
 
-	void createNativeWindow();
-	void close() const;
-	void shutdown() const;
+	class Window {
+	public:
+		Window(WindowDesc desc, int32_t openglMajor, int32_t openglMinor);
+		~Window();
 
-	void setTitle(std::string& title);
+		void createNativeWindow();
+		void close() const;
+		void shutdown() const;
 
-	inline const uint32_t getWidth() const { return m_desc.width; }
-	inline const uint32_t getHeight() const { return m_desc.height; }
-	inline const WindowHandle getHandle() const { return m_windowHandle; }
+		void setTitle(std::string& title);
 
-	inline const WindowDesc getDesc() const { return m_desc; }
-	
-	inline static const uint32_t getWindowCount() { return s_windowCount; }
+		inline const uint32_t getWidth() const { return m_desc.width; }
+		inline const uint32_t getHeight() const { return m_desc.height; }
+		inline const WindowHandle getHandle() const { return m_windowHandle; }
 
-private:
-	int shouldCloseWindow() const;
-	void windowPresent() const;
+		inline const WindowDesc getDesc() const { return m_desc; }
 
-private:
-	static void onResizeCallback(GLFWwindow* glfwWindow, int width, int height);
-	static void onKeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods);
+		inline static const uint32_t getWindowCount() { return s_windowCount; }
 
-private:
-	WindowHandle m_windowHandle;
-	WindowDesc m_desc;
-	int32_t m_openglMajor;
-	int32_t m_openglMinor;
-	std::shared_ptr<dexode::EventBus> m_eventBus;
+	private:
+		int shouldCloseWindow() const;
+		void windowPresent() const;
 
-	static uint32_t s_windowCount;
+	private:
+		WindowHandle m_windowHandle;
+		WindowDesc m_desc;
+		int32_t m_openglMajor;
+		int32_t m_openglMinor;
 
-	friend class App;
-};
+		static uint32_t s_windowCount;
+
+		friend class App;
+	};
+}

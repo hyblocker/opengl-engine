@@ -4,7 +4,7 @@
 #include "game_layer.hpp"
 
 int main (int argc, char *argv[]) {
-	App app({
+	engine::App app({
 		.window = {
 			.width = 1280,
 			.height = 720,
@@ -16,6 +16,4 @@ int main (int argc, char *argv[]) {
 	app.pushLayer(gameLayer);
 
 	app.run();
-
-	delete gameLayer;
 }
