@@ -2,7 +2,8 @@
 
 #include <inttypes.h>
 #include <hlsl++.h>
-#include <engine/gpu/idevice.hpp>
+#include "engine/gpu/idevice.hpp"
+#include "engine/renderer/scene_graph.hpp"
 
 namespace render {
 
@@ -18,7 +19,13 @@ namespace render {
         Quad,
     };
 
-	struct Light {
+    class Light : public IComponent {
+    public:
+        Light() {
+            componentType = ::render::ComponentType::Light;
+        }
+        ~Light() = default;
+
 		LightType type = LightType::Directional;
 		AttenuationType attenuation = AttenuationType::None;
 
@@ -30,5 +37,8 @@ namespace render {
 		hlslpp::float3 colour = { 1.0f, 1.0f, 1.0f };
         float intensity = 1.0f;
         float radius = 1.0f; // For spot and point lights
+    private:
+        // derived classes are forbidden from modifying componentType
+        using IComponent::componentType;
 	};
 }

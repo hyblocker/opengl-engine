@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "engine/gpu/idevice.hpp"
-#include "engine/renderer/light.hpp"
 #include "engine/renderer/skybox.hpp"
 
 namespace render {
