@@ -55,6 +55,7 @@ target_include_directories(OpenGlEngine
 	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/fmt/include
 	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/hlslpp/include
 	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/box2d/include
+	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/imgui
 )
 
 target_link_libraries(OpenGlEngine
