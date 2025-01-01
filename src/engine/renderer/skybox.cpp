@@ -1,4 +1,4 @@
-#include "light.hpp"
+#include "skybox.hpp"
 
 namespace render {
 
