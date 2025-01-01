@@ -30,19 +30,6 @@ message("Adding hlslpp...")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/vendor/hlslpp")
 include(hlslpp-config)
 
-# Dear ImGui
-message("Adding ImGui...")
-add_library(imgui STATIC
-	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui.cpp
-	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_demo.cpp
-	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_draw.cpp
-	${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_widgets.cpp
-	${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_glfw.cpp
-	${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_opengl3.cpp)
-target_include_directories(imgui
-	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/imgui
-	PUBLIC ${CMAKE_SOURCE_DIR}/vendor/imgui/backends)
-
 # box2d
 message("Adding box2D...")
 set(BOX2D_ENABLE_SIMD ON CACHE BOOL "Enable SIMD math (faster)")
@@ -69,8 +56,6 @@ set_property(TARGET fmt PROPERTY FOLDER "vendor")
 set_property(TARGET quill PROPERTY FOLDER "vendor")
 
 set_property(TARGET box2d PROPERTY FOLDER "vendor")
-
-set_property(TARGET imgui PROPERTY FOLDER "vendor")
 
 set_property(TARGET tinyobjloader PROPERTY FOLDER "vendor/tinyobj")
 set_property(TARGET uninstall PROPERTY FOLDER "vendor/tinyobj")

@@ -63,7 +63,6 @@ target_link_libraries(OpenGlEngine
 	PRIVATE fmt
 	PRIVATE quill
 	PRIVATE box2d
-	PRIVATE imgui
 	PRIVATE tinyobjloader
 )
 

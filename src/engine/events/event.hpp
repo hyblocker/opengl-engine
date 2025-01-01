@@ -57,8 +57,13 @@ namespace engine::events {
 
 		// F is a function returning bool, where bool sets the handled property of event to true if set to true
 		template<typename T, typename F>
-		bool dispatch(const F& func) {
-			if (m_event.handled |= func(static_cast<T&>(m_event))) {
+		typename std::enable_if<
+			std::is_base_of<::engine::events::Event, T>::value && // T : engine::events::Event
+			std::is_invocable_r<bool, F, const T&>::value, bool // bool F(const T& event)
+		>::type
+		dispatch(const F& func) {
+			if (m_event.getEventType() == T::getStaticType()) {
+				m_event.handled |= func(static_cast<T&>(m_event));
 				return true;
 			}
 			return false;

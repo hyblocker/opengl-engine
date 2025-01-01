@@ -1,7 +1,7 @@
 // implement single header libs here
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"]
+#include "stb_image.h"
 
 // imgui core lib
 #include <imgui.cpp>
