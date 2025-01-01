@@ -30,13 +30,6 @@ message("Adding hlslpp...")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/vendor/hlslpp")
 include(hlslpp-config)
 
-# eventbus
-message("Adding EventBus...")
-set(ENABLE_TEST OFF CACHE BOOL "Enable test")
-set(ENABLE_PERFORMANCE OFF CACHE BOOL "Enable performance subproject")
-set(ENABLE_LIBCXX OFF CACHE BOOL "Enable build with libc++")
-add_subdirectory(EventBus)
-
 # Dear ImGui
 message("Adding ImGui...")
 add_library(imgui STATIC
@@ -74,10 +67,6 @@ set_property(TARGET update_mappings PROPERTY FOLDER "vendor/glfw")
 set_property(TARGET fmt PROPERTY FOLDER "vendor")
 
 set_property(TARGET quill PROPERTY FOLDER "vendor")
-
-set_property(TARGET EventBus PROPERTY FOLDER "vendor/EventBus")
-set_property(TARGET UseCase_Basic PROPERTY FOLDER "vendor/EventBus")
-set_property(TARGET UseCase_TaggedEvents PROPERTY FOLDER "vendor/EventBus")
 
 set_property(TARGET box2d PROPERTY FOLDER "vendor")
 
