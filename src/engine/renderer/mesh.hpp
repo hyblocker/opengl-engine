@@ -9,6 +9,7 @@ namespace render {
     struct Mesh {
     private:
 
-        
+        gpu::IBuffer* m_vertexBuffer;
+        gpu::IBuffer* m_indexBuffer;
     };
 }
