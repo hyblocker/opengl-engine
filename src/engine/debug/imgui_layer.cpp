@@ -11,8 +11,8 @@
 
 // most of the code for setting up imgui itself is taken from vendor/imgui/examples/example_glfw_opengl3/main.cpp
 namespace engine {
-    ImguiLayer::ImguiLayer(gpu::DeviceManager* deviceManager)
-        : ILayer(deviceManager, "ImGuiLayer")
+    ImguiLayer::ImguiLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager)
+        : ILayer(deviceManager, assetManager, "ImGuiLayer")
     {}
 
     void ImguiLayer::attach() {

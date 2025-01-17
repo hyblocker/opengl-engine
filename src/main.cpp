@@ -12,7 +12,7 @@ int main (int argc, char *argv[]) {
 		}
 		});
 
-	GameLayer* gameLayer = new GameLayer(app.getDeviceManager());
+	GameLayer* gameLayer = new GameLayer(app.getDeviceManager(), app.getAssetManager());
 	app.pushLayer(gameLayer);
 
 	app.run();

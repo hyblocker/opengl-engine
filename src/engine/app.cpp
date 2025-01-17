@@ -29,12 +29,16 @@ namespace engine {
 		};
 		m_graphicsDevice->setViewport(viewport);
 
+		// initialise asset pipeline
+		m_assetManager = new managers::AssetManager(m_graphicsDevice);
+
 		// make imgui layer
-		m_imguiLayer = new ImguiLayer(m_graphicsDeviceManager);
+		m_imguiLayer = new ImguiLayer(m_graphicsDeviceManager, m_assetManager);
 		pushOverlay(m_imguiLayer);
 	}
 
 	App::~App() {
+		delete m_assetManager;
 	}
 
 	void App::run() {

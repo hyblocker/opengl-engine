@@ -7,7 +7,7 @@ namespace engine {
     class ImguiLayer : public ILayer {
     public:
 
-        ImguiLayer(gpu::DeviceManager* deviceManager);
+        ImguiLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager);
         ~ImguiLayer() = default;
 
         virtual void attach() override;

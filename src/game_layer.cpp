@@ -8,58 +8,7 @@ void GameLayer::event(engine::events::Event& event) {
     dispatcher.dispatch<engine::events::WindowResizeEvent>(EVENT_BIND_FUNC(GameLayer::windowResized));
 }
 
-struct PositionColorVertex {
-    float position[3];
-    float color[3];
-    float uv[2];
-};
-
-#define SHADER_HEADER "#version 460 core"
-
-constexpr const char shader_vert[] = SHADER_HEADER R"(
-layout (location = 0) in vec3 iPosition;
-layout (location = 1) in vec3 iColor;
-layout (location = 2) in vec2 iUv;
-
-layout(std140) uniform DataBuffer
-{
-    vec4 coolColor;
-    float colorBlendFac;
-};
-
-out vec3 color;
-out vec2 uv;
-
-void main()
-{
-    gl_Position = vec4(iPosition.x, iPosition.y, iPosition.z, 1.0);
-    color = iColor * coolColor.rgb;
-    uv = iUv.xy;
-}
-)";
-constexpr const char shader_pixel[] = SHADER_HEADER R"(
-precision mediump float;
-
-layout(std140) uniform DataBuffer
-{
-    vec4 coolColor;
-    float colorBlendFac;
-};
-
-// gl_FragColor is deprecated in GLSL 4.4+
-layout (location = 0) out vec4 fragColor;
-layout (binding = 0) uniform sampler2D brickTex;
-
-in vec3 color;
-in vec2 uv;
-
-void main()
-{
-    fragColor = vec4(mix(color, texture(brickTex, uv).rgb, colorBlendFac), 1.0f);
-} 
-)";
-
-PositionColorVertex vertices[] = {
+render::PositionColorVertex vertices[] = {
     { .position = { -1, -1, 0 }, .color = { 1, 0, 0 }, .uv = { 0, 0 } },
     { .position = {  1, -1, 0 }, .color = { 0, 1, 0 }, .uv = { 1, 0 } },
     { .position = {  1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 1, 1 } },
@@ -67,8 +16,8 @@ PositionColorVertex vertices[] = {
 };
 uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
-GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
-    : ILayer(deviceManager, "GameLayer") {
+GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager)
+    : ILayer(deviceManager, assetManager, "GameLayer") {
 
     getDevice()->setViewport({
         .left = 0,
@@ -89,21 +38,21 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // VertexLayout
     gpu::VertexAttributeDesc vDesc[] = {
-        {.name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(PositionColorVertex, position), .elementStride = sizeof(PositionColorVertex)},
-        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(PositionColorVertex, color), .elementStride = sizeof(PositionColorVertex)},
-        {.name = "TEXCOORD0", .format = gpu::GpuFormat::RG8_TYPELESS, .bufferIndex = 2, .offset = offsetof(PositionColorVertex, uv), .elementStride = sizeof(PositionColorVertex)}
+        {.name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(render::PositionColorVertex, position), .elementStride = sizeof(render::PositionColorVertex)},
+        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(render::PositionColorVertex, color), .elementStride = sizeof(render::PositionColorVertex)},
+        {.name = "TEXCOORD0", .format = gpu::GpuFormat::RG8_TYPELESS, .bufferIndex = 2, .offset = offsetof(render::PositionColorVertex, uv), .elementStride = sizeof(render::PositionColorVertex)}
     };
+
     m_vertexLayout = getDevice()->createInputLayout(vDesc, sizeof(vDesc) / sizeof(vDesc[0]));
 
-    // Make a shader but awesome
-    m_shader = getDevice()->makeShader({
-        .debugName = "triangle",
-        .VS { .byteCode = (uint8_t*) shader_vert, .entryFunc = "main" },
-        .PS { .byteCode = (uint8_t*) shader_pixel, .entryFunc = "main" },
+    m_shader = getAssetManager()->fetchShader({
         .graphicsState = {
-            .depthState = gpu::CompareFunc::LessOrEqual, // inverse Z
-            .vertexLayout = m_vertexLayout,
-    }   });
+            .vertexLayout = m_vertexLayout
+        },
+        .vertShader = "vert.glsl",
+        .fragShader = "frag.glsl",
+        .debugName = "Simple"
+    });
     getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
 
     // Prepare cbuffer to populate it with transform matrices
@@ -131,30 +80,9 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager)
 
     // Define tri-linear aniso 16 texture sampler
     {
-        int texWidth, texHeight, nrChannels;
-        unsigned char* texData = stbi_load("assets/textures/brick_wall.png", &texWidth, &texHeight, &nrChannels, 0);
+        m_texture = getAssetManager()->fetchTexture("brick_wall.png");
 
-        m_texture = getDevice()->makeTexture({
-            .width = (uint32_t) texWidth,
-            .height = (uint32_t) texHeight,
-            .type = gpu::TextureType::Texture2D,
-            }, texData);
-
-        m_trillinearAniso16ClampSampler = getDevice()->makeTextureSampler({
-            .minFilter = gpu::SamplingMode::Linear,
-            .magFilter = gpu::SamplingMode::Linear,
-            .mipFilter = gpu::SamplingMode::Linear, // Trilinear sampling, Nearest = Bilinear sampling
-
-            .wrapX = gpu::TextureWrap::Repeat,
-            .wrapY = gpu::TextureWrap::Repeat,
-            .wrapZ = gpu::TextureWrap::Repeat,
-
-            // do not bias mip-map sampling
-            .lodBias = 0,
-
-            // 16x anisotropic filtering
-            .anisotropy = 16.0f,
-        });
+        m_trillinearAniso16ClampSampler = getDevice()->makeTextureSampler({ /* default (linear, wrap, 16x-aniso) */ });
     }
 
     auto fbo = getDevice()->makeFramebuffer({

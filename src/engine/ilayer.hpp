@@ -2,13 +2,15 @@
 
 #include <inttypes.h>
 #include "gpu/device_manager.hpp"
+#include "engine/managers/asset_manager.hpp"
 #include "events/event.hpp"
 
 namespace engine {
     class ILayer {
     public:
-        explicit ILayer(gpu::DeviceManager* deviceManager, const std::string& debugName)
+        explicit ILayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager, const std::string& debugName)
             : m_deviceManager(deviceManager),
+            m_assetManager(assetManager),
             m_debugName(debugName)
         {}
         virtual ~ILayer() = default;
@@ -29,8 +31,10 @@ namespace engine {
 
         [[nodiscard]] gpu::DeviceManager* getDeviceManager() const { return m_deviceManager; }
         [[nodiscard]] gpu::IDevice* getDevice() const { return m_deviceManager->getDevice(); }
+        [[nodiscard]] managers::AssetManager* getAssetManager() const { return m_assetManager; }
     private:
         gpu::DeviceManager* m_deviceManager = nullptr;
+        managers::AssetManager* m_assetManager = nullptr;
         std::string m_debugName;
     };
 }

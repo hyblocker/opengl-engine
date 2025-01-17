@@ -10,6 +10,7 @@
 #include "engine/events/event.hpp"
 #include "engine/events/application_event.hpp"
 #include "engine/debug/imgui_layer.hpp"
+#include "engine/managers/asset_manager.hpp"
 #include "engine/log.hpp"
 
 struct AppDesc {
@@ -38,7 +39,8 @@ namespace engine {
 		// Getters
 		[[nodiscard]] inline Window* getWindow() { return m_window.get(); };
 		[[nodiscard]] inline gpu::DeviceManager* getDeviceManager() { return m_graphicsDeviceManager; };
-		[[nodiscard]] inline ImguiLayer *getImguiLayer() { return m_imguiLayer; };
+		[[nodiscard]] inline ImguiLayer* getImguiLayer() { return m_imguiLayer; };
+		[[nodiscard]] inline managers::AssetManager* getAssetManager() { return m_assetManager; };
 
 		[[nodiscard]] inline static App* getInstance() { return s_instance; };
 		
@@ -52,6 +54,7 @@ namespace engine {
 		// Graphics
 		gpu::DeviceManager* m_graphicsDeviceManager = nullptr;
 		gpu::IDevice* m_graphicsDevice = nullptr;
+		managers::AssetManager* m_assetManager = nullptr;
 
 		// Layer system
 		ImguiLayer* m_imguiLayer = nullptr;

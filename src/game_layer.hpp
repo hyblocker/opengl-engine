@@ -14,7 +14,7 @@ struct CBuffer {
 
 class GameLayer : public engine::ILayer {
 public:
-    GameLayer(gpu::DeviceManager* deviceManager);
+    GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager);
     ~GameLayer() override;
 
     void update(double timeElapsed, double deltaTime) override;
@@ -32,10 +32,12 @@ private:
     gpu::BufferHandle m_vertexBuffer;
     gpu::BufferHandle m_indexBuffer;
     gpu::InputLayoutHandle m_vertexLayout;
-    gpu::ShaderHandle m_shader;
+    // gpu::ShaderHandle m_shader;
+    gpu::IShader* m_shader;
 
     gpu::BufferHandle m_cbuffer;
 
-    gpu::TextureHandle m_texture;
+    // gpu::TextureHandle m_texture;
+    gpu::ITexture* m_texture;
     gpu::TextureSamplerHandle m_trillinearAniso16ClampSampler;
 };
