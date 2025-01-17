@@ -16,7 +16,7 @@ namespace gpu {
 		bool depthWrite = true;
 		FaceCullMode faceCullingMode = FaceCullMode::Back;
 		WindingOrder faceWindingOrder = WindingOrder::CounterClockwise;
-		IInputLayout* vertexLayout;
+		IInputLayout* vertexLayout = nullptr;
 	};
 
 	struct ShaderProgram {
@@ -93,6 +93,7 @@ namespace gpu {
 		virtual void present() = 0;
 
 		// Textures
+		// Assumes RGBA data in textureData
 		virtual TextureHandle makeTexture(TextureDesc desc, void* textureData) = 0;
 		virtual TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) = 0;
 		virtual void bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index = 0) = 0;

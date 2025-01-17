@@ -28,7 +28,7 @@ namespace gpu::gl {
 		glBindTexture(getGlTextureType(desc.type).glEnum, glTexture);
 
 		// Upload data
-		glTexImage2D(getGlTextureType(desc.type).glEnum, 0, GL_RGB, desc.width, desc.height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+		glTexImage2D(getGlTextureType(desc.type).glEnum, 0, GL_RGBA, desc.width, desc.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
 		
 		if (desc.generateMipmaps) {
 			glGenerateMipmap(getGlTextureType(desc.type).glEnum);
