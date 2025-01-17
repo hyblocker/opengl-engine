@@ -48,7 +48,7 @@ namespace render {
 
         virtual void start() {}; // called on scene load
         virtual void sleep() {}; // called on scene unload
-        virtual void update(float deltaTime) {}; // called every update tick
+        virtual void update(const float deltaTime) {}; // called every update tick
         virtual void render() {}; // called every frame
 
     private:
