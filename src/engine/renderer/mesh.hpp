@@ -6,10 +6,17 @@
 #include <vector>
 
 namespace render {
-    struct Mesh {
-    private:
 
-        gpu::IBuffer* m_vertexBuffer;
-        gpu::IBuffer* m_indexBuffer;
+    // Commonly used vertex layouts
+    struct PositionColorVertex {
+        float position[3];
+        float color[3];
+        float uv[2];
+    };
+
+    struct Mesh {
+    public:
+        gpu::IBuffer* vertexBuffer;
+        gpu::IBuffer* indexBuffer;
     };
 }

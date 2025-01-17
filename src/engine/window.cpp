@@ -84,7 +84,7 @@ namespace engine {
 
         s_windowCount++;
 
-        // assign callbacks
+        // assign callbacks to get input events
         glfwSetWindowSizeCallback(reinterpret_cast<GLFWwindow*>(m_windowHandle), [](GLFWwindow* glfwWindow, int width, int height) {
             Window* window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWindow));
             window->m_desc.width = width;
