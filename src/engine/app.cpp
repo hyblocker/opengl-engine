@@ -18,6 +18,9 @@ namespace engine {
 
 		m_maxFrameRate = desc.maxFramerate;
 		m_maxFrameTime = 1.0 / desc.maxFramerate;
+
+		m_inputManager = new input::InputManager;
+		m_inputManager->init();
 		m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor);
 		m_window->createNativeWindow();
 
@@ -43,6 +46,7 @@ namespace engine {
 
 	App::~App() {
 		delete m_assetManager;
+		delete m_inputManager;
 	}
 
 	void App::run() {
@@ -68,6 +72,7 @@ namespace engine {
 				for (engine::ILayer* layer : m_layerStack) {
 					layer->update(timeElapsed, k_FIXED_DELTA_TIME);
 				}
+				m_inputManager->update();
 				physicsAccumulator -= k_FIXED_DELTA_TIME;
 				timeElapsed += k_FIXED_DELTA_TIME;
 			}
@@ -117,6 +122,7 @@ namespace engine {
 		events::EventDispatcher dispatcher(event);
 		dispatcher.dispatch<events::WindowCloseEvent>(EVENT_BIND_FUNC(App::onWindowClose));
 		dispatcher.dispatch<events::WindowResizeEvent>(EVENT_BIND_FUNC(App::onWindowResize));
+		m_inputManager->event(event);
 
 		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
 		{

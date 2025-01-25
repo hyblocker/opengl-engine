@@ -8,7 +8,7 @@ namespace engine::events {
 	class KeyEvent : public Event
 	{
 	public:
-		engine::input::Keycode GetKeyCode() const { return m_keycode; }
+		engine::input::Keycode getKeyCode() const { return m_keycode; }
 
 		EVENT_CLASS_CATEGORY(EventCategory_Keyboard | EventCategory_Input)
 	protected:
@@ -24,7 +24,7 @@ namespace engine::events {
 		KeyPressedEvent(const engine::input::Keycode keycode, bool isRepeat = false)
 			: KeyEvent(keycode), m_is_repeat(isRepeat) {}
 
-		bool IsRepeat() const { return m_is_repeat; }
+		bool isRepeat() const { return m_is_repeat; }
 
 		std::string toString() const override {
 			return fmt::format("KeyPressedEvent: {} (repeat = {})", m_keycode, m_is_repeat);

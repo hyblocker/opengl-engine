@@ -21,6 +21,8 @@ namespace engine::input {
 		ButtonRight = Button1,
 		ButtonMiddle = Button2,
 		ButtonScroll = Button2,
+
+		Count = Button7 + 1,
 	};
 
 	// Enum describing input keycodes
@@ -158,6 +160,8 @@ namespace engine::input {
 		RightAlt = 346,
 		RightSuper = 347,
 		Menu = 348,
+
+		Count,
 	};
 
 	std::string format_as(MouseButton mouseButton);
