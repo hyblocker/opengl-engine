@@ -7,6 +7,7 @@ namespace render {
     enum class SkyboxType : uint8_t {
         Procedural,
         HDRI,
+        Count,
     };
 
     struct Skybox

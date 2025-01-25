@@ -21,7 +21,7 @@ namespace render {
 
     class Light : public IComponent {
     public:
-        Light() {
+        Light(Entity* parent) : IComponent(parent) {
             componentType = ::render::ComponentType::Light;
         }
         ~Light() = default;
