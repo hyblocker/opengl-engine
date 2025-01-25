@@ -1,21 +1,21 @@
 #include <stdio.h>
 
 #include "engine/app.hpp"
+#include "engine/renderer/scene_renderer.hpp"
 #include <hlsl++.h>
 
-struct CBuffer {
+struct BreakanoidCBuffer {
     // hlslpp::float4x4 model;
     // hlslpp::float4x4 view;
     // hlslpp::float4x4 projection;
 
     hlslpp::float4   color = { 0.0f,1.0f,1.0f,1.0f };
-    float colorBlendFac = 1.0f;
 };
 
-class GameLayer : public engine::ILayer {
+class BreakanoidLayer : public engine::ILayer {
 public:
-    GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager);
-    ~GameLayer() override;
+    BreakanoidLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager);
+    ~BreakanoidLayer() override;
 
     void update(double timeElapsed, double deltaTime) override;
     void render(double deltaTime) override;
@@ -27,20 +27,18 @@ private:
 
 private:
 
-    CBuffer m_cbufferData;
+    gpu::TextureSamplerHandle m_trillinearAniso16ClampSampler;
+    
+    BreakanoidCBuffer m_cbufferData;
 
-    // gpu::BufferHandle m_vertexBuffer;
-    // gpu::BufferHandle m_indexBuffer;
     render::Mesh m_testMesh;
 
-    // gpu::InputLayoutHandle m_vertexLayout;
-    gpu::IInputLayout* m_vertexLayout;
-    // gpu::ShaderHandle m_shader;
     gpu::IShader* m_shader;
 
     gpu::BufferHandle m_cbuffer;
 
-    // gpu::TextureHandle m_texture;
     gpu::ITexture* m_texture;
-    gpu::TextureSamplerHandle m_trillinearAniso16ClampSampler;
+
+    render::Scene m_menuScene;
+    render::Scene m_gameScene;
 };

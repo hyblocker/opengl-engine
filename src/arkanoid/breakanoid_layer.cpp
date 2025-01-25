@@ -1,26 +1,14 @@
-#include "game_layer.hpp"
+#include "breakanoid_layer.hpp"
 
 #include <imgui.h>
 
-// Test-bed for the engine features without breaking the game
-
-void GameLayer::event(engine::events::Event& event) {
+void BreakanoidLayer::event(engine::events::Event& event) {
     engine::events::EventDispatcher dispatcher(event);
-    dispatcher.dispatch<engine::events::WindowResizeEvent>(EVENT_BIND_FUNC(GameLayer::windowResized));
+    dispatcher.dispatch<engine::events::WindowResizeEvent>(EVENT_BIND_FUNC(BreakanoidLayer::windowResized));
 }
 
-/*
-render::PositionColorVertex vertices[] = {
-    { .position = { -1, -1, 0 }, .color = { 1, 0, 0 }, .uv = { 0, 0 } },
-    { .position = {  1, -1, 0 }, .color = { 0, 1, 0 }, .uv = { 1, 0 } },
-    { .position = {  1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 1, 1 } },
-    { .position = { -1,  1, 0 }, .color = { 0, 0, 1 }, .uv = { 0, 1 } },
-};
-uint16_t indices[] = { 0, 1, 2, 2, 3, 0 };
-*/
-
-GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager)
-    : ILayer(deviceManager, assetManager, "GameLayer") {
+BreakanoidLayer::BreakanoidLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* assetManager)
+    : ILayer(deviceManager, assetManager, "BreakanoidLayer") {
 
     getDevice()->setViewport({
         .left = 0,
@@ -31,25 +19,6 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* 
 
     getDevice()->clearColor({ 0, 0, 0, 1 });
 
-    /*
-    // Vertex buffer
-    m_vertexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::VertexBuffer, .usage = gpu::Usage::Default });
-    getDevice()->writeBuffer(m_vertexBuffer, sizeof(vertices), vertices);
-
-    // Triangle indices
-    m_indexBuffer = getDevice()->makeBuffer({ .type = gpu::BufferType::IndexBuffer, .usage = gpu::Usage::Default, .format = gpu::GpuFormat::Uint16_TYPELESS });
-    getDevice()->writeBuffer(m_indexBuffer, sizeof(indices), indices);
-
-    // VertexLayout
-    gpu::VertexAttributeDesc vDesc[] = {
-        {.name = "POSITION", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 0, .offset = offsetof(render::PositionColorVertex, position), .elementStride = sizeof(render::PositionColorVertex)},
-        {.name = "COLOR", .format = gpu::GpuFormat::RGB8_TYPELESS, .bufferIndex = 1, .offset = offsetof(render::PositionColorVertex, color), .elementStride = sizeof(render::PositionColorVertex)},
-        {.name = "TEXCOORD0", .format = gpu::GpuFormat::RG8_TYPELESS, .bufferIndex = 2, .offset = offsetof(render::PositionColorVertex, uv), .elementStride = sizeof(render::PositionColorVertex)}
-    };
-
-    m_vertexLayout = getDevice()->createInputLayout(vDesc, sizeof(vDesc) / sizeof(vDesc[0]));
-    */
-
     m_testMesh = getAssetManager()->fetchMesh("test.obj");
 
     m_shader = getAssetManager()->fetchShader({
@@ -59,7 +28,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* 
         .vertShader = "vert.glsl",
         .fragShader = "frag.glsl",
         .debugName = "Simple"
-    });
+        });
     getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
 
     // Prepare cbuffer to populate it with transform matrices
@@ -107,29 +76,25 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* 
         },
         .hasDepth = true,
         .debugName = "FBO"
-    });
+        });
 }
 
-GameLayer::~GameLayer() {
+BreakanoidLayer::~BreakanoidLayer() {
 }
 
-void GameLayer::update(double timeElapsed, double deltaTime) {
+void BreakanoidLayer::update(double timeElapsed, double deltaTime) {
     // @TODO: Box2D state update
-    if (engine::input::InputManager::getInstance()->keyReleased(engine::input::Keycode::W)) {
-        LOG_INFO("W!");
-    }
 }
 
-void GameLayer::render(double deltaTime) {
+void BreakanoidLayer::render(double deltaTime) {
 
     getDevice()->clearColor({ 0, 0, 0, 1 });
 
     // Terrible test
-    CBuffer* cbufferView = nullptr;
-    getDevice()->mapBuffer(m_cbuffer, 0, sizeof(CBuffer), gpu::MapAccessFlags::Write, reinterpret_cast<void**>(&cbufferView));
+    BreakanoidCBuffer* cbufferView = nullptr;
+    getDevice()->mapBuffer(m_cbuffer, 0, sizeof(BreakanoidCBuffer), gpu::MapAccessFlags::Write, reinterpret_cast<void**>(&cbufferView));
     if (cbufferView != nullptr) {
-        // cbufferView->color = hlslpp::float4(1, deltaTime, 0.5f, 1);
-        memcpy(cbufferView, &m_cbufferData, sizeof(CBuffer)); // copy data to gpu
+        memcpy(cbufferView, &m_cbufferData, sizeof(BreakanoidCBuffer)); // copy data to gpu
         getDevice()->unmapBuffer(m_cbuffer);
     }
     getDevice()->setConstantBuffer(m_cbuffer, 0);
@@ -145,7 +110,7 @@ void GameLayer::render(double deltaTime) {
         }, m_testMesh.triangleCount);
 }
 
-bool GameLayer::windowResized(const engine::events::WindowResizeEvent& event) {
+bool BreakanoidLayer::windowResized(const engine::events::WindowResizeEvent& event) {
 
     getDevice()->setViewport({
         .left = 0,
@@ -159,7 +124,7 @@ bool GameLayer::windowResized(const engine::events::WindowResizeEvent& event) {
     return false;
 }
 
-void GameLayer::imguiDraw() {
+void BreakanoidLayer::imguiDraw() {
     ImGui::ShowDemoWindow();
 
     ImGui::Begin("Debug");
@@ -169,6 +134,5 @@ void GameLayer::imguiDraw() {
         ImGuiColorEditFlags_DisplayRGB | // preview as RGB values
         ImGuiColorEditFlags_InputRGB // output in RGB
     );
-    ImGui::SliderFloat("colorBlendFac", &m_cbufferData.colorBlendFac, 0, 1, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 }
