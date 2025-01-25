@@ -141,4 +141,36 @@ namespace gpu {
 		
 		Count
 	};
+
+	enum class BlendFactor : uint8_t {
+		Zero,
+		One,
+		
+		SrcColour,
+		OneMinusSrcColour,
+		SrcAlpha,
+		OneMinusSrcAlpha,
+
+		DstColour,
+		OneMinusDstColour,
+		DstAlpha,
+		OneMinusDstAlpha,
+
+		Src1Colour,
+		OneMinusSrc1Colour,
+		Src1Alpha,
+		OneMinusSrc1Alpha,
+
+		Count,
+	};
+
+	enum class BlendOp : uint8_t {
+		Add,
+		Subtract,
+		// Subtracts source from dest
+		InvSubtract,
+		Min,
+		Max,
+		Count,
+	};
 }

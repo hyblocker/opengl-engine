@@ -16,7 +16,6 @@ namespace gpu {
 		bool depthWrite = true;
 		FaceCullMode faceCullingMode = FaceCullMode::Back;
 		WindingOrder faceWindingOrder = WindingOrder::CounterClockwise;
-		IInputLayout* vertexLayout = nullptr;
 	};
 
 	struct ShaderProgram {
@@ -26,7 +25,6 @@ namespace gpu {
 	};
 
 	struct ShaderDesc {
-		std::string debugName;
 		ShaderProgram VS;
 		ShaderProgram PS;
 		GraphicsState graphicsState = {
@@ -34,8 +32,8 @@ namespace gpu {
 			.depthWrite = true,
 			.faceCullingMode = FaceCullMode::Back,
 			.faceWindingOrder = WindingOrder::CounterClockwise,
-			.vertexLayout = nullptr,
 		};
+		std::string debugName = "";
 	};
 
 	class IShader {
@@ -48,8 +46,22 @@ namespace gpu {
 
 	typedef engine::RefCounter<IShader> ShaderHandle;
 
+	struct BlendStateDesc {
+		bool blendEnable = false;
+		BlendFactor srcFactor = BlendFactor::One;
+		BlendFactor dstFactor = BlendFactor::Zero;
+		BlendOp blendOp = BlendOp::Add;
+		BlendFactor srcFactorAlpha = BlendFactor::One;
+		BlendFactor dstFactorAlpha = BlendFactor::Zero;
+		BlendOp blendOpAlpha = BlendOp::Add;
+	};
+
 	class IBlendState {
-		// @TODO: AAAAAAAAAAAA
+	public:
+		IBlendState() = default;
+		virtual ~IBlendState() = default;
+		[[nodiscard]] virtual const BlendStateDesc& getDesc() const = 0;
+		[[nodiscard]] virtual const GpuPtr getNativeObject() const = 0;
 	};
 	typedef engine::RefCounter<IBlendState> BlendStateHandle;
 
@@ -60,6 +72,9 @@ namespace gpu {
 
 		// Shader to draw and it's associated vertex layout
 		IShader* shader = nullptr;
+
+		// Because OpenGL is horrible and vertex layout is tied to the fucking vertex buffer (whats the point of even binding a vertex buffer then??)
+		IInputLayout* vertexLayout = nullptr;
 
 		// Blending properties
 		IBlendState* blendState = nullptr;
@@ -77,6 +92,7 @@ namespace gpu {
 		virtual ShaderHandle makeShader(const ShaderDesc shaderDesc) = 0;
 
 		virtual BufferHandle makeBuffer(const BufferDesc bufferDesc) = 0;
+		// size is in bytes
 		virtual void writeBuffer(IBuffer* handle, size_t size, const  void* data) = 0;
 		virtual void mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) = 0;
 		virtual void unmapBuffer(IBuffer* buffer) = 0;
@@ -92,6 +108,10 @@ namespace gpu {
 		virtual void clearColor(Color color, float depth = 0.0f) = 0;
 		virtual void present() = 0;
 
+		// Blend state
+		virtual BlendStateHandle makeBlendState(const BlendStateDesc blendStateDesc) = 0;
+		virtual void bindBlendState(IBlendState* blendState) = 0;
+
 		// Textures
 		// Assumes RGBA data in textureData
 		virtual TextureHandle makeTexture(TextureDesc desc, void* textureData) = 0;
@@ -103,6 +123,9 @@ namespace gpu {
 		virtual FramebufferHandle makeFramebuffer(FramebufferDesc desc) = 0;
 		virtual void bindFramebuffer(IFramebuffer* texture) = 0;
 		virtual void blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) = 0;
+
+		virtual void debugMarkerPush(const std::string& title) = 0;
+		virtual void debugMarkerPop() = 0;
 	};
 
 	typedef engine::RefCounter<IDevice> DeviceHandle;

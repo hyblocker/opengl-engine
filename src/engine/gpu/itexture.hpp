@@ -15,6 +15,8 @@ namespace gpu {
 		bool generateMipmaps = true;
 
 		TextureType type = TextureType::Texture2D;
+
+		std::string debugName = "";
 	};
 
 	class ITexture {
@@ -44,6 +46,8 @@ namespace gpu {
 
 		// Target anisotropy. Clamped to the maximum supported by the hardware
 		float anisotropy = 16.0f;
+
+		std::string debugName = "";
 	};
 
 	class ITextureSampler {
@@ -76,6 +80,8 @@ namespace gpu {
 		};
 		// must be set to true for depth stencil attachment to be valid
 		bool hasDepth = true;
+
+		std::string debugName = "";
 	};
 
 	class IFramebuffer {

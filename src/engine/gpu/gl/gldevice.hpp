@@ -1,6 +1,24 @@
 #include "engine/gpu/idevice.hpp"
+#include "engine/log.hpp"
 
 namespace gpu::gl {
+
+	// Macro to get errors from OpenGL at call sites
+	// Similar in design to the VK_CHECK macro, from https://vkguide.dev/docs/chapter-1/vulkan_init_code/
+#if _DEBUG
+	#define GL_CHECK(x) \
+		do { \
+			x; \
+			GLenum err; \
+			while ((err = glGetError()) != GL_NO_ERROR) { \
+				LOG_ERROR("GL: {}", #x); \
+				abort(); \
+			} \
+		} while (0)
+#else
+	#define GL_CHECK(x) x;
+#endif
+
 
 	class GlDevice;
 
@@ -100,6 +118,20 @@ namespace gpu::gl {
 	};
 
 	//
+	// BlendState
+	//
+	class GlBlendState : public gpu::IBlendState {
+	public:
+		GlBlendState(BlendStateDesc blendStateDesc) : m_blendStateDesc(blendStateDesc) {}
+		~GlBlendState() = default;
+		[[nodiscard]] inline const BlendStateDesc& getDesc() const override { return m_blendStateDesc; }
+		[[nodiscard]] inline const GpuPtr getNativeObject() const override { return -1; }
+
+	private:
+		BlendStateDesc m_blendStateDesc;
+	};
+
+	//
 	// Device
 	//
 	class GlDevice : public ::gpu::IDevice {
@@ -126,6 +158,10 @@ namespace gpu::gl {
 		void clearColor(Color color, float depth) override;
 		void present() override;
 
+		// Blend state
+		BlendStateHandle makeBlendState(const BlendStateDesc blendStateDesc) override;
+		void bindBlendState(IBlendState* blendState) override;
+
 		// Textures
 		TextureHandle makeTexture(TextureDesc desc, void* textureData) override;
 		TextureSamplerHandle makeTextureSampler(TextureSamplerDesc desc) override;
@@ -135,6 +171,9 @@ namespace gpu::gl {
 		FramebufferHandle makeFramebuffer(FramebufferDesc desc) override;
 		void bindFramebuffer(IFramebuffer* texture) override; 
 		void blitFramebuffer(IFramebuffer* textureSrc, IFramebuffer* textureDst) override;
+
+		void debugMarkerPush(const std::string& title) override;
+		void debugMarkerPop() override;
 
 	private:
 		void bindShader(IShader* shader);

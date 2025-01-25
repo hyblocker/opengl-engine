@@ -38,6 +38,8 @@ namespace gpu {
 		gpu::BufferType type = gpu::BufferType::ConstantBuffer;
 		gpu::Usage usage = gpu::Usage::Default;
 		gpu::GpuFormat format = gpu::GpuFormat::Unknown;
+
+		std::string debugName = "";
 	};
 
 	class IBuffer {

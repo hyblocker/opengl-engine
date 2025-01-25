@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include <fmt/format.h>
 #include "engine/gpu/itexture.hpp"
 #include "engine/gpu/gl/gldevice.hpp"
 #include "engine/gpu/gl/glmappings.hpp"
@@ -23,16 +24,22 @@ namespace gpu::gl {
 		ASSERT(desc.type != gpu::TextureType::Count);
 
 		GLuint glTexture = 0;
-		glGenTextures(1, &glTexture);
+		GL_CHECK(glGenTextures(1, &glTexture));
 
-		glBindTexture(getGlTextureType(desc.type).glEnum, glTexture);
+		GL_CHECK(glBindTexture(getGlTextureType(desc.type).glEnum, glTexture));
 
 		// Upload data
-		glTexImage2D(getGlTextureType(desc.type).glEnum, 0, GL_RGBA, desc.width, desc.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+		GL_CHECK(glTexImage2D(getGlTextureType(desc.type).glEnum, 0, GL_RGBA, desc.width, desc.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData));
 		
 		if (desc.generateMipmaps) {
-			glGenerateMipmap(getGlTextureType(desc.type).glEnum);
+			GL_CHECK(glGenerateMipmap(getGlTextureType(desc.type).glEnum));
 		}
+
+#if _DEBUG
+		if (!desc.debugName.empty()) {
+			GL_CHECK(glObjectLabel(GL_TEXTURE, glTexture, -1, desc.debugName.c_str()));
+		}
+#endif
 
 		GlTexture* texture = new GlTexture();
 		texture->m_desc = desc;
@@ -60,7 +67,7 @@ namespace gpu::gl {
 		static GLfloat maximumAniso = -1.0;
 		static bool maximumAnisoQueried = false;
 		if (maximumAnisoQueried == false) {
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAniso);
+			GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAniso));
 			maximumAnisoQueried = true;
 		}
 
@@ -70,19 +77,25 @@ namespace gpu::gl {
 		desc.anisotropy = newAniso;
 
 		GLuint glSampler = 0;
-		glGenSamplers(1, &glSampler);
+		GL_CHECK(glGenSamplers(1, &glSampler));
 
 		GLuint minFilter = desc.minFilter == gpu::SamplingMode::Linear ? GL_LINEAR : GL_NEAREST;
 		if (desc.mipFilter == gpu::SamplingMode::Linear) {
 			minFilter = desc.minFilter == gpu::SamplingMode::Linear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR;
 		}
 
-		glSamplerParameteri(glSampler, GL_TEXTURE_MIN_FILTER, minFilter);
-		glSamplerParameteri(glSampler, GL_TEXTURE_MAG_FILTER, desc.magFilter == gpu::SamplingMode::Linear ? GL_LINEAR : GL_NEAREST);
-		glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_S, getGlWrapMode(desc.wrapX).glEnum);
-		glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_T, getGlWrapMode(desc.wrapY).glEnum);
-		glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_R, getGlWrapMode(desc.wrapZ).glEnum);
-		glSamplerParameteri(glSampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, static_cast<GLint>(desc.anisotropy));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_MIN_FILTER, minFilter));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_MAG_FILTER, desc.magFilter == gpu::SamplingMode::Linear ? GL_LINEAR : GL_NEAREST));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_S, getGlWrapMode(desc.wrapX).glEnum));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_T, getGlWrapMode(desc.wrapY).glEnum));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_WRAP_R, getGlWrapMode(desc.wrapZ).glEnum));
+		GL_CHECK(glSamplerParameteri(glSampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, static_cast<GLint>(desc.anisotropy)));
+
+#if _DEBUG
+		if (!desc.debugName.empty()) {
+			GL_CHECK(glObjectLabel(GL_SAMPLER, glSampler, -1, desc.debugName.c_str()));
+		}
+#endif
 
 		GlTextureSampler* sampler = new GlTextureSampler();
 		sampler->m_desc = desc;
@@ -139,31 +152,41 @@ namespace gpu::gl {
 
 		// make fbo
 		GLuint glFramebuffer = 0;
-		glGenFramebuffers(1, &glFramebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, glFramebuffer);
+		GL_CHECK(glGenFramebuffers(1, &glFramebuffer));
+		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, glFramebuffer));
 
 		// make colour attachment
 		GLuint textureColorbuffer = 0;
-		glGenTextures(1, &textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, desc.colorDesc.samples, getGlTextureFormat(desc.colorDesc.format).glEnum, desc.colorDesc.width, desc.colorDesc.height, GL_TRUE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+		GL_CHECK(glGenTextures(1, &textureColorbuffer));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, textureColorbuffer));
+		GL_CHECK(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, desc.colorDesc.samples, getGlTextureFormat(desc.colorDesc.format).glEnum, desc.colorDesc.width, desc.colorDesc.height, GL_TRUE));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0));
 
 		// make depth stencil attachment
 		GLuint rbo = 0;
 		if (desc.hasDepth) {
-			glGenRenderbuffers(1, &rbo);
-			glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-			glRenderbufferStorage(GL_RENDERBUFFER, getGlTextureFormat(desc.depthStencilDesc.format).glEnum, desc.depthStencilDesc.width, desc.depthStencilDesc.height);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+			GL_CHECK(glGenRenderbuffers(1, &rbo));
+			GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, rbo));
+			GL_CHECK(glRenderbufferStorage(GL_RENDERBUFFER, getGlTextureFormat(desc.depthStencilDesc.format).glEnum, desc.depthStencilDesc.width, desc.depthStencilDesc.height));
+			GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo));
 		}
 
 		// reset state (unbind fbo)
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+		GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+#if _DEBUG
+		if (!desc.debugName.empty()) {
+			GL_CHECK(glObjectLabel(GL_FRAMEBUFFER, glFramebuffer, -1, desc.debugName.c_str()));
+			GL_CHECK(glObjectLabel(GL_TEXTURE, textureColorbuffer, -1, fmt::format("{}_colorAttachment", desc.debugName).c_str()));
+			if (desc.hasDepth) {
+				GL_CHECK(glObjectLabel(GL_RENDERBUFFER, rbo, -1, fmt::format("{}_depthStencilAttachment", desc.debugName).c_str()));
+			}
+		}
+#endif
 
 		GlFramebuffer* framebuffer = new GlFramebuffer();
 		framebuffer->m_desc = desc;

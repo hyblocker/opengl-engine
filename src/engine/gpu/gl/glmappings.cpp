@@ -211,4 +211,54 @@ namespace gpu::gl {
         ASSERT(mapping.format == format);
         return mapping;
     }
+
+    static const GlBlendFactorMapping c_blendFactorMappings[] = {
+
+        { BlendFactor::Zero,                GL_ZERO },
+        { BlendFactor::One,                 GL_ONE },
+
+        { BlendFactor::SrcColour,           GL_SRC_COLOR },
+        { BlendFactor::OneMinusSrcColour,   GL_ONE_MINUS_SRC_COLOR },
+        { BlendFactor::SrcAlpha,            GL_SRC_ALPHA },
+        { BlendFactor::OneMinusSrcAlpha,    GL_ONE_MINUS_SRC_ALPHA },
+
+        { BlendFactor::DstColour,           GL_DST_COLOR },
+        { BlendFactor::OneMinusDstColour,   GL_ONE_MINUS_DST_COLOR },
+        { BlendFactor::DstAlpha,            GL_DST_ALPHA },
+        { BlendFactor::OneMinusDstAlpha,    GL_ONE_MINUS_DST_ALPHA },
+
+        { BlendFactor::Src1Colour,          GL_SRC1_COLOR },
+        { BlendFactor::OneMinusSrc1Colour,  GL_ONE_MINUS_SRC1_COLOR },
+        { BlendFactor::Src1Alpha,           GL_SRC1_ALPHA },
+        { BlendFactor::OneMinusSrc1Alpha,   GL_ONE_MINUS_SRC1_ALPHA },
+
+    };
+
+    GlBlendFactorMapping getGlBlendFactor(gpu::BlendFactor factor) {
+        static_assert(sizeof(c_blendFactorMappings) / sizeof(GlBlendFactorMapping) == size_t(BlendFactor::Count),
+            "The blend factor table doesn't have the correct number of elements");
+
+        const GlBlendFactorMapping mapping = c_blendFactorMappings[uint32_t(factor)];
+        ASSERT(mapping.factor == factor);
+        return mapping;
+    }
+
+    static const GlBlendOpMapping c_blendOpMappings[] = {
+
+        { BlendOp::Add,             GL_FUNC_ADD },
+        { BlendOp::Subtract,        GL_FUNC_SUBTRACT },
+        { BlendOp::InvSubtract,     GL_FUNC_REVERSE_SUBTRACT },
+        { BlendOp::Min,             GL_MIN },
+        { BlendOp::Max,             GL_MAX },
+
+    };
+
+    GlBlendOpMapping getGlBlendOp(gpu::BlendOp operation) {
+        static_assert(sizeof(c_blendOpMappings) / sizeof(GlBlendOpMapping) == size_t(BlendOp::Count),
+            "The blend operation table doesn't have the correct number of elements");
+
+        const GlBlendOpMapping mapping = c_blendOpMappings[uint32_t(operation)];
+        ASSERT(mapping.operation == operation);
+        return mapping;
+    }
 }

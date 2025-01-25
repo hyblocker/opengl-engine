@@ -70,4 +70,17 @@ namespace gpu::gl {
 
 	GlTextureFormatMapping getGlTextureFormat(gpu::TextureFormat format);
 
+	struct GlBlendFactorMapping {
+		gpu::BlendFactor factor;
+		GLenum glEnum;
+	};
+
+	GlBlendFactorMapping getGlBlendFactor(gpu::BlendFactor factor);
+
+	struct GlBlendOpMapping {
+		gpu::BlendOp operation;
+		GLenum glEnum;
+	};
+
+	GlBlendOpMapping getGlBlendOp(gpu::BlendOp operation);
 }
