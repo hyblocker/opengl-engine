@@ -11,6 +11,7 @@
 #include "engine/events/application_event.hpp"
 #include "engine/debug/imgui_layer.hpp"
 #include "engine/managers/asset_manager.hpp"
+#include "engine/input/input_manager.hpp"
 #include "engine/log.hpp"
 
 struct AppDesc {
@@ -19,6 +20,8 @@ struct AppDesc {
 	// OpenGL
 	int32_t openglMajor = 3;
 	int32_t openglMinor = 3;
+
+	double maxFramerate = 60.0f;
 };
 
 namespace engine {
@@ -55,6 +58,7 @@ namespace engine {
 		gpu::DeviceManager* m_graphicsDeviceManager = nullptr;
 		gpu::IDevice* m_graphicsDevice = nullptr;
 		managers::AssetManager* m_assetManager = nullptr;
+		input::InputManager* m_inputManager = nullptr;
 
 		// Layer system
 		ImguiLayer* m_imguiLayer = nullptr;
@@ -62,6 +66,9 @@ namespace engine {
 
 		bool m_isRunning = false;
 		bool m_minimised = false;
+
+		double m_maxFrameRate = 0;
+		double m_maxFrameTime = 0;
 
 		static App* s_instance;
 	};

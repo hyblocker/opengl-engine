@@ -5,6 +5,8 @@
 #include "engine/events/application_event.hpp"
 
 #include <chrono>
+#include <thread>
+#include <algorithm>
 
 namespace engine {
 	App* App::s_instance = nullptr;
@@ -14,6 +16,8 @@ namespace engine {
 		s_instance = this;
 		::engine::log::init();
 
+		m_maxFrameRate = desc.maxFramerate;
+		m_maxFrameTime = 1.0 / desc.maxFramerate;
 		m_window = std::make_unique<Window>(desc.window, desc.openglMajor, desc.openglMinor);
 		m_window->createNativeWindow();
 
@@ -48,13 +52,14 @@ namespace engine {
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		double timeElapsed = 0.0;
 		double physicsAccumulator = 0.0;
+		double sleepTime = 0.0;
 
 		while (!m_window->shouldCloseWindow() && m_isRunning) {
 
 			// @NOTE: deltaTime is 0 for the first frame of the app's lifetime
 			auto currentTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
-			double frameTime = static_cast<double>(duration);
+			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - lastTime).count();
+			double frameTime = duration * 0.000000001;
 			lastTime = currentTime;
 
 			// Based on https://www.gafferongames.com/post/fix_your_timestep/
@@ -62,9 +67,15 @@ namespace engine {
 			while (physicsAccumulator > k_FIXED_DELTA_TIME) {
 				for (engine::ILayer* layer : m_layerStack) {
 					layer->update(timeElapsed, k_FIXED_DELTA_TIME);
-					physicsAccumulator -= k_FIXED_DELTA_TIME;
-					timeElapsed += k_FIXED_DELTA_TIME;
 				}
+				physicsAccumulator -= k_FIXED_DELTA_TIME;
+				timeElapsed += k_FIXED_DELTA_TIME;
+			}
+
+			if (m_maxFrameTime > 0) {
+				sleepTime += m_maxFrameTime - frameTime;
+				sleepTime = std::max(sleepTime, 0.0);
+				std::this_thread::sleep_for(std::chrono::nanoseconds((long long)(1000000000 * sleepTime)));
 			}
 
 			// don't issue draw calls while minimised
@@ -85,6 +96,7 @@ namespace engine {
 				m_graphicsDevice->present();
 				m_window->windowPresent();
 			}
+
 		}
 		m_window->close();
 	}
