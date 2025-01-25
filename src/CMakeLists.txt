@@ -81,6 +81,9 @@ target_compile_definitions(OpenGlEngine
 	# If the debug configuration pass the DEBUG define to the compiler
 	$<$<CONFIG:Debug>:ENABLE_ASSERT>
 )
+# Set hlslpp to right handed, column major to match OpenGL
+target_compile_definitions(OpenGlEngine PRIVATE HLSLPP_LOGICAL_LAYOUT=HLSLPP_LOGICAL_LAYOUT_COL_MAJOR)
+target_compile_definitions(OpenGlEngine PRIVATE HLSLPP_COORDINATES=HLSLPP_COORDINATES_RIGHT_HANDED)
 
 # Copy application assets to output folder
 add_custom_command(
