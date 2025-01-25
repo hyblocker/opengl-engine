@@ -69,6 +69,8 @@ namespace engine {
                 LOG_FATAL("Failed to initialise GLAD");
                 return;
             }
+            // Enable vsync
+            glfwSwapInterval(1);
         }
 
 #if _DEBUG
