@@ -26,11 +26,13 @@ namespace render {
         m_isPerspectiveDirty = true;
     }
     void Camera::setAspect(float newAspect) {
-        m_aspect = newAspect;
-        m_isPerspectiveDirty = true;
+        if (newAspect != m_aspect) {
+            m_aspect = newAspect;
+            m_isPerspectiveDirty = true;
+        }
     }
 
-    const float4x4 Camera::getPerspective() {
+    const float4x4 Camera::getProjectionMatrix() {
         if (m_isPerspectiveDirty) {
 
             // Temp
@@ -81,15 +83,17 @@ namespace render {
         return m_matPerspective;
     }
     
-    const float4x4 Camera::getView() {
+    const float4x4 Camera::getViewMatrix() {
         if (m_isViewDirty || getEntity()->transform.m_isDirty) {
 
             float3 position = getEntity()->transform.m_position;
 
             float3 forward = normalize(mul(getEntity()->transform.m_rotation, float3(0.0f, 0.0f, -1.0f)));
-            float3 up = normalize(mul(getEntity()->transform.m_rotation, float3(0.0f, 1.0f, 0.0f)));
+            // float3 up = normalize(mul(getEntity()->transform.m_rotation, float3(0.0f, 1.0f, 0.0f)));
 
-            m_matView = hlslpp::float4x4::look_at(position, forward, up);
+            // 2nd arg is target vector, a point in 3d space relative to position
+            // idk hlslpp doesn't let you feed in a direction vector because this just makes the look vector lose precision so i think this is a dumb choice
+            m_matView = float4x4::look_at(position, position + forward, hlslpp::float3(0.0f, 1.0f, 0.0f));
             m_isViewDirty = false;
 
             // Update model matrix on the camera component if necessary

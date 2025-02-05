@@ -5,12 +5,15 @@
 
 namespace render {
 
-    enum class CameraProjection : uint8_t {
+    class SceneUpdater;
+
+    enum class CameraProjection : uint32_t {
         Perspective,
         Orthographic,
     };
 
     class Camera : public IComponent {
+        friend class SceneUpdater;
     public:
         Camera(Entity* parent) : IComponent(parent) {
             componentType = ::render::ComponentType::Camera;
@@ -32,8 +35,8 @@ namespace render {
         void setInfiniteFar(bool newInfiniteFarPlane);
         void setAspect(float newAspect);
 
-        const hlslpp::float4x4 getPerspective();
-        const hlslpp::float4x4 getView();
+        const hlslpp::float4x4 getProjectionMatrix();
+        const hlslpp::float4x4 getViewMatrix();
     private:
 
         hlslpp::float4x4 m_matPerspective = hlslpp::float4x4::identity();
