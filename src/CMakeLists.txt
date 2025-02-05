@@ -81,8 +81,7 @@ target_compile_definitions(OpenGlEngine
 	# If the debug configuration pass the DEBUG define to the compiler
 	$<$<CONFIG:Debug>:ENABLE_ASSERT>
 )
-# Set hlslpp to right handed, column major to match OpenGL
-target_compile_definitions(OpenGlEngine PRIVATE HLSLPP_LOGICAL_LAYOUT=HLSLPP_LOGICAL_LAYOUT_COL_MAJOR)
+# Set hlslpp to right handed
 target_compile_definitions(OpenGlEngine PRIVATE HLSLPP_COORDINATES=HLSLPP_COORDINATES_RIGHT_HANDED)
 
 # Copy application assets to output folder
@@ -94,6 +93,16 @@ add_custom_command(
 	${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>/assets
 	COMMENT "Copying assets..."
 )
+
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>/assets
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/assets
+	${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>/assets
+	COMMENT "Copying assets..."
+)
+add_custom_target(copy_assets_bin ALL DEPENDS ${SOURCE_DIR})
+add_dependencies(OpenGlEngine copy_assets_bin)
 
 # Set as startup project
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OpenGlEngine)
