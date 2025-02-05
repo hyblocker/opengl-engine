@@ -32,6 +32,8 @@ namespace gpu::gl {
 
 		// Enable depth testing
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
+		// This engine uses reverse Z-buffer for improved accuracy. Flip depth buffer range.
+		GL_CHECK(glDepthRange(1.0, 0.0));
 		// Enable MSAA
 		GL_CHECK(glEnable(GL_MULTISAMPLE));
 		GL_CHECK(glDisable(GL_BLEND));
@@ -204,8 +206,13 @@ namespace gpu::gl {
 		GL_CHECK(glFrontFace(shader->getDesc().graphicsState.faceWindingOrder == gpu::WindingOrder::Clockwise ? GL_CW : GL_CCW));
 
 		// depth state
-		GL_CHECK(glDepthFunc(getGlDepthFunc(shader->getDesc().graphicsState.depthState).glEnum));
+		if (shader->getDesc().graphicsState.depthTest) {
+			GL_CHECK(glEnable(GL_DEPTH_TEST));
+		} else {
+			GL_CHECK(glDisable(GL_DEPTH_TEST));
+		}
 		GL_CHECK(glDepthMask(shader->getDesc().graphicsState.depthWrite == true ? GL_TRUE : GL_FALSE));
+		GL_CHECK(glDepthFunc(getGlDepthFunc(shader->getDesc().graphicsState.depthState).glEnum));
 	}
 
 	void GlDevice::draw(DrawCallState drawCallState, size_t triangleCount, size_t offset) {
