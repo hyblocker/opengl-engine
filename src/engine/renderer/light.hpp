@@ -7,14 +7,14 @@
 
 namespace render {
 
-    enum class LightType : uint8_t {
-        Directional,
+    enum class LightType : uint32_t {
+        Directional = 0,
         Point,
         Spot,
     };
 
-    enum class AttenuationType : uint8_t {
-        None,
+    enum class AttenuationType : uint32_t {
+        None = 0,
         Linear,
         Quad,
     };
