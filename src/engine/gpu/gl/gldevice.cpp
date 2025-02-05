@@ -1,5 +1,6 @@
 #include <fmt/format.h>
 #include <stb_image.h>
+#include <algorithm>
 
 #include "gldevice.hpp"
 #include "glmappings.hpp"
@@ -26,6 +27,19 @@ namespace gpu::gl {
 	GlDevice::GlDevice() {
 		LOG_INFO("OpenGL Version: {}", std::string((char*)glGetString(GL_VERSION)));
 		LOG_INFO("GLSL Version: {}", std::string((char*)glGetString(GL_SHADING_LANGUAGE_VERSION)));
+		LOG_INFO("Available extensions:");
+
+		// Query extensions
+		GLint numExtensions = 0;
+		GL_CHECK(glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions));
+		m_openGlExtensions.reserve(numExtensions);
+
+		for (int i = 0; i < numExtensions; i++) {
+			const char* currentExtension = (const char*)glGetStringi(GL_EXTENSIONS, i);
+			GL_CHECK(;);
+			m_openGlExtensions.push_back(currentExtension);
+			LOG_INFO("    {}", currentExtension);
+		}
 
 		// Tell stbi to flip textures to conform with OpenGL correctly
 		stbi_set_flip_vertically_on_load(true);
@@ -34,6 +48,13 @@ namespace gpu::gl {
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		// This engine uses reverse Z-buffer for improved accuracy. Flip depth buffer range.
 		GL_CHECK(glDepthRange(1.0, 0.0));
+
+		// 0-1 depth range
+		// only enable if GL_ARB_clip_control is available
+		if (isExtensionAvailable("GL_ARB_clip_control")) {
+			GL_CHECK(glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE));
+		}
+
 		// Enable MSAA
 		GL_CHECK(glEnable(GL_MULTISAMPLE));
 		GL_CHECK(glDisable(GL_BLEND));
@@ -41,6 +62,10 @@ namespace gpu::gl {
 
 	GlDevice::~GlDevice() {
 
+	}
+
+	const bool GlDevice::isExtensionAvailable(const std::string& extensionName) const {
+		return (std::find(m_openGlExtensions.begin(), m_openGlExtensions.end(), extensionName)) != m_openGlExtensions.end();
 	}
 
 	void GlDevice::setViewport(const Rect viewportRect) {

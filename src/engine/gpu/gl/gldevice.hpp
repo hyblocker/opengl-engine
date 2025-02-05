@@ -178,10 +178,13 @@ namespace gpu::gl {
 
 	private:
 		void bindShader(IShader* shader);
+		const bool isExtensionAvailable(const std::string& extensionName) const;
 
 		uint32_t m_boundShader = -1;
 		uint32_t m_currentBuffers[(uint32_t)gpu::BufferType::Count] = {};
 		Color m_clearColor = {};
 		float m_depth = 0.0f;
+
+		std::vector<std::string> m_openGlExtensions;
 	};
 }
