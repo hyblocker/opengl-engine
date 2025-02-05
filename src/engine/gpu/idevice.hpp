@@ -12,7 +12,7 @@
 namespace gpu {
 
 	struct GraphicsState {
-		CompareFunc depthState = CompareFunc::LessOrEqual; // inverse Z
+		CompareFunc depthState = CompareFunc::GreaterOrEqual;
 		bool depthWrite = true;
 		bool depthTest = true;
 		FaceCullMode faceCullingMode = FaceCullMode::Back;
@@ -29,7 +29,7 @@ namespace gpu {
 		ShaderProgram VS;
 		ShaderProgram PS;
 		GraphicsState graphicsState = {
-			.depthState = CompareFunc::LessOrEqual,
+			.depthState = CompareFunc::GreaterOrEqual,
 			.depthWrite = true,
 			.faceCullingMode = FaceCullMode::Back,
 			.faceWindingOrder = WindingOrder::CounterClockwise,

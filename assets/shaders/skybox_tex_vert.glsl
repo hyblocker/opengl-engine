@@ -10,7 +10,7 @@ out vec2 uv;
 void main()
 {
     vec4 pos = projection * view * model * vec4(iPosition, 1.0);
-    gl_Position = pos.xyww;
+    gl_Position = vec4(pos.xy, 0.0, pos.w);
     normal = iNormal.xyz;
     uv = iUv.xy;
 }

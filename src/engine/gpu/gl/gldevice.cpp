@@ -47,7 +47,8 @@ namespace gpu::gl {
 		// Enable depth testing
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		// This engine uses reverse Z-buffer for improved accuracy. Flip depth buffer range.
-		GL_CHECK(glDepthRange(1.0, 0.0));
+		// Remap 0-1 to depth range
+		GL_CHECK(glDepthRange(0.0f, 1.0f));
 
 		// 0-1 depth range
 		// only enable if GL_ARB_clip_control is available

@@ -29,7 +29,7 @@ namespace render {
         
         m_skyboxTexShader = m_pAssetManager->fetchShader({
         .graphicsState = {
-                .depthState = gpu::CompareFunc::LessOrEqual,
+                .depthState = gpu::CompareFunc::GreaterOrEqual,
                 .depthWrite = false,
                 .depthTest = true,
             },
@@ -40,8 +40,8 @@ namespace render {
         
         m_skyboxProceduralShader = m_pAssetManager->fetchShader({
         .graphicsState = {
-                .depthState = gpu::CompareFunc::LessOrEqual,
-                .depthWrite = false,
+                .depthState = gpu::CompareFunc::GreaterOrEqual,
+                .depthWrite = true,
                 .depthTest = true,
                 .faceCullingMode = gpu::FaceCullMode::Never,
             },
