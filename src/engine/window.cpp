@@ -46,6 +46,10 @@ namespace engine {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, m_openglMajor);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, m_openglMinor);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+            // macOS supposedly needs this
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
             // Request 4x MSAA
             glfwWindowHint(GLFW_SAMPLES, 4);
 #if _DEBUG
