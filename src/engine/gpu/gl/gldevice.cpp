@@ -309,8 +309,7 @@ namespace gpu::gl {
 			GLenum eqnRGB = getGlBlendOp(desc.blendOp).glEnum;
 			GLenum eqnAlpha = getGlBlendOp(desc.blendOpAlpha).glEnum;
 			GL_CHECK(glBlendEquationSeparate(eqnRGB, eqnAlpha));
-		}
-		else {
+		} else {
 			GL_CHECK(glDisable(GL_BLEND));
 		}
 	}
@@ -362,12 +361,12 @@ namespace gpu::gl {
 
 	void GlDevice::debugMarkerPush(const std::string& title) {
 #if _DEBUG
-		glPushDebugGroupKHR(GL_DEBUG_SOURCE_APPLICATION, 0, -1, title.c_str());
+		GL_CHECK(glPushDebugGroupKHR(GL_DEBUG_SOURCE_APPLICATION, 0, -1, title.c_str()));
 #endif
 	}
 	void GlDevice::debugMarkerPop() {
 #if _DEBUG
-		glPopDebugGroupKHR();
+		GL_CHECK(glPopDebugGroupKHR());
 #endif
 	}
 } 
