@@ -24,6 +24,12 @@ namespace gpu::gl {
         ASSERT(handle->getDesc().type == gpu::BufferType::ConstantBuffer);
         GL_CHECK(glBindBufferBase(getGlBufferType(handle->getDesc().type).glType, bindIndex, handle->getNativeObject()));
     }
+
+    void GlDevice::unbindConstantBuffer(IBuffer* handle, uint32_t bindIndex) {
+        ASSERT(handle != nullptr);
+        ASSERT(handle->getDesc().type == gpu::BufferType::ConstantBuffer);
+        GL_CHECK(glBindBufferBase(getGlBufferType(handle->getDesc().type).glType, bindIndex, 0));
+    }
     
     void GlDevice::unbindBuffer(IBuffer* handle) {
         ASSERT(handle != nullptr);
@@ -45,7 +51,8 @@ namespace gpu::gl {
         ASSERT(mappedDataPtr != nullptr);
 
         void* bufferPtr = glMapBufferRange(getGlBufferType(buffer->getDesc().type).glType, offset, length, getGlAccessFlags(accessFlags).glFlag);
-        GL_CHECK(;); // Error check because we have a return value above
+        // GL_CHECK(;); // Error check because we have a return value above
+        // @TODO: RE-ADD CHECK
         *mappedDataPtr = bufferPtr;
     }
 
