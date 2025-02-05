@@ -7,9 +7,9 @@
 int main (int argc, char *argv[]) {
 	engine::App app({
 		.window = {
-			.width = 1280,
-			.height = 720,
-			.title = "OpenGL Engine"
+			.width = 1920,
+			.height = 1080,
+			.title = "Breakanoid"
 		}
 		});
 
@@ -19,8 +19,9 @@ int main (int argc, char *argv[]) {
 	app.pushLayer(gameLayer);
 #endif
 
-	BreakanoidLayer* breakanoidLayer = new BreakanoidLayer(app.getDeviceManager(), app.getAssetManager());
-	app.pushLayer(breakanoidLayer);
+	// actual game
+	ArkanoidLayer* arkanoidLayer = new ArkanoidLayer(app.getDeviceManager(), app.getAssetManager());
+	app.pushLayer(arkanoidLayer);
 
 	app.run();
 }

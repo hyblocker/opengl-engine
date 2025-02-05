@@ -60,7 +60,7 @@ GameLayer::GameLayer(gpu::DeviceManager* deviceManager, managers::AssetManager* 
         .fragShader = "frag.glsl",
         .debugName = "Simple"
     });
-    getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
+    // getDevice()->setBufferBinding(m_shader, "DataBuffer", 0);
 
     // Prepare cbuffer to populate it with transform matrices
     m_cbufferData = {
