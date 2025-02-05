@@ -128,7 +128,7 @@ namespace managers {
         m_errorMesh.mesh.triangleCount = (sizeof(errorIndices) / sizeof(errorIndices[0])) / 3;
 
         // Init errTex
-        uint8_t texData[] = {
+        uint8_t texDataErr[] = {
             0xFF, 0x00, 0xFF, 0xFF,
             0x00, 0x00, 0x00, 0xFF,
             0x00, 0x00, 0x00, 0xFF,
@@ -140,7 +140,22 @@ namespace managers {
             .generateMipmaps = false,
             .type = gpu::TextureType::Texture2D,
             .debugName = "ErrorTexture"
-            }, texData);
+            }, texDataErr);
+
+        // Init whiteTex
+        uint8_t texDataWhite[] = {
+            0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF,
+        };
+        m_whiteTexture = m_device->makeTexture({
+            .width = (uint32_t)2,
+            .height = (uint32_t)2,
+            .generateMipmaps = false,
+            .type = gpu::TextureType::Texture2D,
+            .debugName = "WhiteTexture"
+            }, texDataWhite);
 
         // Init errShader
 
@@ -315,7 +330,7 @@ void main()
             .vertexBuffer = vertexBufferHandle,
             .indexBuffer = indexBufferHandle,
             .vertexLayout = vertexLayoutHandle,
-            .triangleCount = indices.size() / 3 // There are 3 vertices per triangle, so divide by 3
+            .triangleCount = indices.size() // There are 3 vertices per triangle, so divide by 3
         };
 
         m_device->debugMarkerPop();
@@ -401,12 +416,13 @@ void main()
             m_shaders.emplace(shaderKey, shaderHandle);
             return shaderHandle;
         } else {
+            LOG_CRITICAL("Failed loading shader {} , {}!", params.vertShader, params.fragShader);
             return m_errorShader;
         }
     }
     gpu::ITexture* AssetManager::fetchTexture(const std::string& texturePath, const bool genMipmaps) {
 
-        if (!m_intialisedDefaultAssets) {
+        if (!m_intialisedDefaultAssets) {   
             initialiseErrorData();
         }
 

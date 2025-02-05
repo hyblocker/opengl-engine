@@ -1,4 +1,5 @@
 #include "scene_graph.hpp"
+#include "scene_composer.hpp"
 
 namespace render {
 
@@ -25,94 +26,87 @@ namespace render {
             float4x4 scale = float4x4::scale(m_scale);
 
             // SRT matrix composition
-            m_model = mul(translation, mul(rotation, scale));
+            m_model = mul(rotation, scale);
+            m_model = mul(translation, m_model);
+
             m_isDirty = false;
         }
 
         return m_model;
     }
 
-    void Entity::push_back(Entity& entity) {
-        entity.parent = this;
+    void Entity::push_back(std::shared_ptr<Entity> entity) {
         this->children.push_back(entity);
+        this->children.back()->parent = this;
     }
 
-    void Entity::push_back(IComponent& component){
-        if (component.getEntity() != this) {
-            component.setParent(this);
+    void Entity::push_back(std::shared_ptr<IComponent> component){
+        if (component->getEntity() != this) {
+            component->setParent(this);
         }
         this->components.push_back(component);
     }
 
-    Entity* Entity::findEntityWithType(ComponentType type) const {
+    Entity* Entity::findEntityWithType(ComponentType type, bool ignoreDisabled /* = false */) const {
 
         // Check components attached to this entity
-        for (const IComponent& component : components) {
-            if (component.componentType == type) {
+        for (const std::shared_ptr<IComponent> component : components) {
+            if (component->componentType == type) {
                 return const_cast<Entity*>(this);
             }
         }
         
         // Entity didn't have any components we wanted attached to itself, check children
-        for (const Entity& entity : children) {
+        for (const std::shared_ptr<Entity> entity : children) {
             // may return null, if not null its what we're after anyway
-            Entity* childEntity = entity.findEntityWithType(type);
-            if (childEntity != nullptr) {
-                return childEntity;
+            if (entity->enabled) {
+                if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
+                    Entity* childEntity = entity->findEntityWithType(type);
+                    if (childEntity != nullptr) {
+                        return childEntity;
+                    }
+                }
             }
         }
 
         return nullptr;
     }
 
-    IComponent* Entity::findComponent(ComponentType type) const {
+    IComponent* Entity::findComponent(ComponentType type, bool traverseChildren /* = false */, bool ignoreDisabled /* = false */) const {
 
         // Check components attached to this entity
-        for (const IComponent& component : components) {
-            if (component.componentType == type) {
-                return const_cast<IComponent*>(&component);
+        for (const std::shared_ptr<IComponent> component : components) {
+            if (component->componentType == type) {
+                return const_cast<IComponent*>(component.get());
             }
         }
 
         // Entity didn't have any components we wanted attached to itself, check children
-        for (const Entity& entity : children) {
-            // may return null, if not null its what we're after anyway
-            IComponent* childComponent = entity.findComponent(type);
-            if (childComponent != nullptr) {
-                return childComponent;
+        if (traverseChildren) {
+            for (const std::shared_ptr<Entity> entity : children) {
+                // may return null, if not null its what we're after anyway
+                if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
+                    IComponent* childComponent = entity->findComponent(type);
+                    if (childComponent != nullptr) {
+                        return childComponent;
+                    }
+                }
             }
         }
 
         return nullptr;
     }
 
-    void Scene::push_back(Entity& entity) {
-        entity.parent = nullptr;
-        this->entities.push_back(entity);
+    void Scene::push_back(EntityBuilder& entityBuilder) {
+        std::shared_ptr<Entity> entity = entityBuilder.build();
+        root.push_back(entity);
     }
 
-    Entity* Scene::findEntityWithType(ComponentType type) const {
-        for (const Entity& entity : entities) {
-            // may return null, if not null its what we're after anyway
-            Entity* childEntity = entity.findEntityWithType(type);
-            if (childEntity != nullptr) {
-                return childEntity;
-            }
-        }
-
-        return nullptr;
+    Entity* Scene::findEntityWithType(ComponentType type, bool ignoreDisabled /* = false */) const {
+        return root.findEntityWithType(type, ignoreDisabled);;
     }
 
-    IComponent* Scene::findComponent(ComponentType type) const {
-        for (const Entity& entity : entities) {
-            // may return null, if not null its what we're after anyway
-            IComponent* childComponent = entity.findComponent(type);
-            if (childComponent != nullptr) {
-                return childComponent;
-            }
-        }
-
-        return nullptr;
+    IComponent* Scene::findComponent(ComponentType type, bool ignoreDisabled /* = false */) const {
+        return root.findComponent(type, true, ignoreDisabled);;
     }
-
 }

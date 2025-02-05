@@ -29,6 +29,7 @@ namespace managers {
         render::Mesh& fetchMesh(const std::string& meshPath);
         gpu::IShader* fetchShader(const FetchShaderParams& params);
         gpu::ITexture* fetchTexture(const std::string& texturePath, const bool genMipmaps = true);
+        inline gpu::ITexture* fetchWhiteTexture() { return m_whiteTexture; }
         
     private:
         void initialiseErrorData();
@@ -53,6 +54,7 @@ namespace managers {
 
         gpu::ShaderHandle m_errorShader;
         gpu::TextureHandle m_errorTexture;
+        gpu::TextureHandle m_whiteTexture;
         MeshTracker_t m_errorMesh;
 
         bool m_intialisedDefaultAssets = false;
