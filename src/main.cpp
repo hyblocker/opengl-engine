@@ -2,7 +2,7 @@
 
 #include "engine/app.hpp"
 #include "game_layer.hpp"
-#include "arkanoid/breakanoid_layer.hpp"
+#include "arkanoid/arkanoid_layer.hpp"
 
 int main (int argc, char *argv[]) {
 	engine::App app({
