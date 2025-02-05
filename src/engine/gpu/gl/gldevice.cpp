@@ -133,7 +133,7 @@ namespace gpu::gl {
 #if _DEBUG
 		if (!shaderDesc.debugName.empty()) {
 			GL_CHECK(glObjectLabel(GL_SHADER, vertexShader, -1, fmt::format("{}_vertexShader", shaderDesc.debugName).c_str()));
-			GL_CHECK(glObjectLabel(GL_SHADER, pixelShader, -1, fmt::format("{}_indexShader", shaderDesc.debugName).c_str()));
+			GL_CHECK(glObjectLabel(GL_SHADER, pixelShader, -1, fmt::format("{}_pixelShader", shaderDesc.debugName).c_str()));
 			GL_CHECK(glObjectLabel(GL_PROGRAM, shaderProgram, -1, shaderDesc.debugName.c_str()));
 		}
 #endif
