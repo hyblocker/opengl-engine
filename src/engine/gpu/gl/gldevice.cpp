@@ -208,12 +208,12 @@ namespace gpu::gl {
 		GL_CHECK(glDepthMask(shader->getDesc().graphicsState.depthWrite == true ? GL_TRUE : GL_FALSE));
 	}
 
-	void GlDevice::draw(DrawCallState drawCallState, size_t elementCount, size_t offset) {
+	void GlDevice::draw(DrawCallState drawCallState, size_t triangleCount, size_t offset) {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer == nullptr);
 		ASSERT(drawCallState.shader != nullptr);
 		ASSERT(drawCallState.vertexLayout != nullptr);
-		ASSERT(elementCount > 0);
+		ASSERT(triangleCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
 
 		// associated vertex layout
@@ -235,14 +235,14 @@ namespace gpu::gl {
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
 
 		// Issue draw call
-		GL_CHECK(glDrawArrays(primitiveType.glType, static_cast<GLint>(elementCount), static_cast<GLsizei>(offset)));
+		GL_CHECK(glDrawArrays(primitiveType.glType, static_cast<GLint>(triangleCount) * 3U /* OpenGL expects number of vertices here, not tris */, static_cast<GLsizei>(offset)));
 	}
-	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset) {
+	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset) {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer != nullptr);
 		ASSERT(drawCallState.shader != nullptr);
 		ASSERT(drawCallState.vertexLayout != nullptr);
-		ASSERT(elementCount > 0);
+		ASSERT(triangleCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
 
 		// associated vertex layout
@@ -265,7 +265,7 @@ namespace gpu::gl {
 		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
 
 		// Issue draw call
-		GL_CHECK(glDrawElements(primitiveType.glType, static_cast<GLsizei>(elementCount), indexFormat.glType, reinterpret_cast<void*>(offset)));
+		GL_CHECK(glDrawElements(primitiveType.glType, static_cast<GLsizei>(triangleCount) * 3U /* OpenGL expects number of indices here, not tris */, indexFormat.glType, reinterpret_cast<void*>(offset)));
 	}
 
 	void GlDevice::clearColor(Color color, float depth) {

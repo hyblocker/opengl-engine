@@ -148,12 +148,13 @@ namespace gpu::gl {
 		void mapBuffer(IBuffer* buffer, uint32_t offset, size_t length, MapAccessFlags accessFlags, void** mappedDataPtr) override;
 		void unmapBuffer(IBuffer* buffer) override;
 		void bindBuffer(IBuffer* buffer) override;
-		void setConstantBuffer(IBuffer* buffer, uint32_t bindIndex) override;
 		void unbindBuffer(IBuffer* buffer) override;
+		void setConstantBuffer(IBuffer* buffer, uint32_t bindIndex) override;
+		void unbindConstantBuffer(IBuffer* buffer, uint32_t bindIndex) override;
 		void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) override;
 
-		void draw(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
-		void drawIndexed(DrawCallState drawCallState, size_t elementCount, size_t offset = 0) override;
+		void draw(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0) override;
+		void drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0) override;
 
 		void clearColor(Color color, float depth) override;
 		void present() override;

@@ -14,6 +14,7 @@ namespace gpu {
 	struct GraphicsState {
 		CompareFunc depthState = CompareFunc::LessOrEqual; // inverse Z
 		bool depthWrite = true;
+		bool depthTest = true;
 		FaceCullMode faceCullingMode = FaceCullMode::Back;
 		WindingOrder faceWindingOrder = WindingOrder::CounterClockwise;
 	};
@@ -99,11 +100,12 @@ namespace gpu {
 		virtual void bindBuffer(IBuffer* buffer) = 0;
 		// Buffer must be a constant buffer. Will ASSERT otherwise.
 		virtual void setConstantBuffer(IBuffer* buffer, uint32_t bindIndex) = 0;
+		virtual void unbindConstantBuffer(IBuffer* buffer, uint32_t bindIndex) = 0;
 		virtual void unbindBuffer(IBuffer* buffer) = 0;
 		virtual void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) = 0;
 
-		virtual void draw(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
-		virtual void drawIndexed(DrawCallState drawState, size_t elementCount, size_t offset = 0) = 0;
+		virtual void draw(DrawCallState drawState, size_t triangleCount, size_t offset = 0) = 0;
+		virtual void drawIndexed(DrawCallState drawState, size_t triangleCount, size_t offset = 0) = 0;
 
 		virtual void clearColor(Color color, float depth = 0.0f) = 0;
 		virtual void present() = 0;
