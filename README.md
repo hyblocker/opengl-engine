@@ -14,12 +14,24 @@ This is a simple OpenGL game engine for the University class [CPS3231, Graphics 
 
 - Resource caching.
 
-- Layer system capable of blocking inputs.
+- Multiple lights rendering.
 
-- Input system.
+- An infinite far plane perspective camera.
+
+- Normalised inverse-Z depth buffer for improved depth precision.
+
+- Box2D physics.
+
+- Particles.
+
+- Simple UI rendering.
 
 - OpenGL debug utilities. Draw calls and resource allocation are annotated so that debug names appear in graphics debuggers such as NVIDIA NSight and RenderDoc.
 
-- Multiple lights.
+- Layer system capable of blocking inputs.
+
+- Dear ImGUI debug layer. Used to build a runtime representation of the scene and entities / components to inspect their values for correctness.
+
+- Input system.
 
 A number of techniques are primitive and could be better implemented, but weren't due to time constraints.
