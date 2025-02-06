@@ -10,7 +10,7 @@ namespace render {
         void start(const Scene& scene);
         void sleep(const Scene& scene);
         void render(const Scene& scene);
-        void update(const Scene& scene, const float deltaTime);
+        void update(Scene& scene, const float deltaTime);
 
         // for debugging, draws imgui tree
         void drawDebugSceneGraph(const Scene& scene, void** pSelectedEntity);

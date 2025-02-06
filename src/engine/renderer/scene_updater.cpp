@@ -140,7 +140,7 @@ namespace render {
         }
     }
 
-    void SceneUpdater::update(const Scene& scene, const float deltaTime) {
+    void SceneUpdater::update(Scene& scene, const float deltaTime) {
 
         // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 

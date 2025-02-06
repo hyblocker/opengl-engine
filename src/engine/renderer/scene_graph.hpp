@@ -110,7 +110,6 @@ namespace render {
     };
 
     class Scene {
-        friend class SceneUpdater;
     public:
         std::string sceneName = "";
         Entity root { .name="Root" };
@@ -122,8 +121,10 @@ namespace render {
         struct PhysicsParameters {
             hlslpp::float2 gravity{0, -9.8f};
         private:
+            friend class SceneUpdater;
             // should be de-coupled but not enough time to do most things optimally
             b2WorldId m_box2Dworld;
+            bool m_initialised = false;
         } physicsParams;
 
         void push_back(EntityBuilder& entity);
