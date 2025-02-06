@@ -233,6 +233,13 @@ namespace render {
         Camera* cameraComponent = (Camera*) cameraEntity->findComponent(ComponentType::Camera);
         cameraComponent->setAspect(aspect); // Update aspect ratio
 
+        // forward rendering is simple:
+        //   split scene by opaque and transparent meshes
+        //   for each mesh, sort by draw order, then distance from camera
+        //   draw opaque stuff first, front to back
+        //   then draw the skybox (to take advantage of early-z discard)
+        //   then draw transparent meshes, back to front
+
         // clear draw lists
         m_lights.clear();
         m_forwardOpaqueList.clear();
@@ -267,7 +274,18 @@ namespace render {
 
         m_pDevice->bindBlendState(m_opaque_BlendState);
         drawRenderList(m_forwardOpaqueList, cameraComponent);
-        drawSkybox(scene, cameraComponent); // ideally this should render after opaque materials but i didn't have time to figure out why it was overwiting the fragment
+
+        // Skybox is rendered after opaque materials and before transparent ones
+        // this is to take advantage of an optimisation with opaque rendering.
+        // Since most opaque materials write to the backbuffer during rendering we
+        // would be overwriting the data in some pixel P with the skybox's fragment
+        // leading to overdraw. By enabling the depth buffer, one can know whether an
+        // opaque pixel was written to, and by doing a depth test with no depth writing
+        // we can force the skybox to draw at the furthest depth value. This allows us
+        // to use Early-Z discard, a hardware optimisation of the rasterisation stage
+        // of the rendering pipeline, where the GPU discards fragments of pixels which
+        // have already been written to.
+        drawSkybox(scene, cameraComponent);
         
         m_pDevice->bindBlendState(m_alphaBlend_BlendState);
         drawRenderList(m_forwardTransparentList, cameraComponent);
