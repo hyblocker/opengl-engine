@@ -102,6 +102,8 @@ namespace render {
         // optional "layers", to allow one to attach arbitrary data to an entity
         std::vector<std::shared_ptr<IComponent>> components;
 
+        // finds an entity with a given name (exact match) in the list of child entities
+        Entity* findNamedEntity(const std::string& name, bool ignoreDisabled = false) const;
         // finds an entity with a given type in the list of child entities
         Entity* findEntityWithType(ComponentType type, bool ignoreDisabled = false) const;
         IComponent* findComponent(ComponentType type, bool traverseChildren = false, bool ignoreDisabled = false) const;
@@ -123,10 +125,11 @@ namespace render {
         private:
             friend class SceneUpdater;
             // should be de-coupled but not enough time to do most things optimally
-            b2WorldId m_box2Dworld;
+            b2WorldId m_box2Dworld = b2_nullWorldId;
             bool m_initialised = false;
         } physicsParams;
 
+        Entity* findNamedEntity(const std::string& name, bool ignoreDisabled = false) const;
         void push_back(EntityBuilder& entity);
         Entity* findEntityWithType(ComponentType type, bool ignoreDisabled = false) const;
         IComponent* findComponent(ComponentType type, bool ignoreDisabled = false) const;

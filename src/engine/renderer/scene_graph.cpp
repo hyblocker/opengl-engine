@@ -47,6 +47,26 @@ namespace render {
         this->components.push_back(component);
     }
 
+    Entity* Entity::findNamedEntity(const std::string& name, bool ignoreDisabled /* = false */) const {
+        // Check components attached to this entity
+        if (this->name == name) {
+            return const_cast<Entity*>(this);
+        }
+
+        // Entity didn't have any components we wanted attached to itself, check children
+        for (const std::shared_ptr<Entity> entity : children) {
+            // may return null, if not null its what we're after anyway
+            if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
+                Entity* childEntity = entity->findNamedEntity(name, ignoreDisabled);
+                if (childEntity != nullptr) {
+                    return childEntity;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
     Entity* Entity::findEntityWithType(ComponentType type, bool ignoreDisabled /* = false */) const {
 
         // Check components attached to this entity
@@ -59,12 +79,10 @@ namespace render {
         // Entity didn't have any components we wanted attached to itself, check children
         for (const std::shared_ptr<Entity> entity : children) {
             // may return null, if not null its what we're after anyway
-            if (entity->enabled) {
-                if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
-                    Entity* childEntity = entity->findEntityWithType(type);
-                    if (childEntity != nullptr) {
-                        return childEntity;
-                    }
+            if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
+                Entity* childEntity = entity->findEntityWithType(type, ignoreDisabled);
+                if (childEntity != nullptr) {
+                    return childEntity;
                 }
             }
         }
@@ -86,7 +104,7 @@ namespace render {
             for (const std::shared_ptr<Entity> entity : children) {
                 // may return null, if not null its what we're after anyway
                 if (ignoreDisabled || (!ignoreDisabled && entity->enabled)) {
-                    IComponent* childComponent = entity->findComponent(type);
+                    IComponent* childComponent = entity->findComponent(type, traverseChildren, ignoreDisabled);
                     if (childComponent != nullptr) {
                         return childComponent;
                     }
@@ -100,6 +118,10 @@ namespace render {
     void Scene::push_back(EntityBuilder& entityBuilder) {
         std::shared_ptr<Entity> entity = entityBuilder.build();
         root.push_back(entity);
+    }
+
+    Entity* Scene::findNamedEntity(const std::string& name, bool ignoreDisabled /* = false */) const {
+        return root.findNamedEntity(name, ignoreDisabled);;
     }
 
     Entity* Scene::findEntityWithType(ComponentType type, bool ignoreDisabled /* = false */) const {
