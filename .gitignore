@@ -6,7 +6,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+/[bB]in/*.obj
 
 # Precompiled Headers
 *.gch
@@ -39,7 +39,6 @@
 # Object files
 *.o
 *.ko
-*.obj
 *.elf
 
 # Linker output
@@ -173,7 +172,6 @@ StyleCopReport.xml
 *_h.h
 *.ilk
 *.meta
-*.obj
 *.iobj
 *.pch
 *.pdb
