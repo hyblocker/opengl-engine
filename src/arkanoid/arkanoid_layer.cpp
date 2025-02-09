@@ -28,7 +28,8 @@ ArkanoidLayer::ArkanoidLayer(gpu::DeviceManager* deviceManager, managers::AssetM
     initScenes();
 
     // Start on the menu scene
-    setActiveScene(m_menuScene);
+    // setActiveScene(m_menuScene);
+    setActiveScene(m_gameScene);
 
     // @TODO: init post processing stack
 
