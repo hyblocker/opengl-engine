@@ -124,7 +124,7 @@ namespace render {
             bool markDirty = ImGui::DragFloat3("Position", pEntity->transform.m_position.f32, 0.05f);
             markDirty |= ImGui::DragFloat4("Rotation", pEntity->transform.m_rotation.f32, 0.05f);
             markDirty |= ImGui::DragFloat3("Scale", pEntity->transform.m_scale.f32, 0.05f);
-            pEntity->transform.m_isDirty |= markDirty;
+            pEntity->transform.m_isDirty = pEntity->transform.m_isDirty || markDirty;
             ImGui::EndGroupPanel();
 
             // Draw components
@@ -246,8 +246,9 @@ namespace render {
                     }
                     perspectiveDirty |= ImGui::Checkbox("Use infinite far plane", &pCamera->m_infiniteFar);
                     perspectiveDirty |= ImGui::DragFloat("Aspect ratio", &pCamera->m_aspect);
-                    if (perspectiveDirty) {
-                        pCamera->m_isPerspectiveDirty = true;
+
+                    pCamera->m_isPerspectiveDirty = pCamera->m_isPerspectiveDirty || perspectiveDirty;
+                    pCamera->m_isViewDirty = pCamera->m_isViewDirty || markDirty;
                     }
                     break;
                 }
