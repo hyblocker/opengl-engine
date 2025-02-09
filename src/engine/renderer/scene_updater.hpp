@@ -21,6 +21,7 @@ namespace render {
         void render(const std::shared_ptr<Entity> entity);
         void update(const std::shared_ptr<Entity> entity, const float deltaTime);
         void physicsTick(const std::shared_ptr<Entity> entity, const float deltaTime, Scene::PhysicsParameters physicsParams);
+        void physicsTickPost(const std::shared_ptr<Entity> entity, const float deltaTime, Scene::PhysicsParameters physicsParams);
 
         void drawDebugSceneGraphEntity(const std::string& sceneName, const std::shared_ptr<Entity> entity, void** pSelectedEntity);
     };

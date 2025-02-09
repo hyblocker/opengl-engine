@@ -8,8 +8,11 @@
 #include "mesh.hpp"
 #include "camera.hpp"
 #include "light.hpp"
+#include "engine/physics/physics_components.hpp"
 
 namespace render {
+
+    using namespace ::physics;
 
     size_t s_sceneTreeCounter = 0;
 
@@ -155,6 +158,11 @@ namespace render {
                     ImGui::BeginGroupPanel("Camera", ImVec2(groupWidth, 0));
                     break;
                 }
+                case ComponentType::Physics:
+                {
+                    ImGui::BeginGroupPanel("Physics Component", ImVec2(groupWidth, 0));
+                    break;
+                }
                 case ComponentType::UserBehaviour:
                 {
                     ImGui::BeginGroupPanel("User Behaviour", ImVec2(groupWidth, 0));
@@ -249,7 +257,39 @@ namespace render {
 
                     pCamera->m_isPerspectiveDirty = pCamera->m_isPerspectiveDirty || perspectiveDirty;
                     pCamera->m_isViewDirty = pCamera->m_isViewDirty || markDirty;
+                    break;
+                }
+                case ComponentType::Physics:
+                {
+                    PhysicsComponent* pPhysics = (PhysicsComponent*)component.get();
+
+                    const char* physicsBodyTypeNames[] = { "Static", "Kinematic", "Rigidbody" };
+                    const char* physicsShapeNames[] = { "Box", "Circle", "Capsule" };
+
+                    ImGui::DragFloat("Density", &pPhysics->density, 0.01f, 0);
+                    ImGui::DragFloat("Friction", &pPhysics->friction, 0.01f, 0);
+                    ImGui::ComboboxEx("Body Type", (int*)&pPhysics->bodyType, physicsBodyTypeNames, IM_ARRAYSIZE(physicsBodyTypeNames));
+
+                    ImGui::ComboboxEx("Collider Shape", (int*)&pPhysics->shape.shape, physicsShapeNames, IM_ARRAYSIZE(physicsShapeNames));
+                    switch (pPhysics->shape.shape) {
+                    case PhysicsShape::Box: {
+                        ImGui::DragFloat2("Size", pPhysics->shape.box.size.f32, 0.01f, 0);
+                        break;
                     }
+                    case PhysicsShape::Circle: {
+                        ImGui::DragFloat2("Centre", pPhysics->shape.circle.centre.f32, 0.01f, 0);
+                        ImGui::DragFloat("Radius", &pPhysics->shape.circle.radius, 0.01f, 0);
+                        
+                        break;
+                    }
+                    case PhysicsShape::Capsule: {
+                        ImGui::DragFloat2("Point 1", pPhysics->shape.capsule.p1.f32, 0.01f, 0);
+                        ImGui::DragFloat2("Point 2", pPhysics->shape.capsule.p2.f32, 0.01f, 0);
+                        ImGui::DragFloat("Radius", &pPhysics->shape.capsule.radius, 0.01f, 0);
+                        break;
+                    }
+                    }
+
                     break;
                 }
                 default:

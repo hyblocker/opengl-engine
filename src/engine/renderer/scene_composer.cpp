@@ -6,7 +6,7 @@ namespace render {
 
     EntityBuilder& EntityBuilder::withCamera(CameraCreateParams params) {
         std::shared_ptr<Camera> camera = std::make_shared<Camera>(m_entity.get());
-        
+
         camera->enabled = params.enabled;
         camera->setProjection(params.projection);
         camera->setFov(params.fov);
@@ -31,6 +31,22 @@ namespace render {
         light->radius = params.radius;
 
         m_entity->push_back(light);
+        return *this;
+    }
+
+    EntityBuilder& EntityBuilder::withPhysics(PhysicsCreateParams params) {
+        std::shared_ptr<physics::PhysicsComponent> physicsComponent = std::make_shared<physics::PhysicsComponent>(m_entity.get());
+
+        physicsComponent->enabled = params.enabled;
+        physicsComponent->density = params.density;
+        physicsComponent->friction = params.friction;
+        physicsComponent->bodyType = params.bodyType;
+        physicsComponent->shape.shape = params.shape.shape;
+        physicsComponent->shape.box = params.shape.box;
+        physicsComponent->shape.circle = params.shape.circle;
+        physicsComponent->shape.capsule = params.shape.capsule;
+
+        m_entity->push_back(physicsComponent);
         return *this;
     }
 

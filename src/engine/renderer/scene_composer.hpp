@@ -10,6 +10,7 @@
 #include "camera.hpp"
 #include "light.hpp"
 #include "mesh.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "scene_graph.hpp"
 
 namespace render {
@@ -84,6 +85,16 @@ namespace render {
             float radius = 1.0f; // For spot and point lights
         };
         EntityBuilder& withLight(LightCreateParams params);
+
+        struct PhysicsCreateParams {
+            bool enabled = true;
+
+            float density = 1.0f;
+            float friction = 0.3f;
+            physics::PhysicsBodyType bodyType = physics::PhysicsBodyType::Rigidbody;
+            physics::ShapeParams shape = {};
+        };
+        EntityBuilder& withPhysics(PhysicsCreateParams params);
 
         struct MeshRendererCreateParams {
             bool enabled = true;
