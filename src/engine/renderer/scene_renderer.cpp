@@ -115,9 +115,10 @@ namespace render {
         m_pDevice->debugMarkerPop();
     }
 
-    void SceneRenderer::drawRenderList(std::vector<MeshRenderer*>& drawables, Camera* cameraComponent) {
+    void SceneRenderer::drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent) {
         // Entity didn't have any components we wanted attached to itself, check children
-        for (MeshRenderer* pRenderer : drawables) {
+        for (RenderListElement drawable : drawables) {
+            MeshRenderer* pRenderer = drawable.pMeshRenderer;
             // may return null, if not null its what we're after anyway
             if (pRenderer->enabled && pRenderer->getEntity()->enabled) {
                 if (pRenderer->mesh.triangleCount < 1) {
@@ -134,7 +135,8 @@ namespace render {
                     GeometryCBuffer* geometryView = nullptr;
                     m_pDevice->mapBuffer(m_geometryCbuffer, 0, sizeof(GeometryCBuffer), gpu::MapAccessFlags::Write | gpu::MapAccessFlags::InvalidateBuffer, reinterpret_cast<void**>(&geometryView));
                     if (geometryView != nullptr) {
-                        geometryView->model = pRenderer->getEntity()->transform.getModel();
+                        // @TODO: May need to flip
+                        geometryView->model = hlslpp::mul(drawable.parentMatrix, pRenderer->getEntity()->transform.getModel());
                         geometryView->view = cameraComponent->getViewMatrix();
                         geometryView->projection = cameraComponent->getProjectionMatrix();
                         geometryView->cameraPos = cameraComponent->getEntity()->transform.getPosition();
@@ -186,7 +188,7 @@ namespace render {
         }
     }
 
-    void SceneRenderer::buildForwardRenderGraph(Entity* entity) {
+    void SceneRenderer::buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix) {
 
         // iterate through the scene and push entities / renderers into 
         ASSERT(entity != nullptr);
@@ -199,9 +201,9 @@ namespace render {
                     MeshRenderer* pRenderer = (MeshRenderer*)component.get();
                     if (pRenderer->enabled) {
                         if (pRenderer->material.drawOrder <= k_drawOrder_Opaque) {
-                            m_forwardOpaqueList.push_back(pRenderer);
+                            m_forwardOpaqueList.push_back({.pMeshRenderer = pRenderer, .parentMatrix = parentMatrix });
                         } else {
-                            m_forwardTransparentList.push_back(pRenderer);
+                            m_forwardTransparentList.push_back({ .pMeshRenderer = pRenderer, .parentMatrix = parentMatrix });
                         }
                     }
                 }
@@ -218,7 +220,8 @@ namespace render {
             for (const std::shared_ptr<Entity> childEntity : entity->children) {
                 // may return null, if not null its what we're after anyway
                 if (childEntity->enabled) {
-                    buildForwardRenderGraph(childEntity.get());
+                    // @TODO: May need to flip
+                    buildForwardRenderGraph(childEntity.get(), hlslpp::mul(entity->transform.getModel(), parentMatrix));
                 }
             }
         }
@@ -229,8 +232,12 @@ namespace render {
 
         // Find the camera
         // @TODO: Consider caching the camera entity??
-        Entity* cameraEntity = scene.findEntityWithType(ComponentType::Camera);
+        Entity* cameraEntity = scene.findEntityWithType(ComponentType::Camera, true);
         Camera* cameraComponent = (Camera*) cameraEntity->findComponent(ComponentType::Camera);
+        if (!cameraEntity->enabled || !cameraComponent->enabled) {
+            // Can't draw if the camera is disabled
+            return;
+        }
         cameraComponent->setAspect(aspect); // Update aspect ratio
 
         // forward rendering is simple:
@@ -245,24 +252,24 @@ namespace render {
         m_forwardOpaqueList.clear();
         m_forwardTransparentList.clear();
         // find lights and meshes
-        buildForwardRenderGraph(&scene.root);
+        buildForwardRenderGraph(&scene.root, hlslpp::float4x4::identity());
 
         // sort draw graphs
-        auto compareByDrawOrderFrontToBack = [cameraComponent](MeshRenderer* a, MeshRenderer* b) -> bool {
-            if (a->material.drawOrder == b->material.drawOrder) {
-                float distCamA = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - a->getEntity()->transform.getPosition());
-                float distCamB = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - b->getEntity()->transform.getPosition());
+        auto compareByDrawOrderFrontToBack = [cameraComponent](RenderListElement a, RenderListElement b) -> bool {
+            if (a.pMeshRenderer->material.drawOrder == b.pMeshRenderer->material.drawOrder) {
+                float distCamA = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - a.pMeshRenderer->getEntity()->transform.getPosition());
+                float distCamB = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - b.pMeshRenderer->getEntity()->transform.getPosition());
                 return distCamA < distCamB;
             }
-            return a->material.drawOrder < b->material.drawOrder;
+            return a.pMeshRenderer->material.drawOrder < b.pMeshRenderer->material.drawOrder;
         };
-        auto compareByDrawOrderBackToFront = [cameraComponent](MeshRenderer* a, MeshRenderer* b) -> bool {
-            if (a->material.drawOrder == b->material.drawOrder) {
-                float distCamA = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - a->getEntity()->transform.getPosition());
-                float distCamB = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - b->getEntity()->transform.getPosition());
+        auto compareByDrawOrderBackToFront = [cameraComponent](RenderListElement a, RenderListElement b) -> bool {
+            if (a.pMeshRenderer->material.drawOrder == b.pMeshRenderer->material.drawOrder) {
+                float distCamA = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - a.pMeshRenderer->getEntity()->transform.getPosition());
+                float distCamB = hlslpp::length(cameraComponent->getEntity()->transform.getPosition() - b.pMeshRenderer->getEntity()->transform.getPosition());
                 return distCamA > distCamB;
             }
-            return a->material.drawOrder < b->material.drawOrder;
+            return a.pMeshRenderer->material.drawOrder < b.pMeshRenderer->material.drawOrder;
         };
 
         // sort opaque front to back, transparent back to front for optimal rendering

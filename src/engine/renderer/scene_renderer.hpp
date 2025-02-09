@@ -28,8 +28,14 @@ namespace render {
         void init(gpu::IDevice* pDevice, managers::AssetManager* pAssetManager);
         void draw(Scene& scene, const float aspect);
     private:
-        void buildForwardRenderGraph(Entity* entity);
-        void drawRenderList(std::vector<MeshRenderer*>& drawables, Camera* cameraComponent);
+
+        struct RenderListElement {
+            MeshRenderer* pMeshRenderer;
+            hlslpp::float4x4 parentMatrix;
+        };
+
+        void buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix);
+        void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent);
         void drawSkybox(Scene& scene, Camera* camera);
 
         gpu::IDevice* m_pDevice = nullptr;
@@ -48,7 +54,7 @@ namespace render {
         gpu::BlendStateHandle m_alphaBlend_BlendState;
 
         std::vector<Light*> m_lights;
-        std::vector<MeshRenderer*> m_forwardOpaqueList;
-        std::vector<MeshRenderer*> m_forwardTransparentList;
+        std::vector<RenderListElement> m_forwardOpaqueList;
+        std::vector<RenderListElement> m_forwardTransparentList;
     };
 }
