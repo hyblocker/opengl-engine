@@ -26,8 +26,8 @@ namespace render {
             float4x4 scale = float4x4::scale(m_scale);
 
             // SRT matrix composition
-            m_model = mul(rotation, scale);
-            m_model = mul(translation, m_model);
+            m_model = mul(scale, rotation);
+            m_model = mul(m_model, translation);
 
             m_isDirty = false;
         }
