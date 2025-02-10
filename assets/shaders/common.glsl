@@ -35,17 +35,13 @@ layout(std140) uniform MaterialBuffer
 #define LIGHT_TYPE_POINT 1
 #define LIGHT_TYPE_SPOT 2
 
-#define ATTENUATION_TYPE_NONE 0
-#define ATTENUATION_TYPE_LINEAR 1
-#define ATTENUATION_TYPE_QUAD 2
-
 struct LightData
 {
     // These 4 floats would be aligned into a float4, meaning a single light occupies 16 bytes
     uint type;
-    uint attenuation;
     float intensity;
-    float radius; // For spot and point lights
+    float innerRadius; // For spot lights
+    float outerRadius; // For spot lights
 
     // Ignored for dir lights
     float3 position;

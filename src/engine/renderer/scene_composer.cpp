@@ -23,12 +23,10 @@ namespace render {
 
         light->enabled = params.enabled;
         light->type = params.type;
-        light->attenuation = params.attenuation;
-        light->position = params.position;
-        light->direction = params.direction;
         light->colour = params.colour;
         light->intensity = params.intensity;
-        light->radius = params.radius;
+        light->innerRadius = params.innerRadius;
+        light->outerRadius = params.outerRadius;
 
         m_entity->push_back(light);
         return *this;

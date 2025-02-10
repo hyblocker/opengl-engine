@@ -25,6 +25,9 @@ namespace render {
         m_materialCbuffer = m_pDevice->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic, .debugName = "MaterialCbuffer" });
         m_pDevice->writeBuffer(m_materialCbuffer, sizeof(MaterialCBuffer), nullptr);
 
+        m_lightsCbuffer = m_pDevice->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic, .debugName = "LightsCbuffer" });
+        m_pDevice->writeBuffer(m_lightsCbuffer, sizeof(LightsCbuffer), nullptr);
+
         m_trillinearAniso16ClampSampler = m_pDevice->makeTextureSampler({ /* default (linear, wrap, 16x-aniso) */ });
         
         m_skyboxTexShader = m_pAssetManager->fetchShader({
@@ -115,7 +118,7 @@ namespace render {
         m_pDevice->debugMarkerPop();
     }
 
-    void SceneRenderer::drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent) {
+    void SceneRenderer::drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight) {
         // Entity didn't have any components we wanted attached to itself, check children
         for (RenderListElement drawable : drawables) {
             MeshRenderer* pRenderer = drawable.pMeshRenderer;
@@ -154,6 +157,41 @@ namespace render {
                         materialView->emissionColour = pRenderer->material.emissionColour;
                         materialView->emissionIntensity = pRenderer->material.emissionIntensity;
                         m_pDevice->unmapBuffer(m_materialCbuffer);
+                    }
+
+                    // Set lights cbuffer on bind slot 2
+                    m_pDevice->setConstantBuffer(m_lightsCbuffer, 2);
+                    LightsCbuffer* lightsView = nullptr;
+                    m_pDevice->mapBuffer(m_lightsCbuffer, 0, sizeof(LightsCbuffer), gpu::MapAccessFlags::Write | gpu::MapAccessFlags::InvalidateBuffer, reinterpret_cast<void**>(&lightsView));
+                    if (lightsView != nullptr) {
+                        memset(lightsView, 0, sizeof(LightsCbuffer));
+
+#define BIND_LIGHT(CbufferLight, LightComponent) \
+    CbufferLight.type         = (uint32_t) LightComponent->type; \
+    CbufferLight.intensity    = LightComponent->intensity; \
+    CbufferLight.innerRadius  = LightComponent->innerRadius; \
+    CbufferLight.outerRadius  = LightComponent->outerRadius; \
+    CbufferLight.position     = LightComponent->getPosition(); \
+    CbufferLight.direction    = LightComponent->getDirection(); \
+    CbufferLight.colour       = LightComponent->colour
+
+                        if (sunLight == nullptr) {
+                            for (int i = 0; i < m_lights.size() && i < k_MAX_LIGHTS; i++) {
+                                BIND_LIGHT(lightsView->light[i], m_lights[i]);
+                            }
+
+                        } else {
+                            BIND_LIGHT(lightsView->light[0], sunLight);
+                            int lightWriteIdx = 1;
+                            for (int i = 0; i < m_lights.size() && i < k_MAX_LIGHTS && lightWriteIdx < k_MAX_LIGHTS; i++) {
+                                if (m_lights[i] != sunLight) {
+                                    BIND_LIGHT(lightsView->light[lightWriteIdx], m_lights[i]);
+                                    lightWriteIdx++;
+                                }
+                            }
+                        }
+#undef BIND_LIGHT
+                        m_pDevice->unmapBuffer(m_lightsCbuffer);
                     }
 
                     // Bind textures with trillinearAniso16ClampSampler at slots 0, 1, 2, falling back to the built-in white texture if not set
@@ -230,10 +268,16 @@ namespace render {
     void SceneRenderer::draw(Scene& scene, const float aspect) {
         // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
-        // Find the camera
+        // Find the active camera
         // @TODO: Consider caching the camera entity??
-        Entity* cameraEntity = scene.findEntityWithType(ComponentType::Camera, true);
+        Entity* cameraEntity = scene.findEntityWithType(ComponentType::Camera);
+        if (!cameraEntity) {
+            return;
+        }
         Camera* cameraComponent = (Camera*) cameraEntity->findComponent(ComponentType::Camera);
+        if (!cameraComponent) {
+            return;
+        }
         if (!cameraEntity->enabled || !cameraComponent->enabled) {
             // Can't draw if the camera is disabled
             return;
@@ -280,7 +324,7 @@ namespace render {
         m_pDevice->debugMarkerPush("Drawing scene...");
 
         m_pDevice->bindBlendState(m_opaque_BlendState);
-        drawRenderList(m_forwardOpaqueList, cameraComponent);
+        drawRenderList(m_forwardOpaqueList, cameraComponent, scene.lightingParams.sunLight);
 
         // Skybox is rendered after opaque materials and before transparent ones
         // this is to take advantage of an optimisation with opaque rendering.
@@ -295,7 +339,7 @@ namespace render {
         drawSkybox(scene, cameraComponent);
         
         m_pDevice->bindBlendState(m_alphaBlend_BlendState);
-        drawRenderList(m_forwardTransparentList, cameraComponent);
+        drawRenderList(m_forwardTransparentList, cameraComponent, scene.lightingParams.sunLight);
         
         m_pDevice->bindBlendState(m_opaque_BlendState);
 

@@ -13,12 +13,6 @@ namespace render {
         Spot,
     };
 
-    enum class AttenuationType : uint32_t {
-        None = 0,
-        Linear,
-        Quad,
-    };
-
     class Light : public IComponent {
     public:
         Light(Entity* parent) : IComponent(parent) {
@@ -27,16 +21,20 @@ namespace render {
         ~Light() = default;
 
 		LightType type = LightType::Directional;
-		AttenuationType attenuation = AttenuationType::None;
 
         // Ignored for dir lights
-		hlslpp::float3 position = { 0, 0, 0 };
-		hlslpp::float3 direction = { 0, -1, 0 };
+        inline hlslpp::float3 getPosition() const {
+            return getEntity()->transform.getPosition();
+        }
+		inline hlslpp::float3 getDirection() const {
+            return hlslpp::normalize(mul(getEntity()->transform.getRotation(), hlslpp::float3(0.0f, 0.0f, 1.0f)));
+        }
 
         // RGB colour
 		hlslpp::float3 colour = { 1.0f, 1.0f, 1.0f };
         float intensity = 1.0f;
-        float radius = 1.0f; // For spot and point lights
+        float innerRadius = 0.6f; // For spot lights
+        float outerRadius = 1.0f; // For spot lights
     private:
         // derived classes are forbidden from modifying componentType
         using IComponent::componentType;

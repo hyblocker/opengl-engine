@@ -8,7 +8,7 @@ layout(binding = 0) uniform sampler2D brickTex;
 
 in vec3 eyeDir;
 
-#define SUN_DIR normalize(vec3(0.0f,-1.0f,0.12f))
+#define SUN_DIR normalize(light0.direction)
 
 //
 // Fast skycolor function by Íñigo Quílez

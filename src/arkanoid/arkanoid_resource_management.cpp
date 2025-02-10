@@ -22,4 +22,5 @@ void ArkanoidLayer::loadGpuResources() {
         });
     getDevice()->setBufferBinding(m_shader, "GeometryBuffer", 0);
     getDevice()->setBufferBinding(m_shader, "MaterialBuffer", 1);
+    getDevice()->setBufferBinding(m_shader, "LightsBuffer", 2);
 }

@@ -12,6 +12,7 @@
 namespace render {
 
     class Camera;
+    class Light;
     class Entity;
     class SceneUpdater;
     class EntityBuilder;
@@ -116,7 +117,7 @@ namespace render {
         std::string sceneName = "";
         Entity root { .name="Root" };
         struct LightingParameters {
-            Entity* sunLight = nullptr; // Reference to the entity whose Light component represents the sun, data passed onto skybox shader
+            Light* sunLight = nullptr; // Reference to the entity whose Light component represents the sun, data passed onto skybox shader
             Skybox skybox;
         } lightingParams;
 

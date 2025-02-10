@@ -218,10 +218,7 @@ namespace render {
                     Light* pLight = (Light*)component.get();
 
                     const char* lightTypeNames[] = { "Directional", "Point", "Spot" };
-                    const char* lightAttenuationTypeNames[] = { "None", "Linear", "Quad" };
-
                     ImGui::ComboboxEx("Type", (int*)&pLight->type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
-                    ImGui::ComboboxEx("Attenuation", (int*)&pLight->attenuation, lightAttenuationTypeNames, IM_ARRAYSIZE(lightAttenuationTypeNames));
 
                     ImGui::BeginDisabled();
                     hlslpp::float3 lightTmp = pLight->getPosition();
@@ -231,8 +228,9 @@ namespace render {
                     ImGui::EndDisabled();
                     
                     ImGui::ColorEdit3("Colour", pLight->colour.f32);
-                    ImGui::DragFloat("Radius", &pLight->radius);
                     ImGui::DragFloat("Intensity", &pLight->intensity, 0.01f, 0);
+                    ImGui::DragFloat("Inner Radius", &pLight->innerRadius, 0.01f, 0);
+                    ImGui::DragFloat("Outer Radius", &pLight->outerRadius, 0.01f, 0);
 
                     break;
                 }

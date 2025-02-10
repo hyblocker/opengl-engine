@@ -8,6 +8,8 @@ namespace render {
 
     class Light;
 
+    constexpr uint32_t k_MAX_LIGHTS = 4;
+
     struct GeometryCBuffer {
         hlslpp::float4x4 model;
         hlslpp::float4x4 view;
@@ -23,6 +25,25 @@ namespace render {
         float emissionIntensity = 1.0f;
     };
 
+    struct LightRenderData {
+        // These 4 floats would be aligned into a float4, meaning a single light occupies 16 bytes
+        uint32_t type;
+        float intensity;
+        float innerRadius;
+        float outerRadius;
+
+        // Ignored for dir lights
+        hlslpp::float3 position;
+        hlslpp::float3 direction;
+
+        // RGB colour
+        hlslpp::float3 colour;
+    };
+
+    struct LightsCbuffer {
+        LightRenderData light[k_MAX_LIGHTS];
+    };
+
     class SceneRenderer {
     public:
         void init(gpu::IDevice* pDevice, managers::AssetManager* pAssetManager);
@@ -35,7 +56,7 @@ namespace render {
         };
 
         void buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix);
-        void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent);
+        void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight);
         void drawSkybox(Scene& scene, Camera* camera);
 
         gpu::IDevice* m_pDevice = nullptr;
@@ -45,6 +66,7 @@ namespace render {
 
         gpu::BufferHandle m_geometryCbuffer;
         gpu::BufferHandle m_materialCbuffer;
+        gpu::BufferHandle m_lightsCbuffer;
 
         gpu::IShader* m_skyboxTexShader;
         gpu::IShader* m_skyboxProceduralShader;

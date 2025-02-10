@@ -73,16 +73,12 @@ namespace render {
         struct LightCreateParams {
             bool enabled = true;
             ::render::LightType type = ::render::LightType::Directional;
-            ::render::AttenuationType attenuation = ::render::AttenuationType::None;
-
-            // Ignored for dir lights
-            hlslpp::float3 position = { 0, 0, 0 };
-            hlslpp::float3 direction = { 0, -1, 0 };
 
             // RGB colour
             hlslpp::float3 colour = { 1.0f, 1.0f, 1.0f };
             float intensity = 1.0f;
-            float radius = 1.0f; // For spot and point lights
+            float innerRadius = 0.5f; // For spot lights
+            float outerRadius = 1.0f; // For spot lights
         };
         EntityBuilder& withLight(LightCreateParams params);
 
