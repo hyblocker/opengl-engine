@@ -124,9 +124,9 @@ namespace render {
 
             // Draw transform component
             ImGui::BeginGroupPanel("Transform", ImVec2(groupWidth, 0));
-            bool markDirty = ImGui::DragFloat3("Position", pEntity->transform.m_position.f32, 0.05f);
-            markDirty |= ImGui::DragFloat4("Rotation", pEntity->transform.m_rotation.f32, 0.05f);
-            markDirty |= ImGui::DragFloat3("Scale", pEntity->transform.m_scale.f32, 0.05f);
+            bool markDirty = ImGui::DragFloat3("Position", pEntity->transform.m_position.f32, 0.01f);
+            markDirty |= ImGui::DragFloat4("Rotation", pEntity->transform.m_rotation.f32, 0.01f);
+            markDirty |= ImGui::DragFloat3("Scale", pEntity->transform.m_scale.f32, 0.01f);
             pEntity->transform.m_isDirty = pEntity->transform.m_isDirty || markDirty;
             ImGui::EndGroupPanel();
 
@@ -223,12 +223,16 @@ namespace render {
                     ImGui::ComboboxEx("Type", (int*)&pLight->type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
                     ImGui::ComboboxEx("Attenuation", (int*)&pLight->attenuation, lightAttenuationTypeNames, IM_ARRAYSIZE(lightAttenuationTypeNames));
 
-                    ImGui::DragFloat3("Position", pLight->position.f32);
-                    ImGui::DragFloat3("Direction", pLight->direction.f32);
+                    ImGui::BeginDisabled();
+                    hlslpp::float3 lightTmp = pLight->getPosition();
+                    ImGui::DragFloat3("Position", lightTmp.f32);
+                    lightTmp = pLight->getDirection();
+                    ImGui::DragFloat3("Direction", lightTmp.f32);
+                    ImGui::EndDisabled();
                     
                     ImGui::ColorEdit3("Colour", pLight->colour.f32);
-                    ImGui::DragFloat("Intensity", &pLight->intensity);
                     ImGui::DragFloat("Radius", &pLight->radius);
+                    ImGui::DragFloat("Intensity", &pLight->intensity, 0.01f, 0);
 
                     break;
                 }
@@ -243,7 +247,7 @@ namespace render {
                         pCamera->m_isPerspectiveDirty = true;
                     }
 
-                    bool perspectiveDirty = ImGui::DragFloat("FOV", &pCamera->m_fov, 0.01f, 20.0f, 179.9f);
+                    bool perspectiveDirty = ImGui::DragFloat("FOV", &pCamera->m_fov, 0.01f, 0.1f, 179.9f);
                     perspectiveDirty |= ImGui::DragFloat("Near plane", &pCamera->m_nearPlane, 0.01f, 0.00000001f, 999999.9f);
                     if (pCamera->m_infiniteFar) {
                         ImGui::BeginDisabled();
