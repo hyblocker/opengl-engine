@@ -152,7 +152,7 @@ namespace managers {
         m_whiteTexture = m_device->makeTexture({
             .width = (uint32_t)2,
             .height = (uint32_t)2,
-            .generateMipmaps = false,
+            .generateMipmaps = true,
             .type = gpu::TextureType::Texture2D,
             .debugName = "WhiteTexture"
             }, texDataWhite);
