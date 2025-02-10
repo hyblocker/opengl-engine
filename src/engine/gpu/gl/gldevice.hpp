@@ -186,5 +186,8 @@ namespace gpu::gl {
 		float m_depth = 0xFFFFFFFF;
 
 		std::vector<std::string> m_openGlExtensions;
+		int32_t m_maxUniformBufferBindings = 0;
+		int32_t m_maxCombinedTextureImageUnits = 0;
+		float m_maxTextureMaxAnisotropyExt = 0;
 	};
 }

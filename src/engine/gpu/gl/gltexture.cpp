@@ -63,16 +63,9 @@ namespace gpu::gl {
 		ASSERT(desc.wrapY != gpu::TextureWrap::Count);
 		ASSERT(desc.wrapZ != gpu::TextureWrap::Count);
 
-		// Ask the GPU driver what the maximum anisotropy the hardware supports is, so that we may clamp with it
-		static GLfloat maximumAniso = -1.0;
-		static bool maximumAnisoQueried = false;
-		if (maximumAnisoQueried == false) {
-			GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAniso));
-			maximumAnisoQueried = true;
-		}
 
 		// clamp anisotropy to known range, 1 is defined as minimum by the spec, max is the max as defined by the hardware
-		float newAniso = std::clamp(desc.anisotropy, 1.0f, maximumAniso);
+		float newAniso = std::clamp(desc.anisotropy, 1.0f, m_maxTextureMaxAnisotropyExt);
 		// update descriptor before using it
 		desc.anisotropy = newAniso;
 

@@ -56,6 +56,10 @@ namespace gpu::gl {
 			GL_CHECK(glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE));
 		}
 
+		GL_CHECK(glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_maxUniformBufferBindings));
+		GL_CHECK(glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &m_maxCombinedTextureImageUnits));
+		GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_maxTextureMaxAnisotropyExt));
+		
 		// Enable MSAA
 		GL_CHECK(glEnable(GL_MULTISAMPLE));
 		GL_CHECK(glDisable(GL_BLEND));
@@ -350,7 +354,7 @@ namespace gpu::gl {
 	void GlDevice::bindTexture(ITexture* texture, ITextureSampler* sampler, uint32_t index) {
 		ASSERT(texture != nullptr);
 		ASSERT(sampler != nullptr);
-		ASSERT(index < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		ASSERT(index < m_maxCombinedTextureImageUnits);
 
 		GL_CHECK(glActiveTexture(GL_TEXTURE0 + index)); // we need to offset the binding offset for texture 0 with the user supplied index
 		GL_CHECK(glBindTexture(getGlTextureType(texture->getDesc().type).glEnum, texture->getNativeObject()));
@@ -360,7 +364,7 @@ namespace gpu::gl {
 	void GlDevice::bindTexture(IFramebuffer* texture, ITextureSampler* sampler, uint32_t index) {
 		ASSERT(texture != nullptr);
 		ASSERT(sampler != nullptr);
-		ASSERT(index < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		ASSERT(index < m_maxCombinedTextureImageUnits);
 
 		GL_CHECK(glActiveTexture(GL_TEXTURE0 + index)); // we need to offset the binding offset for texture 0 with the user supplied index
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->getTextureNativeObject()));

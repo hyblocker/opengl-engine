@@ -51,7 +51,7 @@ namespace gpu::gl {
         ASSERT(mappedDataPtr != nullptr);
 
         void* bufferPtr = glMapBufferRange(getGlBufferType(buffer->getDesc().type).glType, offset, length, getGlAccessFlags(accessFlags).glFlag);
-        // GL_CHECK(;); // Error check because we have a return value above
+        GL_CHECK(;); // Error check because we have a return value above
         // @TODO: RE-ADD CHECK
         *mappedDataPtr = bufferPtr;
     }
@@ -65,7 +65,7 @@ namespace gpu::gl {
     void GlDevice::setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) {
         ASSERT(shader != nullptr);
         ASSERT(!name.empty());
-        ASSERT(bindIndex < GL_MAX_UNIFORM_BUFFER_BINDINGS);
+        ASSERT(bindIndex < m_maxUniformBufferBindings);
 
         uint32_t uniformBlockIndex = glGetUniformBlockIndex(shader->getNativeObject(), name.c_str());
         GL_CHECK(;);
