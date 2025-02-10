@@ -15,6 +15,7 @@ namespace physics {
 
     constexpr int k_PHYSICS_SUBSTEP_COUNT = 4;
     constexpr int k_MAX_FORCES_PER_COMPONENT_PER_FRAME = 8;
+    constexpr float k_PHYSICS_SCALE = 0.01f;
 
     enum class PhysicsShape {
         Box,
@@ -55,6 +56,9 @@ namespace physics {
 
         float density = 1.0f;
         float friction = 0.3f;
+        float bounciness = 0.0f;
+        float gravityScale = 1.0f;
+        bool fixedRotation = false;
         PhysicsBodyType bodyType = PhysicsBodyType::Rigidbody;
         ShapeParams shape = {};
 

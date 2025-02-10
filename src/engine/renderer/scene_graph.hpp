@@ -108,7 +108,7 @@ namespace render {
         // finds an entity with a given type in the list of child entities
         Entity* findEntityWithType(ComponentType type, bool ignoreDisabled = false) const;
         IComponent* findComponent(ComponentType type, bool traverseChildren = false, bool ignoreDisabled = false) const;
-        void push_back(std::shared_ptr<Entity> entity);
+        Entity* push_back(std::shared_ptr<Entity> entity);
         void push_back(std::shared_ptr<IComponent> component);
     };
 
@@ -131,7 +131,7 @@ namespace render {
         } physicsParams;
 
         Entity* findNamedEntity(const std::string& name, bool ignoreDisabled = false) const;
-        void push_back(EntityBuilder& entity);
+        Entity* push_back(EntityBuilder& entity);
         Entity* findEntityWithType(ComponentType type, bool ignoreDisabled = false) const;
         IComponent* findComponent(ComponentType type, bool ignoreDisabled = false) const;
     };

@@ -38,6 +38,9 @@ namespace render {
         physicsComponent->enabled = params.enabled;
         physicsComponent->density = params.density;
         physicsComponent->friction = params.friction;
+        physicsComponent->bounciness = params.bounciness;
+        physicsComponent->gravityScale = params.gravityScale;
+        physicsComponent->fixedRotation = params.fixedRotation;
         physicsComponent->bodyType = params.bodyType;
         physicsComponent->shape.shape = params.shape.shape;
         physicsComponent->shape.box = params.shape.box;

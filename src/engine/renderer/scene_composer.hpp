@@ -87,6 +87,9 @@ namespace render {
 
             float density = 1.0f;
             float friction = 0.3f;
+            float bounciness = 0.0f;
+            float gravityScale = 1.0f;
+            bool fixedRotation = false;
             physics::PhysicsBodyType bodyType = physics::PhysicsBodyType::Rigidbody;
             physics::ShapeParams shape = {};
         };
@@ -99,6 +102,9 @@ namespace render {
         };
         EntityBuilder& withMeshRenderer(MeshRendererCreateParams params);
 
+        template<class T, typename... Args>
+        EntityBuilder& withBehaviour(bool enabled = true, Args&&... args);
+
     private:
         inline std::shared_ptr<Entity> build() {
             return m_entity;
@@ -109,4 +115,13 @@ namespace render {
     private:
         std::shared_ptr<Entity> m_entity = std::make_shared<Entity>();
     };
+
+    template<class T, typename... Args>
+    EntityBuilder& EntityBuilder::withBehaviour(bool enabled, Args&&... args) {
+        std::shared_ptr<T> userBehaviour = std::make_shared<T>(m_entity.get(), std::forward<Args>(args)...);
+        userBehaviour->enabled = enabled;
+        m_entity->push_back(userBehaviour);
+        return *this;
+    }
+
 }

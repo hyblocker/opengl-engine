@@ -10,7 +10,12 @@ namespace physics {
                 m_forceQueueSize++;
             }
         } else {
-            b2Body_ApplyForceToCenter(m_physicsId, { force.x, force.y }, true);
+            if (bodyType == PhysicsBodyType::Rigidbody) {
+                b2Body_ApplyLinearImpulseToCenter(m_physicsId, { force.x ,force.y }, true);
+            }
+            else if (bodyType == PhysicsBodyType::Kinematic) {
+                b2Body_SetLinearVelocity(m_physicsId, { force.x ,force.y } );
+            }
         }
     }
 }

@@ -35,9 +35,10 @@ namespace render {
         return m_model;
     }
 
-    void Entity::push_back(std::shared_ptr<Entity> entity) {
+    Entity* Entity::push_back(std::shared_ptr<Entity> entity) {
         this->children.push_back(entity);
         this->children.back()->parent = this;
+        return this->children.back().get();
     }
 
     void Entity::push_back(std::shared_ptr<IComponent> component){
@@ -115,20 +116,20 @@ namespace render {
         return nullptr;
     }
 
-    void Scene::push_back(EntityBuilder& entityBuilder) {
+    Entity* Scene::push_back(EntityBuilder& entityBuilder) {
         std::shared_ptr<Entity> entity = entityBuilder.build();
-        root.push_back(entity);
+        return root.push_back(entity);
     }
 
     Entity* Scene::findNamedEntity(const std::string& name, bool ignoreDisabled /* = false */) const {
-        return root.findNamedEntity(name, ignoreDisabled);;
+        return root.findNamedEntity(name, ignoreDisabled);
     }
 
     Entity* Scene::findEntityWithType(ComponentType type, bool ignoreDisabled /* = false */) const {
-        return root.findEntityWithType(type, ignoreDisabled);;
+        return root.findEntityWithType(type, ignoreDisabled);
     }
 
     IComponent* Scene::findComponent(ComponentType type, bool ignoreDisabled /* = false */) const {
-        return root.findComponent(type, true, ignoreDisabled);;
+        return root.findComponent(type, true, ignoreDisabled);
     }
 }

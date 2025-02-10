@@ -270,6 +270,8 @@ namespace render {
 
                     ImGui::DragFloat("Density", &pPhysics->density, 0.01f, 0);
                     ImGui::DragFloat("Friction", &pPhysics->friction, 0.01f, 0);
+                    ImGui::DragFloat("Bounciness", &pPhysics->bounciness, 0.01f, 0);
+                    ImGui::DragFloat("Gravity Scale", &pPhysics->gravityScale, 0.01f);
                     ImGui::ComboboxEx("Body Type", (int*)&pPhysics->bodyType, physicsBodyTypeNames, IM_ARRAYSIZE(physicsBodyTypeNames));
 
                     ImGui::ComboboxEx("Collider Shape", (int*)&pPhysics->shape.shape, physicsShapeNames, IM_ARRAYSIZE(physicsShapeNames));
@@ -292,6 +294,11 @@ namespace render {
                     }
                     }
 
+                    b2Vec2 velocity = b2Body_GetLinearVelocity(pPhysics->m_physicsId);
+                    ImGui::BeginDisabled();
+                    ImGui::DragFloat2("Velocity", &velocity.x);
+                    ImGui::EndDisabled();
+
                     break;
                 }
                 default:
@@ -305,5 +312,20 @@ namespace render {
             }
 
         }
+    }
+
+    void SceneUpdater::drawPhysicsDebug(const Scene& scene) {
+#if _DEBUG
+        if (scene.physicsParams.m_initialised) {
+            /*
+            IComponent* camera = scene.root.findComponent(ComponentType::Camera);
+            g_camera.m_center.x = camera->getEntity()->transform.getPosition().x;
+            g_camera.m_center.y = camera->getEntity()->transform.getPosition().y;
+            g_camera.m_zoom = 1;
+            b2World_Draw(scene.physicsParams.m_box2Dworld, &g_draw.m_debugDraw);
+            g_draw.Flush();
+            */
+        }
+#endif
     }
 }

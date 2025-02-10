@@ -2,9 +2,21 @@
 #include "engine/log.hpp"
 #include "engine/physics/physics_components.hpp"
 
+#include "b2debug/debug_draw.hpp"
+
 namespace render {
 
-    void SceneUpdater::init() {}
+    void SceneUpdater::init() {
+#if _DEBUG
+        g_draw.Create();
+#endif
+    }
+
+    void SceneUpdater::shutdown() {
+#if _DEBUG
+        g_draw.Destroy();
+#endif
+    }
 
     void SceneUpdater::start(const std::shared_ptr<Entity> entity) {
         if (entity->enabled) {
@@ -90,8 +102,6 @@ namespace render {
         }
     }
 
-
-
     void SceneUpdater::physicsTick(const std::shared_ptr<Entity> entity, const float deltaTime, Scene::PhysicsParameters physicsParams) {
         if (entity->enabled) {
             for (const std::shared_ptr<IComponent> component : entity->components) {
@@ -105,6 +115,7 @@ namespace render {
                             b2ShapeDef shapeDef = b2DefaultShapeDef();
                             shapeDef.friction = pPhysicsComponent->friction;
                             shapeDef.density = pPhysicsComponent->density;
+                            shapeDef.restitution = pPhysicsComponent->bounciness;
                             switch (pPhysicsComponent->bodyType) {
                                 case physics::PhysicsBodyType::Static:
                                 {
@@ -122,7 +133,10 @@ namespace render {
                                     break;
                                 }
                             }
-                            bodyDef.position = { entity->transform.getPosition().x, entity->transform.getPosition().y };
+                            bodyDef.position = { entity->transform.getPosition().x * physics::k_PHYSICS_SCALE, entity->transform.getPosition().y * physics::k_PHYSICS_SCALE };
+                            bodyDef.gravityScale = pPhysicsComponent->gravityScale;
+                            bodyDef.fixedRotation = pPhysicsComponent->fixedRotation;
+                            bodyDef.userData = pPhysicsComponent;
                             // @TODO: Decompose quat to euler
                             //        need helper func
                             pPhysicsComponent->m_physicsId = b2CreateBody(physicsParams.m_box2Dworld, &bodyDef);
@@ -131,15 +145,14 @@ namespace render {
                             switch (pPhysicsComponent->shape.shape) {
                             case physics::PhysicsShape::Box: {
 
-                                b2Polygon boxCollider = b2MakeBox(50.0f, 10.0f);
-                                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                                b2Polygon boxCollider = b2MakeBox(pPhysicsComponent->shape.box.size.x, pPhysicsComponent->shape.box.size.y);
                                 b2CreatePolygonShape(pPhysicsComponent->m_physicsId, &shapeDef, &boxCollider);
                                 break;
                             }
                             case physics::PhysicsShape::Circle: {
                                 b2Circle circleCollider = {
-                                    .center = { pPhysicsComponent->shape.circle.centre.x, pPhysicsComponent->shape.circle.centre.y },
-                                    .radius = pPhysicsComponent->shape.circle.radius
+                                    .center = { -pPhysicsComponent->shape.circle.radius * physics::k_PHYSICS_SCALE / 2.0f, -pPhysicsComponent->shape.circle.radius * physics::k_PHYSICS_SCALE / 2.0f },
+                                    .radius = pPhysicsComponent->shape.circle.radius * physics::k_PHYSICS_SCALE
                                 };
                                 b2CreateCircleShape(pPhysicsComponent->m_physicsId, &shapeDef, &circleCollider);
 
@@ -147,23 +160,25 @@ namespace render {
                             }
                             case physics::PhysicsShape::Capsule: {
                                 b2Capsule capsuleCollider = {
-                                    .center1 = {pPhysicsComponent->shape.capsule.p1.x, pPhysicsComponent->shape.capsule.p1.y},
-                                    .center2 = {pPhysicsComponent->shape.capsule.p2.x, pPhysicsComponent->shape.capsule.p2.y},
+                                    .center1 = {pPhysicsComponent->shape.capsule.p1.x * physics::k_PHYSICS_SCALE, pPhysicsComponent->shape.capsule.p1.y * physics::k_PHYSICS_SCALE },
+                                    .center2 = {pPhysicsComponent->shape.capsule.p2.x * physics::k_PHYSICS_SCALE, pPhysicsComponent->shape.capsule.p2.y * physics::k_PHYSICS_SCALE },
                                     .radius = pPhysicsComponent->shape.capsule.radius
                                 };
-                                b2ShapeDef shapeDef = b2DefaultShapeDef();
                                 b2CreateCapsuleShape(pPhysicsComponent->m_physicsId, &shapeDef, &capsuleCollider);
                                 break;
                             }
                             }
 
-
+                            b2Body_SetLinearDamping(pPhysicsComponent->m_physicsId, 1.0f);
                         }
 
                         // simulate current state
-                        b2Body_SetAwake(pPhysicsComponent->m_physicsId, true);
                         for (int i = 0; i < pPhysicsComponent->m_forceQueueSize; i++) {
-                            b2Body_ApplyForceToCenter(pPhysicsComponent->m_physicsId, { pPhysicsComponent->m_pendingForces[i].x ,pPhysicsComponent->m_pendingForces[i].y }, true);
+                            if (pPhysicsComponent->bodyType == physics::PhysicsBodyType::Rigidbody) {
+                                b2Body_ApplyLinearImpulseToCenter(pPhysicsComponent->m_physicsId, { pPhysicsComponent->m_pendingForces[i].x ,pPhysicsComponent->m_pendingForces[i].y }, true);
+                            } else if (pPhysicsComponent->bodyType == physics::PhysicsBodyType::Kinematic) {
+                                b2Body_SetLinearVelocity(pPhysicsComponent->m_physicsId, { pPhysicsComponent->m_pendingForces[i].x ,pPhysicsComponent->m_pendingForces[i].y });
+                            }
                         }
                         // clear queue
                         pPhysicsComponent->m_forceQueueSize = 0;
