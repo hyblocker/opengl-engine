@@ -80,6 +80,27 @@ namespace render {
             }
         }
     }
+    
+    void SceneUpdater::imgui(const std::shared_ptr<Entity> entity) {
+        if (entity->enabled) {
+            for (const std::shared_ptr<IComponent> component : entity->components) {
+                if (component->getComponentType() == render::ComponentType::UserBehaviour) {
+                    IBehaviour* pBehaviour = (IBehaviour*)component.get();
+                    if (pBehaviour->enabled) {
+                        pBehaviour->imgui();
+                    }
+                }
+            }
+
+            // Entity didn't have any components we wanted attached to itself, check children
+            for (const std::shared_ptr<Entity> childEntity : entity->children) {
+                // may return null, if not null its what we're after anyway
+                if (childEntity->enabled) {
+                    imgui(childEntity);
+                }
+            }
+        }
+    }
 
     void SceneUpdater::update(const std::shared_ptr<Entity> entity, const float deltaTime) {
         if (entity->enabled) {
@@ -252,6 +273,16 @@ namespace render {
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             render(entity);
+        }
+    }
+    
+
+    void SceneUpdater::imgui(const Scene& scene) {
+
+        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+
+        for (const std::shared_ptr<Entity> entity : scene.root.children) {
+            imgui(entity);
         }
     }
 
