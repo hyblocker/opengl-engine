@@ -264,7 +264,7 @@ namespace render {
             sleep(entity);
         }
 
-        b2DestroyWorld(scene.physicsParams.m_box2Dworld);
+        // b2DestroyWorld(scene.physicsParams.m_box2Dworld);
     }
 
     void SceneUpdater::render(const Scene& scene) {
@@ -294,6 +294,7 @@ namespace render {
             update(entity, deltaTime);
         }
 
+        /*
         if (!scene.physicsParams.m_initialised) {
             b2WorldDef worldDef = b2DefaultWorldDef();
             worldDef.gravity = { scene.physicsParams.gravity.x, scene.physicsParams.gravity.y };
@@ -313,5 +314,6 @@ namespace render {
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             physicsTickPost(entity, deltaTime, scene.physicsParams);
         }
+        */
     }
 }

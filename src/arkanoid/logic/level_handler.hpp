@@ -1,0 +1,76 @@
+#pragma once
+
+#include "engine/renderer/scene_graph.hpp"
+#include "engine/physics/physics_components.hpp"
+
+// we use collision matrices to mask out certain types of entities from colliding with one another
+namespace collisions {
+    namespace category {
+        constexpr uint64_t BALL     = 1u << 0;
+        constexpr uint64_t PADDLE   = 1u << 1;
+        constexpr uint64_t WALL     = 1u << 2;
+        constexpr uint64_t BRICK    = 1u << 3;
+        constexpr uint64_t POWERUP  = 1u << 4;
+    }
+    namespace masks {
+        constexpr uint64_t BALL     = category::WALL | category::PADDLE | category::BRICK;
+        constexpr uint64_t PADDLE   = category::BALL | category::WALL | category::POWERUP;
+        constexpr uint64_t WALL     = category::BALL | category::POWERUP;
+        constexpr uint64_t BRICK    = category::BALL;
+        constexpr uint64_t POWERUP  = category::WALL | category::PADDLE;
+    }
+}
+
+constexpr int32_t k_INITIAL_LIVES = 4;
+
+class LevelHandler : public render::IBehaviour {
+public:
+    LevelHandler(render::Entity* parent) : IBehaviour(parent) {}
+    ~LevelHandler() = default;
+
+    void start() override;
+    void sleep() override;
+    void update(float deltaTime) override;
+    void imgui() override;
+
+    inline const b2WorldId getWorldId() const { return m_world; }
+private:
+    b2BodyId box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation = true, b2Vec2 posOffset = b2Vec2_zero, float angle = 0);
+
+    b2BodyId makePaddle(render::Entity* entityData, hlslpp::float2 size);
+    b2BodyId makeBall(render::Entity* entityDat, float radius);
+    b2BodyId makeWall(render::Entity* entityData, hlslpp::float2 size, float angle = 0);
+    b2BodyId makeBrick(render::Entity* entityData, hlslpp::float2 size, hlslpp::float2 offset);
+    b2BodyId makePowerup(render::Entity* entityData, float radius);
+
+    b2JointId makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset);
+    void destroyWeldJoint(b2JointId& joint);
+    
+    void launchBall(float move = 0);
+    void killBall();
+
+private:
+    render::Entity* m_paddleEntity = nullptr;
+    render::Entity* m_ballEntity = nullptr;
+    render::Entity* m_bricksEntityRoot = nullptr;
+    render::Entity* m_cameraEntity = nullptr;
+
+    // walls
+    render::Entity* m_wallTopEntity = nullptr;
+    render::Entity* m_wallBottomEntity = nullptr;
+    render::Entity* m_wallRightEntity = nullptr;
+    render::Entity* m_wallLeftEntity = nullptr;
+
+    // box2d props
+    b2WorldId m_world = b2_nullWorldId;
+    b2BodyId m_paddleBody = b2_nullBodyId;
+    b2BodyId m_ballBody = b2_nullBodyId;
+    b2BodyId m_wallBodies[4] = { b2_nullBodyId, b2_nullBodyId, b2_nullBodyId, b2_nullBodyId };
+    
+    b2JointId m_ballPaddleJoint = b2_nullJointId;
+
+    hlslpp::float3 initialBallPos;
+    hlslpp::float3 initialPaddlePos;
+
+    int32_t m_lives = k_INITIAL_LIVES;
+};

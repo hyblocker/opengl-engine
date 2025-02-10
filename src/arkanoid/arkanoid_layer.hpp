@@ -68,5 +68,6 @@ private:
 #else
         false;
 #endif
+    bool m_doDrawDebugPhysics = false;
     void* m_selectedUiHierarchyElement = nullptr;
 };

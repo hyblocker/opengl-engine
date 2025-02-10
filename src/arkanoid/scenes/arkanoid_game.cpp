@@ -2,21 +2,25 @@
 #include "engine/input/input_manager.hpp"
 #include "engine/renderer/scene_composer.hpp"
 
+#include "arkanoid/logic/paddle.hpp"
+#include "arkanoid/logic/brick.hpp"
+#include "arkanoid/logic/level_handler.hpp"
+
 #include <imgui.h>
 
 void ArkanoidLayer::initGameScene() {
 
     constexpr uint32_t k_BRICKS_COLUMNS = 10;
     constexpr uint32_t k_BRICKS_ROWS = 4;
-    constexpr float k_depthOffset = -10;
 
     using namespace ::render;
 
     // Metadata
-    m_gameScene.sceneName = "Menu";
+    m_gameScene.sceneName = "Game";
     m_gameScene.lightingParams.skybox = {
         .type = render::SkyboxType::Procedural,
     };
+    m_gameScene.physicsParams.gravity = { 0, 0 };
 
 
     // construct scene
@@ -26,13 +30,17 @@ void ArkanoidLayer::initGameScene() {
         .withCamera({
             .infiniteFar = true
             })
-        .withChild(
-            EntityBuilder().withName("Light")
-            .withLight({
-                .colour = {1,1,1}
-                })
-        )
     );
+
+    Entity* sunEntity = m_gameScene.push_back(
+        EntityBuilder().withName("Sun")
+        .withLight({
+            .colour = {1,1,1}
+            })
+    );
+
+    // Assign light to the scene
+    m_gameScene.lightingParams.sunLight = (Light*)sunEntity->findComponent(ComponentType::Light);
 
     m_gameScene.push_back(
         EntityBuilder().withName("Suzanne")
@@ -53,17 +61,8 @@ void ArkanoidLayer::initGameScene() {
         EntityBuilder().withName("ScreenBoundary")
         .withChild(
             EntityBuilder().withName("Top")
-            .withPosition({ 0, 1.020f, k_depthOffset })
-            .withScale({ 1000, 50, 2 })
-            .withPhysics({
-                .bodyType = physics::PhysicsBodyType::Static,
-                .shape = {
-                    .shape = physics::PhysicsShape::Box,
-                    .box = {
-                        .size = { 1000, 50 }
-                    }
-                }
-                })
+            .withPosition({ 0, 17.420f, 0 })
+            .withScale({ 100, 2, 2 })
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
@@ -74,17 +73,8 @@ void ArkanoidLayer::initGameScene() {
         )
         .withChild(
             EntityBuilder().withName("Left")
-            .withPosition({ -1.450f, 0, k_depthOffset })
-            .withScale({ 50, 1000, 2 })
-            .withPhysics({
-                .bodyType = physics::PhysicsBodyType::Static,
-                .shape = {
-                    .shape = physics::PhysicsShape::Box,
-                    .box = {
-                        .size = { 50, 1000 }
-                    }
-                }
-                })
+            .withPosition({ -30.120f, 0, 0 })
+            .withScale({ 2, 100, 2 })
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
@@ -95,17 +85,20 @@ void ArkanoidLayer::initGameScene() {
         )
         .withChild(
             EntityBuilder().withName("Right")
-            .withPosition({ 1.450f, 0, k_depthOffset })
-            .withScale({ 50, 1000, 2 })
-            .withPhysics({
-                .bodyType = physics::PhysicsBodyType::Static,
-                .shape = {
-                    .shape = physics::PhysicsShape::Box,
-                    .box = {
-                        .size = { 50, 1000 }
-                    }
+            .withPosition({ 30.120f, 0, 0 })
+            .withScale({ 2, 100, 2 })
+            .withMeshRenderer({
+                .mesh = getAssetManager()->fetchMesh("box.obj"),
+                .material = {
+                    .shader = m_shader,
+                    .name = "ColliderViz",
                 }
                 })
+        )
+        .withChild(
+            EntityBuilder().withName("Bottom")
+            .withPosition({ 0, -19.00f, 0 })
+            .withScale({ 100, 2, 2 })
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
@@ -118,40 +111,19 @@ void ArkanoidLayer::initGameScene() {
 
     m_gameScene.push_back(
         EntityBuilder().withName("Paddle")
-        .withPosition({ 0, -13.850f, k_depthOffset })
-        .withPhysics({
-            .bodyType = physics::PhysicsBodyType::Static,
-            .shape = {
-                .shape = physics::PhysicsShape::Box,
-                .box = {
-                    .size = { 10, 1.5f }
-                }
-            }
-            })
+        .withPosition({ 0, -13.850f, 0 })
         .withMeshRenderer({
-            .mesh = getAssetManager()->fetchMesh("box.obj"),
+            .mesh = getAssetManager()->fetchMesh("paddle.obj"),
             .material = {
                 .shader = m_shader,
-                .name = "ColliderViz",
+                .name = "Paddle",
             }
             })
     );
 
     m_gameScene.push_back(
         EntityBuilder().withName("Ball")
-        .withPosition({ 0, 0, k_depthOffset })
-        .withPhysics({
-            .density = 1.0f,
-            .friction = 0.1f,
-            .bodyType = physics::PhysicsBodyType::Rigidbody,
-            .shape = {
-                .shape = physics::PhysicsShape::Circle,
-                .circle = {
-                    .centre = { 0, 0 },
-                    .radius = 1.0f,
-                }
-            }
-            })
+        .withPosition({ 0, -14.6f, 0 })
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("ball.obj"),
             .material = {
@@ -165,12 +137,12 @@ void ArkanoidLayer::initGameScene() {
 
     EntityBuilder brickContainer;
     brickContainer.withName("BrickContainer")
-        .withPosition({-17.5f, 8.5f, 0});
+        .withPosition({ -15.75f, 5.980f, 0 });
     for (int x = 0; x < k_BRICKS_COLUMNS; x++) {
         for (int y = 0; y < k_BRICKS_ROWS; y++) {
             brickContainer.withChild(
                 EntityBuilder().withName(fmt::format("Brick_{}_{}", x, y))
-                .withPosition({ x * 3.5f, y * 2.0f, k_depthOffset })
+                .withPosition({ x * 3.5f, y * 2.0f, 0 })
                 .withMeshRenderer({
                     .mesh = getAssetManager()->fetchMesh("brick.obj"),
                     .material = {
@@ -178,19 +150,15 @@ void ArkanoidLayer::initGameScene() {
                         .name = "Brick",
                         .ambient = {0.1f, 0.1f, 0.1f},
                         .diffuse = {1,1,1},
-                    } })
-                .withPhysics({
-                    .bodyType = physics::PhysicsBodyType::Kinematic,
-                    .shape = {
-                        .shape = physics::PhysicsShape::Box,
-                        .box = {
-                            .size = { 3.0f, 1.5f }
-                        }
-                    }
-                })
-            );
+                } })
+                );
         }
     }
-    
+
     m_gameScene.push_back(brickContainer);
+
+    m_gameScene.push_back(
+        EntityBuilder().withName("GameManager")
+        .withBehaviour<LevelHandler>()
+    );
 }
