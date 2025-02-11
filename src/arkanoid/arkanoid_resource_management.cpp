@@ -5,7 +5,11 @@
 
 void ArkanoidLayer::initScenes() {
     initMenuScene();
-    initGameScene();
+    initGameScene(m_gameSceneL1);
+    // initGameScene(m_gameSceneL2);
+    // initGameScene(m_gameSceneL3);
+    // initGameScene(m_gameSceneL4);
+    // initGameScene(m_gameSceneL5);
 }
 
 void ArkanoidLayer::loadGpuResources() {

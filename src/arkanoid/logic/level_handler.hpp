@@ -43,7 +43,9 @@ private:
     b2BodyId makeBrick(render::Entity* entityData, hlslpp::float2 size, hlslpp::float2 offset);
     b2BodyId makePowerup(render::Entity* entityData, float radius);
 
-    b2JointId makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset);
+    void spawnPowerup();
+
+    b2JointId makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset = b2Vec2_zero);
     void destroyWeldJoint(b2JointId& joint);
     
     void launchBall(float move = 0);
@@ -61,6 +63,22 @@ private:
     render::Entity* m_wallRightEntity = nullptr;
     render::Entity* m_wallLeftEntity = nullptr;
 
+    // containers
+    render::Entity* m_powerupsContainerEntity = nullptr;
+    render::Entity* m_enemiesContainerEntity = nullptr;
+
+    // pinball stuff
+    render::Entity* m_rampLeft = nullptr;
+    render::Entity* m_rampRight = nullptr;
+
+    render::Entity* m_bumper = nullptr;
+
+    render::Entity* m_flipperLeft = nullptr;
+    render::Entity* m_flipperRight = nullptr;
+
+    // For making powerups and enemies
+    gpu::IShader* m_shader = nullptr;
+
     // box2d props
     b2WorldId m_world = b2_nullWorldId;
     b2BodyId m_paddleBody = b2_nullBodyId;
@@ -73,4 +91,6 @@ private:
     hlslpp::float3 initialPaddlePos;
 
     int32_t m_lives = k_INITIAL_LIVES;
+    int32_t m_score = 0;
+    uint32_t m_level = 0;
 };
