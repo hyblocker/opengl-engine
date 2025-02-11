@@ -109,6 +109,7 @@ namespace render {
         Entity* findEntityWithType(ComponentType type, bool ignoreDisabled = false) const;
         IComponent* findComponent(ComponentType type, bool traverseChildren = false, bool ignoreDisabled = false) const;
         Entity* push_back(std::shared_ptr<Entity> entity);
+        Entity* push_back(EntityBuilder& entity);
         void push_back(std::shared_ptr<IComponent> component);
     };
 

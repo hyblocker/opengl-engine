@@ -69,7 +69,7 @@ namespace render {
         });
     }
 
-    void SceneRenderer::drawSkybox(Scene& scene, Camera* cameraComponent) {
+    void SceneRenderer::drawSkybox(Scene& scene, Camera* cameraComponent, Light* sunLight) {
         m_pDevice->debugMarkerPush("Drawing skybox...");
 
         hlslpp::float4x4 skyboxProjection = cameraComponent->getProjectionMatrix();
@@ -94,6 +94,29 @@ namespace render {
                 geometryView->projection = cameraComponent->getProjectionMatrix();
                 geometryView->cameraPos = cameraComponent->getEntity()->transform.getPosition();
                 m_pDevice->unmapBuffer(m_geometryCbuffer);
+            }
+
+            // Set lights cbuffer on bind slot 2
+            m_pDevice->setConstantBuffer(m_lightsCbuffer, 2);
+            LightsCbuffer* lightsView = nullptr;
+            m_pDevice->mapBuffer(m_lightsCbuffer, 0, sizeof(LightsCbuffer), gpu::MapAccessFlags::Write | gpu::MapAccessFlags::InvalidateBuffer, reinterpret_cast<void**>(&lightsView));
+            if (lightsView != nullptr) {
+                memset(lightsView, 0, sizeof(LightsCbuffer));
+
+#define BIND_LIGHT(CbufferLight, LightComponent) \
+    CbufferLight.type         = (uint32_t) LightComponent->type; \
+    CbufferLight.intensity    = LightComponent->intensity; \
+    CbufferLight.innerRadius  = LightComponent->innerRadius; \
+    CbufferLight.outerRadius  = LightComponent->outerRadius; \
+    CbufferLight.position     = LightComponent->getPosition(); \
+    CbufferLight.direction    = LightComponent->getDirection(); \
+    CbufferLight.colour       = LightComponent->colour
+
+                if (sunLight != nullptr) {
+                    BIND_LIGHT(lightsView->light[0], sunLight);
+                }
+#undef BIND_LIGHT
+                m_pDevice->unmapBuffer(m_lightsCbuffer);
             }
             
             // Draw procedural skybox
@@ -155,6 +178,8 @@ namespace render {
                         materialView->diffuse = pRenderer->material.diffuse;
                         materialView->specular = pRenderer->material.specular;
                         materialView->emissionColour = pRenderer->material.emissionColour;
+                        materialView->roughness = pRenderer->material.roughness;
+                        materialView->metallic = pRenderer->material.metallic;
                         materialView->emissionIntensity = pRenderer->material.emissionIntensity;
                         m_pDevice->unmapBuffer(m_materialCbuffer);
                     }
@@ -201,16 +226,28 @@ namespace render {
                         m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 0);
                     }
 
-                    if (pRenderer->material.specularTex) {
-                        m_pDevice->bindTexture(pRenderer->material.diffuseTex, m_trillinearAniso16ClampSampler, 1);
+                    if (pRenderer->material.metaTex) {
+                        m_pDevice->bindTexture(pRenderer->material.metaTex, m_trillinearAniso16ClampSampler, 1);
                     } else {
                         m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 1);
                     }
 
                     if (pRenderer->material.emissionTex) {
-                        m_pDevice->bindTexture(pRenderer->material.diffuseTex, m_trillinearAniso16ClampSampler, 2);
+                        m_pDevice->bindTexture(pRenderer->material.emissionTex, m_trillinearAniso16ClampSampler, 2);
                     } else {
                         m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 2);
+                    }
+
+                    if (pRenderer->material.matcapTex) {
+                        m_pDevice->bindTexture(pRenderer->material.matcapTex, m_trillinearAniso16ClampSampler, 3);
+                    } else {
+                        m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 3);
+                    }
+
+                    if (pRenderer->material.brdfLutTex) {
+                        m_pDevice->bindTexture(pRenderer->material.brdfLutTex, m_trillinearAniso16ClampSampler, 4);
+                    } else {
+                        m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 4);
                     }
 
                     // Issue draw call
@@ -336,7 +373,7 @@ namespace render {
         // to use Early-Z discard, a hardware optimisation of the rasterisation stage
         // of the rendering pipeline, where the GPU discards fragments of pixels which
         // have already been written to.
-        drawSkybox(scene, cameraComponent);
+        drawSkybox(scene, cameraComponent, scene.lightingParams.sunLight);
         
         m_pDevice->bindBlendState(m_alphaBlend_BlendState);
         drawRenderList(m_forwardTransparentList, cameraComponent, scene.lightingParams.sunLight);

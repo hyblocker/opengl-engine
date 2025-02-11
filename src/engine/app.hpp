@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#include "engine/core.hpp"
 #include "engine/window.hpp"
 #include "engine/gpu/device_manager.hpp"
 #include "engine/layerstack.hpp"

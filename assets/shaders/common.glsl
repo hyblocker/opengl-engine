@@ -27,6 +27,9 @@ layout(std140) uniform MaterialBuffer
     float3 diffuse;
     float3 specular;
     float3 emissionColour;
+	float _matcbuffer_padding0;
+    float roughness;
+    float metallic;
     float emissionIntensity;
 };
 

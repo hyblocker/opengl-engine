@@ -23,7 +23,7 @@ float Fd_Burley(float NdotV, float NdotL, float LdotH, float roughness) {
 // specular brdf
 float D_GGX(float NdotH, float a) {
     float a2 = a * a;
-    float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    float f = (NdotH * NdotH * (a2 - 1.0f)) + 1.0;
     return a2 / (k_PI * f * f);
 }
 
@@ -38,6 +38,10 @@ float V_SmithGGXCorrelated(float NdotV, float NdotL, float a) {
     return 0.5 / (GGXV + GGXL);
 }
 
+vec3 F_SchlickRoughness(float u, vec3 f0, float roughness) {
+    return f0 + (max(vec3(1.0 - roughness), f0) - f0) * pow(1.0 - u, 5.0);
+}
+
 // lighting funcs
 float getSquareFalloffAttenuation(vec3 posToLight, float lightInvRadius) {
     float distanceSquare = dot(posToLight, posToLight);
@@ -46,8 +50,7 @@ float getSquareFalloffAttenuation(vec3 posToLight, float lightInvRadius) {
     return (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
 }
 
-float getSpotAngleAttenuation(vec3 l, vec3 lightDir,
-        float innerAngle, float outerAngle) {
+float getSpotAngleAttenuation(vec3 l, vec3 lightDir, float innerAngle, float outerAngle) {
     // the scale and offset computations can be done CPU-side
     float cosOuter = cos(outerAngle);
     float spotScale = 1.0 / max(cos(innerAngle) - cosOuter, 1e-4);
@@ -58,18 +61,27 @@ float getSpotAngleAttenuation(vec3 l, vec3 lightDir,
     return attenuation * attenuation;
 }
 
-void ComputeLight(LightData lightData, out vec3 pLightDir, out float attenuation) {
+void ComputeLight(LightData lightData, out vec3 pLightDir, out vec3 pLightColour, out float attenuation) {
     // Assume directional light
-    attenuation = 1.0f;
-    pLightDir = normalize(lightData.direction);
+    attenuation = 1.0;
+    pLightColour = lightData.colour * lightData.intensity;
+    pLightDir = vec3(0,1,0);
+
+    // Handle directional lights
+    if (lightData.type == LIGHT_TYPE_POINT) {
+        attenuation = 1.0;
+        pLightDir = lightData.direction;
+    }
 
     // Handle point / spot lights
     if (lightData.type == LIGHT_TYPE_POINT) {
-        
+        attenuation = 1.0;
+        pLightDir = lightData.direction;
     }
 
     if (lightData.type == LIGHT_TYPE_SPOT) {
-        
+        attenuation = 1.0;
+        pLightDir = lightData.direction;
     }
 }
 

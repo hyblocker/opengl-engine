@@ -43,7 +43,7 @@ namespace render {
             return *this;
         }
 
-        // ZXY order
+        // ZXY order (radians)
         inline EntityBuilder& withRotationEulerAngles(hlslpp::float3 eulerAngles) {
             m_entity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy(eulerAngles));
             return *this;

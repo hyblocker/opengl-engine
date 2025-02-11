@@ -23,12 +23,16 @@ namespace render {
 		hlslpp::float3 diffuse = { 1, 1, 1 };
 		hlslpp::float3 specular = { 1, 1, 1 };
 		hlslpp::float3 emissionColour = { 0, 0, 0 };
+		float metallic = 0.0f;
+		float roughness = 1.0f;
 		float emissionIntensity = 1.0f;
 	
 		// textures
 		gpu::ITexture* diffuseTex = nullptr;
-		gpu::ITexture* specularTex = nullptr;
+		gpu::ITexture* metaTex = nullptr;
 		gpu::ITexture* emissionTex = nullptr;
+		gpu::ITexture* matcapTex = nullptr;
+		gpu::ITexture* brdfLutTex = nullptr;
 
 		uint32_t drawOrder = k_drawOrder_Opaque;
 	};

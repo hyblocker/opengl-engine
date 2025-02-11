@@ -22,6 +22,8 @@ namespace render {
         hlslpp::float3 diffuse = { 1, 1, 1 };
         hlslpp::float3 specular = { 1, 1, 1 };
         hlslpp::float3 emissionColour = { 0, 0, 0 };
+        float roughness = 1;
+        float metallic = 0;
         float emissionIntensity = 1.0f;
     };
 
@@ -57,7 +59,7 @@ namespace render {
 
         void buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix);
         void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight);
-        void drawSkybox(Scene& scene, Camera* camera);
+        void drawSkybox(Scene& scene, Camera* camera, Light* sunLight);
 
         gpu::IDevice* m_pDevice = nullptr;
         managers::AssetManager* m_pAssetManager = nullptr;

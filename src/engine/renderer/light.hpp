@@ -27,7 +27,7 @@ namespace render {
             return getEntity()->transform.getPosition();
         }
 		inline hlslpp::float3 getDirection() const {
-            return hlslpp::normalize(mul(getEntity()->transform.getRotation(), hlslpp::float3(0.0f, 0.0f, 1.0f)));
+            return -hlslpp::normalize(mul(getEntity()->transform.getRotation(), hlslpp::float3(0.0f, 0.0f, 1.0f)));
         }
 
         // RGB colour

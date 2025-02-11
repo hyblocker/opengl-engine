@@ -195,21 +195,32 @@ namespace render {
                         ImGui::Text(fmt::format("Vertex Index buffer: {}", pMeshRenderer->mesh.indexBuffer->getDesc().debugName).c_str());
                     }
                     ImGui::Text(fmt::format("{} Triangles", pMeshRenderer->mesh.triangleCount).c_str());
-                    ImGui::BeginGroupPanel("Material", ImVec2(groupWidth - 2 * ImGui::GetStyle().ItemSpacing.x, 0));
+                    ImGui::BeginGroupPanel(fmt::format("Material - {}", pMeshRenderer->material.name).c_str(), ImVec2(groupWidth - 2 * ImGui::GetStyle().ItemSpacing.x, 0));
                     ImGui::ColorEdit3("Ambient", pMeshRenderer->material.ambient.f32);
                     ImGui::ColorEdit3("Diffuse", pMeshRenderer->material.diffuse.f32);
                     if (pMeshRenderer->material.diffuseTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.diffuseTex->getNativeObject(), ImVec2(64, 64));
+                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.diffuseTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
                     }
                     ImGui::ColorEdit3("Specular", pMeshRenderer->material.specular.f32);
-                    if (pMeshRenderer->material.specularTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.specularTex->getNativeObject(), ImVec2(64, 64));
-                    }
                     ImGui::ColorEdit3("Emission", pMeshRenderer->material.emissionColour.f32);
                     if (pMeshRenderer->material.emissionTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.emissionTex->getNativeObject(), ImVec2(64, 64));
+                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.emissionTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
                     }
                     ImGui::DragFloat("Intensity", &pMeshRenderer->material.emissionIntensity, 0.1f, 0, 10.0f);
+                    ImGui::DragFloat("Metallic", &pMeshRenderer->material.metallic, 0.01f, 0, 1.0f);
+                    ImGui::DragFloat("Roughness", &pMeshRenderer->material.roughness, 0.01f, 0, 1.0f);
+                    ImGui::Text("Meta (R: metal G: rough)");
+                    if (pMeshRenderer->material.metaTex) {
+                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.metaTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                    }
+                    ImGui::Text("Matcap");
+                    if (pMeshRenderer->material.matcapTex) {
+                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.matcapTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                    }
+                    ImGui::Text("BRDF LUT");
+                    if (pMeshRenderer->material.brdfLutTex) {
+                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.brdfLutTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                    }
                     ImGui::EndGroupPanel();
                     break;
                 }

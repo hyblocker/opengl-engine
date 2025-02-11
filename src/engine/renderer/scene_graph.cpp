@@ -40,6 +40,10 @@ namespace render {
         this->children.back()->parent = this;
         return this->children.back().get();
     }
+    Entity* Entity::push_back(EntityBuilder& entityBuilder) {
+        std::shared_ptr<Entity> entity = entityBuilder.build();
+        return push_back(entity);
+    }
 
     void Entity::push_back(std::shared_ptr<IComponent> component){
         if (component->getEntity() != this) {
