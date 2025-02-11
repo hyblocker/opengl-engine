@@ -36,7 +36,7 @@ private:
     // - setups scene hierarchy and attaches components
     void initScenes();
     void initMenuScene();
-    void initGameScene();
+    void initGameScene(render::Scene& outScene);
 
     // Loads gpu resources into memory
     void loadGpuResources();
@@ -50,7 +50,11 @@ private:
     // Scenes loaded in memory
     // Ideally these would be serialised and we would just load from disk but for the purposes of the assignment this should suffice
     render::Scene m_menuScene;
-    render::Scene m_gameScene;
+    render::Scene m_gameSceneL1;
+    render::Scene m_gameSceneL2;
+    render::Scene m_gameSceneL3;
+    render::Scene m_gameSceneL4;
+    render::Scene m_gameSceneL5;
 
     // Gpu handles
     gpu::IShader* m_shader = nullptr;
