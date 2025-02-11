@@ -5,6 +5,8 @@
 #include "arkanoid/arkanoid_layer.hpp"
 
 int main (int argc, char *argv[]) {
+	srand(time(0));
+
 	engine::App app({
 		.window = {
 			.width = 1920,

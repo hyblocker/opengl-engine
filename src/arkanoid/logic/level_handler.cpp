@@ -23,6 +23,11 @@ constexpr float k_BOX2D_TO_UNITS_SCALE = 0.01f;
 constexpr uint32_t k_BRICKS_COLUMNS = 10;
 constexpr uint32_t k_BRICKS_ROWS = 4;
 
+// for RNG stuff
+float randomFloat() {
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
+
 void LevelHandler::start() {
     // get pointers to entities in the scene
     m_ballEntity = getEntity()->parent->findNamedEntity("Ball");
