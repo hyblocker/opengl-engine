@@ -30,6 +30,10 @@ namespace engine::input {
 
 	void InputManager::event(events::Event& event) {
 		events::EventDispatcher dispatcher(event);
+		
+		if (event.handled)
+			return;
+
 		dispatcher.dispatch<events::KeyPressedEvent>(EVENT_BIND_FUNC(InputManager::onKeyPressedEvent));
 		dispatcher.dispatch<events::KeyReleasedEvent>(EVENT_BIND_FUNC(InputManager::onKeyReleasedEvent));
 		dispatcher.dispatch<events::KeyTypedEvent>(EVENT_BIND_FUNC(InputManager::onKeyTypedEvent));

@@ -41,6 +41,7 @@ namespace engine {
 
 		// make imgui layer
 		m_imguiLayer = new ImguiLayer(m_graphicsDeviceManager, m_assetManager);
+		m_imguiLayer->blockEvents(true);
 		pushOverlay(m_imguiLayer);
 	}
 
@@ -122,14 +123,13 @@ namespace engine {
 		events::EventDispatcher dispatcher(event);
 		dispatcher.dispatch<events::WindowCloseEvent>(EVENT_BIND_FUNC(App::onWindowClose));
 		dispatcher.dispatch<events::WindowResizeEvent>(EVENT_BIND_FUNC(App::onWindowResize));
-		m_inputManager->event(event);
 
-		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
-		{
+		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it) {
 			if (event.handled)
 				break;
 			(*it)->event(event);
 		}
+		m_inputManager->event(event);
 	}
 
 	bool App::onWindowClose(const events::WindowCloseEvent& event) {
