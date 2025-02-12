@@ -513,3 +513,5 @@ bindings/
 .externalNativeBuild
 .cxx
 local.properties
+
+*.mtl
