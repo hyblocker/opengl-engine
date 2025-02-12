@@ -104,6 +104,16 @@ add_custom_command(
 add_custom_target(copy_assets_bin ALL DEPENDS ${SOURCE_DIR})
 add_dependencies(OpenGlEngine copy_assets_bin)
 
+# Copy box2d debug assets to output folder
+add_custom_command(
+	TARGET OpenGlEngine
+	PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/vendor/box2d/samples/data
+	${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>/samples/data
+	COMMENT "Copying box2d debug assets..."
+)
+
 # Set as startup project
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OpenGlEngine)
 set_property(TARGET OpenGlEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/artifacts/$<CONFIG>")
