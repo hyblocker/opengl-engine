@@ -78,7 +78,7 @@ namespace gpu {
 		float a;
 	};
 
-	enum class CompareFunc : uint8_t {
+	enum class CompareFunc : uint32_t {
 		Never,
 		Less,
 		Equal,
@@ -90,7 +90,7 @@ namespace gpu {
 		Count,
 	};
 
-	enum class FaceCullMode : uint8_t {
+	enum class FaceCullMode : uint32_t {
 		Back,
 		Front,
 		// Culls both front and back faces
@@ -99,12 +99,12 @@ namespace gpu {
 		Never,
 	};
 
-	enum class WindingOrder : uint8_t {
+	enum class WindingOrder : uint32_t {
 		Clockwise = 0,
 		CounterClockwise = 1,
 	};
 
-	enum class TextureType : uint8_t {
+	enum class TextureType : uint32_t {
 		// Texture1D,
 		Texture2D,
 		Texture3D,

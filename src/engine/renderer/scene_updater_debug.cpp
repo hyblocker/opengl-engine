@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <imgui.h>
 #include "imgui_extensions.hpp"
+
 #include "mesh.hpp"
 #include "camera.hpp"
 #include "light.hpp"
@@ -196,33 +197,66 @@ namespace render {
                     }
                     ImGui::Text(fmt::format("{} Triangles", pMeshRenderer->mesh.triangleCount).c_str());
                     ImGui::BeginGroupPanel(fmt::format("Material - {}", pMeshRenderer->material.name).c_str(), ImVec2(groupWidth - 2 * ImGui::GetStyle().ItemSpacing.x, 0));
+
+                    {
+                        // Graphics / rasteriser state (depth + cull state)
+                        ImGui::BeginGroupPanel("Graphics State", ImVec2(groupWidth - 4 * ImGui::GetStyle().ItemSpacing.x, 0));
+                        ImGui::BeginDisabled();
+
+                        gpu::GraphicsState shaderState = pMeshRenderer->material.shader->getDesc().graphicsState;
+
+                        const char* compareFuncNames[] = { "Never", "Less", "Equal", "LessOrEqual", "Greater", "NotEqual", "GreaterOrEqual", "Always" };
+                        const char* faceCullModeNames[] = { "Back", "Front", "Both", "Never" };
+                        const char* windingOrderNames[] = { "Clockwise", "CounterClockwise" };
+                        ImGui::ComboboxEx("Depth State", (int*)&shaderState.depthState, compareFuncNames, IM_ARRAYSIZE(compareFuncNames));
+                        ImGui::Checkbox("Depth Write", &shaderState.depthWrite);
+                        ImGui::Checkbox("Depth Test", &shaderState.depthTest);
+                        ImGui::ComboboxEx("Cull Mode", (int*)&shaderState.faceCullingMode, faceCullModeNames, IM_ARRAYSIZE(faceCullModeNames));
+                        ImGui::ComboboxEx("Winding Order", (int*)&shaderState.faceWindingOrder, windingOrderNames, IM_ARRAYSIZE(windingOrderNames));
+
+                        ImGui::EndDisabled();
+                        ImGui::EndGroupPanel();
+                        ImGui::NewLine();
+                    }
+
+                    // I couldn't be bothered making an inline function so here we go
+#define IMGUI_DRAW_TEX_DEBUG(tex) \
+    if (tex) { \
+        bool isMipmapEnabled = tex->getDesc().generateMipmaps; \
+        gpu::TextureType textureType = tex->getDesc().type; \
+        ImGui::PushID(tex->getNativeObject()); \
+        ImGui::Text(fmt::format("{} x {}", tex->getDesc().width, tex->getDesc().height).c_str()); \
+        ImGui::Image((ImTextureID)(intptr_t)tex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0)); \
+        ImGui::BeginDisabled(); \
+        ImGui::Checkbox("Mipmaps", &isMipmapEnabled); \
+        const char* textureTypeNames[] = { "Texture2D", "Texture3D", "TextureArray2D", "TextureCubeMap" }; \
+        ImGui::ComboboxEx("Texture Type", (int*)&textureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames)); \
+        ImGui::EndDisabled(); \
+        ImGui::PopID(); \
+    }
+                    
+
                     ImGui::ColorEdit3("Ambient", pMeshRenderer->material.ambient.f32);
                     ImGui::ColorEdit3("Diffuse", pMeshRenderer->material.diffuse.f32);
-                    if (pMeshRenderer->material.diffuseTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.diffuseTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
+                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.diffuseTex);
                     ImGui::ColorEdit3("Specular", pMeshRenderer->material.specular.f32);
                     ImGui::ColorEdit3("Emission", pMeshRenderer->material.emissionColour.f32);
-                    if (pMeshRenderer->material.emissionTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.emissionTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
+                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.emissionTex);
                     ImGui::DragFloat("Intensity", &pMeshRenderer->material.emissionIntensity, 0.1f, 0, 10.0f);
                     ImGui::DragFloat("Metallic", &pMeshRenderer->material.metallic, 0.01f, 0, 1.0f);
                     ImGui::DragFloat("Roughness", &pMeshRenderer->material.roughness, 0.01f, 0, 1.0f);
                     ImGui::Text("Meta (R: metal G: rough)");
-                    if (pMeshRenderer->material.metaTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.metaTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
+                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.metaTex);
                     ImGui::Text("Matcap");
-                    if (pMeshRenderer->material.matcapTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.matcapTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
+                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.matcapTex);
                     ImGui::Text("BRDF LUT");
-                    if (pMeshRenderer->material.brdfLutTex) {
-                        ImGui::Image((ImTextureID)(intptr_t)pMeshRenderer->material.brdfLutTex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
+                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.brdfLutTex);
                     ImGui::EndGroupPanel();
+
+#undef IMGUI_DRAW_TEX_DEBUG
+
                     break;
+
                 }
                 case ComponentType::Light:
                 {
