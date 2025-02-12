@@ -20,8 +20,25 @@ public:
     void sleep() override;
     void update(float deltaTime) override;
 
-    void randomlySelectBrickType();
+    // returns what brick type this became
+    BrickType randomlySelectBrickType();
+    // turns this brick into the given brick type. use on level init only!
     void updateBrick(BrickType type);
+
+    // order of execution on physics collision event:
+    //   onHit  -  processes hit logic on brick
+    //   getPoints  -  give the player points
+    //   shouldSpawnPowerup  -  based on result spawn a powerup
+    //   isDestroyed  -  decrease the number of bricks the player has to break before advancing to the next level
+    //   shouldExistInScene  -  hides the brick from the renderer and physics system for a new level
+    void onHit();
+
+    uint32_t getPoints();
+    bool shouldSpawnPowerup();
+    // if the brick can be considered as destroyed logically. indestructable ones return true always
+    bool isDestroyed();
+    // if the level handler should "destroy" the brick in the scene graph
+    bool shouldExistInScene();
 
 private:
     render::MeshRenderer* m_renderer = nullptr;
@@ -32,4 +49,8 @@ private:
     render::Material m_regularBrickMaterial;
     render::Material m_strongBrickMaterial;
     render::Material m_indestructableBrickMaterial;
+
+    uint32_t m_health = 1;
+    uint32_t m_totalHealth = 1;
+    BrickType m_type = BrickType::Regular;
 };

@@ -40,7 +40,7 @@ void ArkanoidLayer::initMenuScene() {
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("test.obj"),
             .material = {
-                .shader = m_shader,
+                .shader = m_shaderModernOpaque,
                 .name = "Suzanne",
                 .ambient = hlslpp::float3(0.0352941176f, 0.0745098039f, 0.1215686275f),
                 .diffuseTex = getAssetManager()->fetchTexture("brick_wall.png")

@@ -57,7 +57,9 @@ private:
     render::Scene m_gameSceneL5;
 
     // Gpu handles
-    gpu::IShader* m_shader = nullptr;
+    gpu::IShader* m_shaderModernOpaque = nullptr;
+    gpu::IShader* m_shaderModernTransparent = nullptr;
+    gpu::IShader* m_shaderClassic = nullptr;
 
     // Scene handlers
     render::SceneRenderer m_sceneRenderer;

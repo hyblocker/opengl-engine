@@ -1,5 +1,12 @@
 #include "brick.hpp"
 #include "engine/app.hpp"
+#include <random>
+
+// only one for program lifetime, this ensures we don't have collisions
+std::random_device s_dev;
+std::mt19937 s_rng(s_dev());
+
+constexpr uint32_t k_HEALTH_INDESTRUCTABLE = 0xFFFFFFFF;
 
 void Brick::start() {
     m_renderer = (render::MeshRenderer*) getEntity()->findComponent(render::ComponentType::MeshRenderer);
@@ -41,8 +48,10 @@ void Brick::update(float deltaTime) {
 
 }
 
-void Brick::randomlySelectBrickType() {
+BrickType Brick::randomlySelectBrickType() {
 
+
+    return BrickType::Regular;
 }
 
 void Brick::updateBrick(BrickType type) {
@@ -50,18 +59,22 @@ void Brick::updateBrick(BrickType type) {
     case BrickType::Regular:
     {
         m_renderer->material = m_regularBrickMaterial;
+        m_totalHealth = 1;
         break;
     }
     case BrickType::Strong:
     {
-
+        // strong bricks may require anywhere from 3 to 6 hits to break
+        std::uniform_int_distribution<std::mt19937::result_type> distStrong(2, 4);
         m_renderer->material = m_strongBrickMaterial;
+        m_totalHealth = distStrong(s_rng);
+
         break;
     }
     case BrickType::Indestructable:
     {
         m_renderer->material = m_indestructableBrickMaterial;
-
+        m_totalHealth = k_HEALTH_INDESTRUCTABLE;
         break;
     }
     default:
@@ -70,4 +83,57 @@ void Brick::updateBrick(BrickType type) {
         break;
     }
     }
+    m_health = m_totalHealth;
+    m_type = type;
+}
+
+void Brick::onHit() {
+    if (m_health > 0 && m_health != k_HEALTH_INDESTRUCTABLE) {
+        m_health--;
+    }
+}
+
+uint32_t Brick::getPoints() {
+    switch (m_type) {
+    case BrickType::Regular:
+    {
+        return 50;
+    }
+    case BrickType::Strong:
+    {
+        // only reward 200 points on last hit, otherwise reward 100 points
+        if (m_health == 0) {
+            return 200;
+        } else {
+            return 100;
+        }
+    }
+    }
+    return 0;
+}
+
+bool Brick::shouldSpawnPowerup() {
+    switch (m_type) {
+    case BrickType::Strong:
+        // @TODO: Random chance brick has powerup?
+        return false;
+    }
+    return false;
+}
+
+bool Brick::isDestroyed() {
+    switch (m_type) {
+    case BrickType::Indestructable:
+        return false;
+    }
+    return m_health == 0;
+}
+
+bool Brick::shouldExistInScene() {
+    switch (m_type) {
+    case BrickType::Indestructable:
+        return true;
+    }
+
+    return m_health > 0;
 }

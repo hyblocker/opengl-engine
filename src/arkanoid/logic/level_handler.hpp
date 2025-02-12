@@ -11,17 +11,19 @@ namespace collisions {
         constexpr uint64_t WALL     = 1u << 2;
         constexpr uint64_t BRICK    = 1u << 3;
         constexpr uint64_t POWERUP  = 1u << 4;
+        constexpr uint64_t FLIPPER  = 1u << 5;
     }
     namespace masks {
-        constexpr uint64_t BALL     = category::WALL | category::PADDLE | category::BRICK;
+        constexpr uint64_t BALL     = category::WALL | category::PADDLE | category::BRICK | category::FLIPPER;
         constexpr uint64_t PADDLE   = category::BALL | category::WALL | category::POWERUP;
-        constexpr uint64_t WALL     = category::BALL | category::POWERUP;
+        constexpr uint64_t WALL     = category::BALL | category::POWERUP | category::FLIPPER;
         constexpr uint64_t BRICK    = category::BALL;
-        constexpr uint64_t POWERUP  = category::WALL | category::PADDLE;
+        constexpr uint64_t POWERUP  = category::WALL | category::PADDLE | category::FLIPPER;
+        constexpr uint64_t FLIPPER  = category::BALL | category::WALL | category::POWERUP;
     }
 }
 
-constexpr int32_t k_INITIAL_LIVES = 4;
+constexpr int32_t k_INITIAL_LIVES = 3;
 
 class LevelHandler : public render::IBehaviour {
 public:
@@ -33,6 +35,9 @@ public:
     void update(float deltaTime) override;
     void imgui() override;
 
+    // setups the scene for a particular level layout. effectively a "load level"
+    void setLevel(uint32_t levelId);
+
     inline const b2WorldId getWorldId() const { return m_world; }
 private:
     b2BodyId box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation = true, b2Vec2 posOffset = b2Vec2_zero, float angle = 0);
@@ -42,6 +47,7 @@ private:
     b2BodyId makeWall(render::Entity* entityData, hlslpp::float2 size, float angle = 0);
     b2BodyId makeBrick(render::Entity* entityData, hlslpp::float2 size, hlslpp::float2 offset);
     b2BodyId makePowerup(render::Entity* entityData, float radius);
+    b2BodyId makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX);
 
     void spawnPowerup();
 
@@ -50,6 +56,9 @@ private:
     
     void launchBall(float move = 0);
     void killBall();
+
+    void activateFlipper(b2BodyId body, float& currentAngle, bool isFlipped);
+    void dampenFlipper(b2BodyId body, float& currentAngle, float deltaTime, bool isFlipped);
 
 private:
     render::Entity* m_paddleEntity = nullptr;
@@ -73,8 +82,8 @@ private:
 
     render::Entity* m_bumper = nullptr;
 
-    render::Entity* m_flipperLeft = nullptr;
-    render::Entity* m_flipperRight = nullptr;
+    render::Entity* m_flipperLeftEntity = nullptr;
+    render::Entity* m_flipperRightEntity = nullptr;
 
     // For making powerups and enemies
     gpu::IShader* m_shader = nullptr;
@@ -87,10 +96,20 @@ private:
     
     b2JointId m_ballPaddleJoint = b2_nullJointId;
 
-    hlslpp::float3 initialBallPos;
-    hlslpp::float3 initialPaddlePos;
+    b2BodyId m_flipperLeftBody = b2_nullBodyId;
+    b2BodyId m_flipperRightBody = b2_nullBodyId;
+
+    hlslpp::float3 m_initialBallPos;
+    hlslpp::float3 m_initialPaddlePos;
+
+    hlslpp::quaternion m_initialFlipperLeftRot;
+    hlslpp::quaternion m_initialFlipperRightRot;
+
+    float m_flipperAngleLeft = 0;
+    float m_flipperAngleRight = 0;
 
     int32_t m_lives = k_INITIAL_LIVES;
     int32_t m_score = 0;
+    int32_t m_bricksToProgressToNextLevel = 10*4;
     uint32_t m_level = 0;
 };

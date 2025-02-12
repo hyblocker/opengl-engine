@@ -16,15 +16,40 @@ void ArkanoidLayer::loadGpuResources() {
 
     // Load shader for materials
     // @TODO: Replace with proper generic shader
-    m_shader = getAssetManager()->fetchShader({
+    m_shaderModernOpaque = getAssetManager()->fetchShader({
         .graphicsState = {
             // opaque rendering
         },
         .vertShader = "vert.glsl",
         .fragShader = "frag.glsl",
-        .debugName = "Simple"
+        .debugName = "ModernOpaque"
         });
-    getDevice()->setBufferBinding(m_shader, "GeometryBuffer", 0);
-    getDevice()->setBufferBinding(m_shader, "MaterialBuffer", 1);
-    getDevice()->setBufferBinding(m_shader, "LightsBuffer", 2);
+    getDevice()->setBufferBinding(m_shaderModernOpaque, "GeometryBuffer", 0);
+    getDevice()->setBufferBinding(m_shaderModernOpaque, "MaterialBuffer", 1);
+    getDevice()->setBufferBinding(m_shaderModernOpaque, "LightsBuffer", 2);
+
+    m_shaderModernTransparent = getAssetManager()->fetchShader({
+        .graphicsState = {
+            // transparent rendering
+            // @TODO:
+        },
+        .vertShader = "vert.glsl",
+        .fragShader = "frag.glsl",
+        .debugName = "ModernAlphaBlend"
+        });
+    getDevice()->setBufferBinding(m_shaderModernTransparent, "GeometryBuffer", 0);
+    getDevice()->setBufferBinding(m_shaderModernTransparent, "MaterialBuffer", 1);
+    getDevice()->setBufferBinding(m_shaderModernTransparent, "LightsBuffer", 2);
+
+    m_shaderClassic = getAssetManager()->fetchShader({
+        .graphicsState = {
+            // opaque rendering
+        },
+        .vertShader = "classic_vert.glsl",
+        .fragShader = "classic_frag.glsl",
+        .debugName = "Classic"
+        });
+    getDevice()->setBufferBinding(m_shaderClassic, "GeometryBuffer", 0);
+    getDevice()->setBufferBinding(m_shaderClassic, "MaterialBuffer", 1);
+    getDevice()->setBufferBinding(m_shaderClassic, "LightsBuffer", 2);
 }

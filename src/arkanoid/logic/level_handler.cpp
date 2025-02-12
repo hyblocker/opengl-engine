@@ -6,7 +6,11 @@
 #include "engine/renderer/scene_composer.hpp"
 #include "engine/app.hpp"
 
+#include "brick.hpp"
+#include "graphics_mode.hpp"
+
 #include <imgui.h>
+#include "imgui_extensions.hpp"
 
 constexpr float k_PADDLE_VELOCITY = 50.0f;
 constexpr float k_BALL_TERMINAL_VELOCITY = 100.0f;
@@ -19,12 +23,20 @@ constexpr float k_UNITS_TO_BOX2D_SCALE = 100.0f;
 constexpr float k_BOX2D_TO_UNITS_SCALE = 0.01f;
 
 constexpr float k_PADDLE_WIDTH = 10.0f;
-// constexpr float k_CAMERA_ANGLE_TILT_MAX = 15.0f;
+// constexpr float k_CAMERA_ANGLE_TILT_MAX = 5.0f;
+
+static float k_FLIPPER_ANGLE_NEUTRAL = -30.0f;
+static float k_FLIPPER_ANGLE_MAX = 30.0f;
+static float k_FLIPPER_LAUNCH_VELOCITY = 5000.0f;
+static float k_FLIPPER_GRAVITY = -9.80f;
+static float k_FLIPPER_KICK_DURATION_SECONDS = 1.25f;
 
 static float k_CAMERA_ANGLE_TILT_MAX = 5.0f;
 
 constexpr uint32_t k_BRICKS_COLUMNS = 10;
 constexpr uint32_t k_BRICKS_ROWS = 4;
+
+constexpr uint32_t k_MAX_LEVELS = 20;
 
 // for nicer camera motion
 // https://easings.net/#easeInOutQuad
@@ -56,11 +68,17 @@ void LevelHandler::start() {
     m_powerupsContainerEntity = wallsContainer->findNamedEntity("PowerupsContainer");
     m_enemiesContainerEntity = wallsContainer->findNamedEntity("EnemiesContainer");
     
+    // pinball stuff
+    m_flipperLeftEntity = getEntity()->parent->findNamedEntity("FlipperLeft");
+    m_flipperRightEntity = getEntity()->parent->findNamedEntity("FlipperRight");
+    m_initialFlipperLeftRot = m_flipperLeftEntity->transform.getRotation();
+    m_initialFlipperRightRot = m_flipperRightEntity->transform.getRotation();
+
     m_bumper = getEntity()->parent->findNamedEntity("Bumper");
 
     // for resetting the scene, for level transitions
-    initialBallPos = m_ballEntity->transform.getPosition();
-    initialPaddlePos = m_paddleEntity->transform.getPosition();
+    m_initialBallPos = m_ballEntity->transform.getPosition();
+    m_initialPaddlePos = m_paddleEntity->transform.getPosition();
 
     // box2d setup
     b2WorldDef worldDef = b2DefaultWorldDef();
@@ -75,6 +93,9 @@ void LevelHandler::start() {
     m_wallBodies[1] = makeWall(m_wallRightEntity, m_wallRightEntity->transform.getScale().xy);
     m_wallBodies[2] = makeWall(m_wallTopEntity, m_wallTopEntity->transform.getScale().xy);
     m_wallBodies[3] = makeWall(m_wallBottomEntity, m_wallBottomEntity->transform.getScale().xy);
+
+    m_flipperLeftBody = makeFlipper(m_flipperLeftEntity, 0.1f, { 6.5f, 1.95057f }, false);
+    m_flipperRightBody = makeFlipper(m_flipperRightEntity, 0.1f, { 6.5f, 1.95057f }, true);
 
     for (auto brickEntity : m_bricksEntityRoot->children) {
         makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
@@ -99,7 +120,7 @@ b2BodyId LevelHandler::box2dMakeBody(b2BodyType bodyType, render::Entity* entity
     bodyDef.type = bodyType;
     bodyDef.position = b2Vec2({ entityData->transform.getPosition().x * k_UNITS_TO_BOX2D_SCALE, entityData->transform.getPosition().y * k_UNITS_TO_BOX2D_SCALE }) + posOffset * k_UNITS_TO_BOX2D_SCALE;
     bodyDef.rotation = b2MakeRot(angle * DEG2RAD);
-    bodyDef.fixedRotation = true;
+    bodyDef.fixedRotation = fixedRotation;
     bodyDef.userData = entityData;
 
     return b2CreateBody(m_world, &bodyDef);
@@ -200,6 +221,41 @@ b2BodyId LevelHandler::makePowerup(render::Entity* entityData, float radius) {
     return powerupBody;
 }
 
+b2BodyId LevelHandler::makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX) {
+
+    b2BodyId flipperPivot = box2dMakeBody(b2_staticBody, entityData, false, b2Vec2((flipX ? 0.52f : -0.25f) * flipperSize.x, 0), 0);
+    b2BodyId flipperBody = box2dMakeBody(b2_dynamicBody, entityData, false);
+
+    b2ShapeDef shapeDef = b2DefaultShapeDef();
+    shapeDef.enableContactEvents = true;
+    shapeDef.density = 1.0f;
+    shapeDef.filter.categoryBits = collisions::category::FLIPPER;
+    shapeDef.filter.maskBits = collisions::masks::FLIPPER;
+
+    b2Polygon boxCollider = b2MakeBox(flipperSize.x * k_UNITS_TO_BOX2D_SCALE * 0.5f, flipperSize.y * k_UNITS_TO_BOX2D_SCALE * 0.5f);
+    b2CreatePolygonShape(flipperBody, &shapeDef, &boxCollider);
+
+    b2Circle circleCollider = {
+        .center = {0, 0},
+        .radius = pivotRadius * k_UNITS_TO_BOX2D_SCALE
+    };
+    shapeDef.filter.maskBits = 0; // ignore collisions on the pivot, we only have it for rotations
+    b2CreateCircleShape(flipperPivot, &shapeDef, &circleCollider);
+
+    b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
+    jointDef.bodyIdA = flipperBody;
+    jointDef.bodyIdB = flipperPivot;
+    jointDef.enableLimit = true;
+    jointDef.referenceAngle = 0 * DEG2RAD;
+    jointDef.lowerAngle = k_FLIPPER_ANGLE_NEUTRAL * DEG2RAD;
+    jointDef.upperAngle = k_FLIPPER_ANGLE_MAX * DEG2RAD;
+    jointDef.localAnchorA = b2Vec2((flipX ? 0.5f : -0.5f) * flipperSize.x * k_UNITS_TO_BOX2D_SCALE, 0);
+    jointDef.localAnchorB = b2Vec2(0, 0);
+    b2JointId joint = b2CreateRevoluteJoint(m_world, &jointDef);
+
+    return flipperBody;
+}
+
 b2JointId LevelHandler::makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset) {
     b2WeldJointDef weldJointDef = b2DefaultWeldJointDef();
     weldJointDef.bodyIdA = pA;
@@ -229,19 +285,37 @@ void LevelHandler::launchBall(float move) {
 
 void LevelHandler::killBall() {
     m_lives--;
-    // if (m_lives >= 0) {
+    if (m_lives >= 0) {
         // stop all movement on the ball and paddle
         b2Body_SetLinearVelocity(m_ballBody, { 0,0 });
         b2Body_SetLinearVelocity(m_paddleBody, { 0,0 });
         // reset transform
-        b2Body_SetTransform(m_ballBody, { initialBallPos.x * k_UNITS_TO_BOX2D_SCALE, initialBallPos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
-        b2Body_SetTransform(m_paddleBody, { initialPaddlePos.x * k_UNITS_TO_BOX2D_SCALE, initialPaddlePos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
+        b2Body_SetTransform(m_ballBody, { m_initialBallPos.x * k_UNITS_TO_BOX2D_SCALE, m_initialBallPos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
+        b2Body_SetTransform(m_paddleBody, { m_initialPaddlePos.x * k_UNITS_TO_BOX2D_SCALE, m_initialPaddlePos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
         // stick the ball to the paddle
         m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, { 0, -1 });
-    // } else {
+    } else {
         LOG_INFO("lol lmao skill issue dumbass bitch");
         // @TODO: Main menu
-    // }
+    }
+}
+
+void LevelHandler::activateFlipper(b2BodyId body, float& currentAngle, bool isFlipped) {
+    if (!B2_ID_EQUALS(body, b2_nullJointId)) {
+        currentAngle = 1.0f;
+        // b2Body_ApplyForceToCenter(body, b2Vec2(0, 5000), true);
+        b2Body_SetAngularVelocity(body, (isFlipped ? -1.0f : 1.0f) * k_FLIPPER_LAUNCH_VELOCITY);
+    }
+}
+
+void LevelHandler::dampenFlipper(b2BodyId body, float& currentAngle, float deltaTime, bool isFlipped) {
+    if (!B2_ID_EQUALS(body, b2_nullJointId)) {
+        currentAngle = (1.0f - deltaTime / k_FLIPPER_KICK_DURATION_SECONDS);
+        currentAngle = (hlslpp::float1) hlslpp::saturate((hlslpp::float1)currentAngle); // clamp 0-1
+        b2Vec2 linVel = b2Body_GetLinearVelocity(body);
+        float angularVelocity = b2Body_GetAngularVelocity(body);
+        b2Body_SetAngularVelocity(body, angularVelocity + (isFlipped ? -1.0f : 1.0f) * k_FLIPPER_GRAVITY * (1.0f - currentAngle));
+    }
 }
 
 void LevelHandler::update(float deltaTime) {
@@ -261,6 +335,14 @@ void LevelHandler::update(float deltaTime) {
     // powerups
 
     // pinball stuff
+    if (engine::input::InputManager::getInstance()->mouseReleased(engine::input::MouseButton::ButtonLeft)) {
+        activateFlipper(m_flipperLeftBody, m_flipperAngleLeft, false);
+    }
+    if (engine::input::InputManager::getInstance()->mouseReleased(engine::input::MouseButton::ButtonRight)) {
+        activateFlipper(m_flipperRightBody, m_flipperAngleRight, true);
+    }
+    dampenFlipper(m_flipperLeftBody, m_flipperAngleLeft, deltaTime, false);
+    dampenFlipper(m_flipperRightBody, m_flipperAngleRight, deltaTime, true);
 
     // @TODO: Box2d that shit
     // we need to clamp the paddle so that it doesn't go out of bounds from the walls
@@ -330,11 +412,27 @@ void LevelHandler::update(float deltaTime) {
                     brickId = b2Shape_GetBody(events.beginEvents[i].shapeIdB);
                 }
 
-                // disable bricks
-                brick->enabled = false;
-                b2Body_Disable(brickId);
-                // depending on brick type, generate points
+                // depending on brick type, award points or do something else
+                render::Entity* brickEntity = (render::Entity*) b2Body_GetUserData(brickId);
 
+                Brick* brickComponent = (Brick*)brickEntity->findComponent(render::ComponentType::UserBehaviour);
+                brickComponent->onHit(); // Tell the brick that it got hit
+                uint32_t pointsToAward =  brickComponent->getPoints();
+                m_score += pointsToAward;
+
+                if (brickComponent->isDestroyed()) {
+                    m_bricksToProgressToNextLevel--;
+                }
+
+                if (brickComponent->shouldSpawnPowerup()) {
+                    spawnPowerup();
+                }
+
+                if (!brickComponent->shouldExistInScene()) {
+                    // disable bricks
+                    brick->enabled = false;
+                    b2Body_Disable(brickId);
+                }
             }
         }
         // LOG_INFO("Begin {} with {}!", bodyA->name, bodyB->name);
@@ -349,16 +447,37 @@ void LevelHandler::update(float deltaTime) {
     b2Vec2 ballPosSim = b2Body_GetPosition(m_ballBody);
     m_ballEntity->transform.setPosition({ ballPosSim.x * k_BOX2D_TO_UNITS_SCALE, ballPosSim.y * k_BOX2D_TO_UNITS_SCALE, ballPos.z });
 
+    // update flippers rotation
+    float flipperLeftRotation = b2Rot_GetAngle(b2Body_GetRotation(m_flipperLeftBody));
+    float flipperRightRotation = -b2Rot_GetAngle(b2Body_GetRotation(m_flipperRightBody)); // right is rotated 180 deg so we need to negate it to translate to the scene graph correctly
+    m_flipperLeftEntity->transform.setRotation(hlslpp::mul(m_initialFlipperLeftRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperLeftRotation })));
+    m_flipperRightEntity->transform.setRotation(hlslpp::mul(m_initialFlipperRightRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperRightRotation })));
+    
+
     // Camera should look at the ball when it's above a y = 2.5
     if (m_ballEntity->transform.getPosition().y > 2.5f) {
         // tiltFactor clamped between 0 and 1, clamping a bit before the top of the play area
         float tiltFactor = hlslpp::saturate((m_ballEntity->transform.getPosition().y - 2.5f) / (m_wallTopEntity->transform.getPosition().y - m_wallTopEntity->transform.getScale().y * 0.5f - 4.0f));
         m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ easeInOutQuad(tiltFactor) * k_CAMERA_ANGLE_TILT_MAX * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
     }
+
+    // graphics mode toggle
+    if (engine::input::InputManager::getInstance()->keyReleased(engine::input::Keycode::F1)) {
+        GraphicsModeTarget mode = GraphicsMode::getGraphicsMode();
+        if (mode == GraphicsModeTarget::Classic) {
+            GraphicsMode::setGraphicsMode(GraphicsModeTarget::Modern);
+        } else {
+            GraphicsMode::setGraphicsMode(GraphicsModeTarget::Classic);
+        }
+    }
+
+    if (m_bricksToProgressToNextLevel == 0) {
+        setLevel(m_level + 1);
+    }
 }
 
 void LevelHandler::spawnPowerup() {
-    m_powerupsContainerEntity->push_back(
+    render::Entity* newPowerUp = m_powerupsContainerEntity->push_back(
         render::EntityBuilder().withName("Powerup")
         .withPosition({})
         .withMeshRenderer({
@@ -366,7 +485,7 @@ void LevelHandler::spawnPowerup() {
             .material {
                 .shader = m_shader,
                 .name = "Powerup",
-                .ambient = {1, 1, 1},
+                .ambient = {0.5f, 0.5f, 0.5f},
                 .diffuse = {1, 1, 1},
                 .roughness = 1.0f,
                 .diffuseTex = engine::App::getInstance()->getAssetManager()->fetchTexture("smile_albedo.png"),
@@ -374,6 +493,30 @@ void LevelHandler::spawnPowerup() {
                 .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("brdf_lut.png")
             }})
     );
+
+    // @TODO: Other powerup shit
+}
+
+void LevelHandler::setLevel(uint32_t levelId) {
+    ASSERT(levelId < k_MAX_LEVELS);
+
+    // @TODO: Reset state
+    if (levelId == 0) {
+        // reset lives if restarting
+        m_lives = k_INITIAL_LIVES;
+    }
+    // keep current lives, kill ball, restore lives
+    int32_t oldLives = m_lives;
+    killBall();
+    m_lives = oldLives;
+
+    // set the new level id to what we have stored internally
+    m_level = levelId;
+
+    // alter the weights for the brick generation
+    // Brick::
+
+    // enable / disable bricks according to layout pattern
 }
 
 void LevelHandler::imgui() {
@@ -384,7 +527,24 @@ void LevelHandler::imgui() {
     ImGui::NewLine();
     ImGui::Text(fmt::format("Lives {}", m_lives).c_str());
     ImGui::Text(fmt::format("Score {}", m_score).c_str());
+    ImGui::Text(fmt::format("Bricks For Next Level {}", m_bricksToProgressToNextLevel).c_str());
+    ImGui::NewLine();
 
     ImGui::DragFloat("max camera angle", &k_CAMERA_ANGLE_TILT_MAX, 0.01f, 0, 15);
+    ImGui::DragFloat("flipper angle neutral", &k_FLIPPER_ANGLE_NEUTRAL, 0.01f, 0, 15);
+    ImGui::DragFloat("flipper angle max", &k_FLIPPER_ANGLE_MAX, 0.01f, 0, 15);
+
+    {
+        // Debug UI for Graphics Mode
+        GraphicsModeTarget mode = GraphicsMode::getGraphicsMode();
+        const char* graphicsModeTargetTypes[] = { "Classic", "Modern" };
+        auto tempGraphicsMode = mode;
+        ImGui::ComboboxEx("Graphics Mode", (int*)&tempGraphicsMode, graphicsModeTargetTypes, IM_ARRAYSIZE(graphicsModeTargetTypes));
+        if (mode != tempGraphicsMode) {
+            GraphicsMode::setGraphicsMode(tempGraphicsMode);
+        }
+    }
+
+
     ImGui::End();
 }
