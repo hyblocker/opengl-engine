@@ -335,7 +335,7 @@ void main()
 
         m_device->debugMarkerPop();
 
-        if (vertexBufferHandle.Get() != nullptr && indexBufferHandle.Get() != nullptr) {
+        if (vertexBufferHandle.Get() != nullptr && indexBufferHandle.Get() != nullptr && vertexLayoutHandle.Get() != nullptr) {
             // Cache
             MeshTracker_t tracker = {
                 .vertexBuffer = vertexBufferHandle,
