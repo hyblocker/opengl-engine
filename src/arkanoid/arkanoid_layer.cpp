@@ -141,6 +141,18 @@ void ArkanoidLayer::imguiDraw() {
             ImGui::Text("Physics view enabled");
             static float zoom = 2000.0f;
             ImGui::DragFloat("Zoom", &zoom);
+
+            ImGui::Checkbox("Use bounds", &g_draw.m_debugDraw.useDrawingBounds);
+            ImGui::Checkbox("Shapes", &g_draw.m_debugDraw.drawShapes);
+            ImGui::Checkbox("Joints", &g_draw.m_debugDraw.drawJoints);
+            ImGui::Checkbox("Joints Extras", &g_draw.m_debugDraw.drawJointExtras);
+            ImGui::Checkbox("AABBs", &g_draw.m_debugDraw.drawAABBs);
+            ImGui::Checkbox("Mass", &g_draw.m_debugDraw.drawMass);
+            ImGui::Checkbox("Contacts", &g_draw.m_debugDraw.drawContacts);
+            ImGui::Checkbox("Colours", &g_draw.m_debugDraw.drawGraphColors);
+            ImGui::Checkbox("Normals", &g_draw.m_debugDraw.drawContactNormals);
+            ImGui::Checkbox("Impulses", &g_draw.m_debugDraw.drawContactImpulses);
+            ImGui::Checkbox("Friction", &g_draw.m_debugDraw.drawFrictionImpulses);
             ImGui::End();
 
             getDevice()->debugMarkerPush("b2debug");
