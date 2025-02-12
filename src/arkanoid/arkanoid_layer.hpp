@@ -41,9 +41,6 @@ private:
     // Loads gpu resources into memory
     void loadGpuResources();
 
-    // thank you compiler for optimising crucial code away and breaking behaviour <3
-    void hackPreloadStuffBecauseTheCompilerOptimisationsBreakMeshLoading();
-
 private:
 
     // Scene management

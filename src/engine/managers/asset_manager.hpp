@@ -26,7 +26,7 @@ namespace managers {
             std::string debugName = "";
         };
         
-        render::Mesh& fetchMesh(const std::string& meshPath);
+        render::Mesh fetchMesh(const std::string& meshPath);
         gpu::IShader* fetchShader(const FetchShaderParams& params);
         gpu::ITexture* fetchTexture(const std::string& texturePath, const bool genMipmaps = true);
         inline gpu::ITexture* fetchWhiteTexture() { return m_whiteTexture; }

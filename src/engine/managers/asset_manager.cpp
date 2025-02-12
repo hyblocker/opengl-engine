@@ -204,7 +204,7 @@ void main()
         m_intialisedDefaultAssets = true;
     }
 
-    render::Mesh& AssetManager::fetchMesh(const std::string& meshPath) {
+    render::Mesh AssetManager::fetchMesh(const std::string& meshPath) {
 
         if (!m_intialisedDefaultAssets) {
             initialiseErrorData();
@@ -351,6 +351,7 @@ void main()
             return m_errorMesh.mesh;
         }
     }
+
     gpu::IShader* AssetManager::fetchShader(const FetchShaderParams& params) {
         
         if (!m_intialisedDefaultAssets) {

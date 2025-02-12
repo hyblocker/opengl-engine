@@ -12,23 +12,6 @@ void ArkanoidLayer::initScenes() {
     // initGameScene(m_gameSceneL5);
 }
 
-void ArkanoidLayer::hackPreloadStuffBecauseTheCompilerOptimisationsBreakMeshLoading() {
-    // the compiler optimisations break the return value of this function when inserting something into the cache
-    // now in an ideal world i would properly fix this, but this is real life and i dont have enough time for that
-    // so load everything once to warm the cache so that the return value works correctly
-    // :D
-    getAssetManager()->fetchMesh("skybox_sphere.obj");
-    getAssetManager()->fetchMesh("skybox_quad.obj");
-    getAssetManager()->fetchMesh("test.obj");
-    getAssetManager()->fetchMesh("box.obj");
-    getAssetManager()->fetchMesh("paddle.obj");
-    getAssetManager()->fetchMesh("ball.obj");
-    getAssetManager()->fetchMesh("brick.obj");
-    getAssetManager()->fetchMesh("flipper.obj");
-    getAssetManager()->fetchMesh("smile.obj");
-    getAssetManager()->fetchMesh("bumper.obj");
-}
-
 void ArkanoidLayer::loadGpuResources() {
 
     // Load shader for materials
