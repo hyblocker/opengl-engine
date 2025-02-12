@@ -241,6 +241,7 @@ namespace render {
     }
                     
 
+                    ImGui::Text("Shader %s", pMeshRenderer->material.shader->getDesc().debugName.c_str());
                     ImGui::ColorEdit3("Ambient", pMeshRenderer->material.ambient.f32);
                     ImGui::ColorEdit3("Diffuse", pMeshRenderer->material.diffuse.f32);
                     IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.diffuseTex);
