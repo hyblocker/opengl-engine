@@ -24,6 +24,11 @@ ArkanoidLayer::ArkanoidLayer(gpu::DeviceManager* deviceManager, managers::AssetM
     });
 
     // Backend warmup
+
+    // @HACK: FOR SOME REASON THE COMPILER OPTIMISATIONS BREAK FIRST MESH LOAD OF EACH UNIQUE MESH FILE??????
+    //        i cant be bothered debugging this thoroughly so we load everything used once instead because wtaf
+    hackPreloadStuffBecauseTheCompilerOptimisationsBreakMeshLoading();
+
     m_sceneUpdater.init();
     m_sceneRenderer.init(getDevice(), getAssetManager());
 

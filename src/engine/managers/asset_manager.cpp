@@ -350,9 +350,6 @@ void main()
             LOG_WARNING("Failed to load mesh {}. Using error mesh...", meshPath);
             return m_errorMesh.mesh;
         }
-
-        LOG_WARNING("Failed to load mesh {}. Using error mesh...", meshPath);
-        return m_errorMesh.mesh;
     }
     gpu::IShader* AssetManager::fetchShader(const FetchShaderParams& params) {
         
