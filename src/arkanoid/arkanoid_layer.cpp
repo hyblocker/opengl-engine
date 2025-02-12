@@ -120,6 +120,7 @@ void ArkanoidLayer::detach() {
 
 void ArkanoidLayer::imguiDraw() {
 
+#if _DEBUG
     if (m_doDrawDebugUi) {
 
         m_sceneUpdater.imgui(*m_activeScene);
@@ -157,4 +158,5 @@ void ArkanoidLayer::imguiDraw() {
             getDevice()->debugMarkerPop();
         }
     }
+#endif
 }

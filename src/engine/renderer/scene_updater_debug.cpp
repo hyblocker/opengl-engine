@@ -18,6 +18,7 @@ namespace render {
     size_t s_sceneTreeCounter = 0;
 
     void SceneUpdater::drawDebugSceneGraphEntity(const std::string& sceneName, const std::shared_ptr<Entity> entity, void** pSelectedEntity) {
+#if _DEBUG
         ASSERT(pSelectedEntity != nullptr);
         ImGuiTreeNodeFlags entityFlags = ImGuiTreeNodeFlags_DefaultOpen;
         if (entity->children.empty()) {
@@ -45,9 +46,11 @@ namespace render {
             ImGui::TreePop();
         }
         ImGui::PopID();
+#endif
     }
 
     void SceneUpdater::drawDebugSceneGraph(const Scene& scene, void** pSelectedEntity) {
+#if _DEBUG
         ASSERT(pSelectedEntity != nullptr);
 
         ImGuiTreeNodeFlags sceneFlags = ImGuiTreeNodeFlags_DefaultOpen;
@@ -79,6 +82,7 @@ namespace render {
         // Reset counter
         s_sceneTreeCounter = 0;
         ImGui::PopID();
+#endif
     }
 
     // Current state of the inspector GUI
@@ -87,6 +91,7 @@ namespace render {
     };
 
     void SceneUpdater::drawDebugInspector(const Scene& scene, void** pSelectedEntity) {
+#if _DEBUG
         ASSERT(pSelectedEntity != nullptr);
 
         if (*pSelectedEntity == nullptr) {
@@ -357,6 +362,7 @@ namespace render {
             }
 
         }
+#endif
     }
 
     void SceneUpdater::drawPhysicsDebug(const Scene& scene) {
