@@ -5,6 +5,7 @@
 #include "arkanoid/logic/paddle.hpp"
 #include "arkanoid/logic/brick.hpp"
 #include "arkanoid/logic/level_handler.hpp"
+#include "arkanoid/logic/graphics_mode.hpp"
 
 #include <imgui.h>
 
@@ -51,14 +52,15 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("test.obj"),
             .material = {
-                .shader = m_shader,
+                .shader = m_shaderModernOpaque,
                 .name = "Suzanne",
-                .ambient = hlslpp::float3(0.0352941176f, 0.0745098039f, 0.1215686275f),
+                .ambient = {0.5f, 0.5f, 0.5f},
                 .diffuseTex = getAssetManager()->fetchTexture("brick_wall.png"),
                 .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
             }
             })
+        .withBehaviour<GraphicsMode>(true, m_shaderClassic)
     );
 
     // Add colliders around the edges of the screen
@@ -71,12 +73,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "ColliderViz",
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
         .withChild(
             EntityBuilder().withName("Left")
@@ -85,12 +88,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "ColliderViz",
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
         .withChild(
             EntityBuilder().withName("Right")
@@ -99,12 +103,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "ColliderViz",
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
         .withChild(
             EntityBuilder().withName("Bottom")
@@ -113,12 +118,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "ColliderViz",
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
     );
 
@@ -128,18 +134,19 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("paddle.obj"),
             .material = {
-                .shader = m_shader,
+                .shader = m_shaderModernOpaque,
                 .name = "Paddle",
-                .ambient = {1.0f, 1.0f, 1.0f},
+                .ambient = {0.5f, 0.5f, 0.5f},
                 .diffuse = {1.0f, 1.0f, 1.0f},
                 .metallic = 1,
                 .roughness = 1,
                 .diffuseTex = getAssetManager()->fetchTexture("paddle_albedo.png"),
                 .metaTex = getAssetManager()->fetchTexture("paddle_meta.png"),
                 .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
             }
             })
+        .withBehaviour<GraphicsMode>(true, m_shaderClassic)
     );
 
     outScene.push_back(
@@ -148,15 +155,60 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("ball.obj"),
             .material = {
-                .shader = m_shader,
+                .shader = m_shaderModernOpaque,
                 .name = "PaddleBall",
-                .ambient = {1.0f, 1.0f, 1.0f},
-                .diffuse = {0.5254901961,0.5254901961,0.5254901961},
+                .ambient = {0.5f, 0.5f, 0.5f},
+                .diffuse = {1.0f, 1.0f, 1.0f},
                 .roughness = 0.2f,
                 .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
             }
             })
+        .withBehaviour<GraphicsMode>(true, m_shaderClassic)
+    );
+
+    outScene.push_back(
+        EntityBuilder().withName("FlipperLeft")
+        .withPosition({ -22.760f, -6.130f, 0 })
+        .withRotationEulerAngles({ 0.0f * DEG2RAD, 180.0f * DEG2RAD, 0.0f * DEG2RAD })
+        .withMeshRenderer({
+            .mesh = getAssetManager()->fetchMesh("flipper.obj"),
+            .material = {
+                .shader = m_shaderModernOpaque,
+                .name = "Flipper",
+                .ambient = {0.5f, 0.5f, 0.5f},
+                .diffuse = {1.0f, 1.0f, 1.0f},
+                .metallic = 1,
+                .roughness = 1,
+                .diffuseTex = getAssetManager()->fetchTexture("flipper_albedo.png"),
+                .metaTex = getAssetManager()->fetchTexture("flipper_meta.png"),
+                .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
+            }
+            })
+        .withBehaviour<GraphicsMode>(true, m_shaderClassic)
+    );
+
+    outScene.push_back(
+        EntityBuilder().withName("FlipperRight")
+        .withPosition({ 22.760f, -6.130f, 0 })
+        .withRotationEulerAngles({ 0.0f * DEG2RAD, 0.0f * DEG2RAD, 0.0f * DEG2RAD })
+        .withMeshRenderer({
+            .mesh = getAssetManager()->fetchMesh("flipper.obj"),
+            .material = {
+                .shader = m_shaderModernOpaque,
+                .name = "Flipper",
+                .ambient = {0.5f, 0.5f, 0.5f},
+                .diffuse = {1.0f, 1.0f, 1.0f},
+                .metallic = 1,
+                .roughness = 1,
+                .diffuseTex = getAssetManager()->fetchTexture("flipper_albedo.png"),
+                .metaTex = getAssetManager()->fetchTexture("flipper_meta.png"),
+                .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
+            }
+            })
+        .withBehaviour<GraphicsMode>(true, m_shaderClassic)
     );
 
     EntityBuilder brickContainer;
@@ -170,14 +222,17 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                 .withMeshRenderer({
                     .mesh = getAssetManager()->fetchMesh("brick.obj"),
                     .material = {
-                        .shader = m_shader,
+                        .shader = m_shaderModernOpaque,
                         .name = "Brick",
-                        .ambient = {0.1f, 0.1f, 0.1f},
-                        .diffuse = {1,1,1},
+                        .ambient = {0.5f, 0.5f, 0.5f},
+                        .diffuse = {1.0f, 1.0f, 1.0f},
+                        .metallic = 0.0f,
+                        .roughness = 1.0f,
                         .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                        .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                        .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 } })
                 .withBehaviour<Brick>(true, x, y)
+                .withBehaviour<GraphicsMode>(true, m_shaderClassic)
                 );
         }
     }
@@ -197,16 +252,17 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("smile.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "HorrorsBeyondMyImagination",
-                    .ambient = {0.2f, 0.2f, 0.2f},
-                    .diffuse = {1, 1, 1},
+                    .ambient = {0.5f, 0.5f, 0.5f},
+                    .diffuse = {1.0f, 1.0f, 1.0f},
                     .roughness = 1.0f,
                     .diffuseTex = getAssetManager()->fetchTexture("smile_albedo.png"),
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
     );
 
@@ -220,18 +276,19 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("bumper.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "Bumper",
-                    .ambient = {1,1,1},
-                    .diffuse = {1,1,1},
+                    .ambient = {0.5f, 0.5f, 0.5f},
+                    .diffuse = {1.0f, 1.0f, 1.0f},
                     .metallic = 1.0f,
                     .roughness = 1.0f,
                     .diffuseTex = getAssetManager()->fetchTexture("bumper_albedo.png"),
                     .metaTex = getAssetManager()->fetchTexture("bumper_meta.png"),
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
         .withChild(
             EntityBuilder().withName("RampLeft")
@@ -240,18 +297,19 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
-                    .shader = m_shader,
+                    .shader = m_shaderModernOpaque,
                     .name = "Bumper",
-                    .ambient = {1,1,1},
-                    .diffuse = {1,1,1},
+                    .ambient = {0.5f, 0.5f, 0.5f},
+                    .diffuse = {1.0f, 1.0f, 1.0f},
                     .metallic = 1.0f,
                     .roughness = 1.0f,
                     .diffuseTex = getAssetManager()->fetchTexture("bumper_albedo.png"),
                     .metaTex = getAssetManager()->fetchTexture("bumper_meta.png"),
                     .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
-                    .brdfLutTex = getAssetManager()->fetchTexture("brdf_lut.png")
+                    .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
                 }
                 })
+            .withBehaviour<GraphicsMode>(true, m_shaderClassic)
         )
     );
 
