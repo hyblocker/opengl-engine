@@ -153,8 +153,8 @@ namespace gpu::gl {
 		void unbindConstantBuffer(IBuffer* buffer, uint32_t bindIndex) override;
 		void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) override;
 
-		void draw(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0) override;
-		void drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0) override;
+		void draw(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0, size_t instances = 1) override;
+		void drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset = 0, size_t instances = 1) override;
 
 		void clearColor(Color color, float depth) override;
 		void present() override;
@@ -188,6 +188,7 @@ namespace gpu::gl {
 		std::vector<std::string> m_openGlExtensions;
 		int32_t m_maxUniformBufferBindings = 0;
 		int32_t m_maxCombinedTextureImageUnits = 0;
+		int32_t m_maxUniformBufferBlockSize = 0;
 		float m_maxTextureMaxAnisotropyExt = 0;
 	};
 }

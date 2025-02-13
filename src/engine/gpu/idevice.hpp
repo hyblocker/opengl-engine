@@ -104,8 +104,8 @@ namespace gpu {
 		virtual void unbindBuffer(IBuffer* buffer) = 0;
 		virtual void setBufferBinding(IShader* shader, const std::string& name, uint32_t bindIndex) = 0;
 
-		virtual void draw(DrawCallState drawState, size_t triangleCount, size_t offset = 0) = 0;
-		virtual void drawIndexed(DrawCallState drawState, size_t triangleCount, size_t offset = 0) = 0;
+		virtual void draw(DrawCallState drawState, size_t triangleCount, size_t offset = 0, size_t instances = 1) = 0;
+		virtual void drawIndexed(DrawCallState drawState, size_t triangleCount, size_t offset = 0, size_t instances = 1) = 0;
 
 		virtual void clearColor(Color color, float depth = 0.0f) = 0;
 		virtual void present() = 0;

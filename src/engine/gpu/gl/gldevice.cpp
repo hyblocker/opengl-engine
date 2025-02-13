@@ -57,6 +57,7 @@ namespace gpu::gl {
 		}
 
 		GL_CHECK(glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_maxUniformBufferBindings));
+		GL_CHECK(glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &m_maxUniformBufferBlockSize));
 		GL_CHECK(glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &m_maxCombinedTextureImageUnits));
 		GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_maxTextureMaxAnisotropyExt));
 		
@@ -245,13 +246,16 @@ namespace gpu::gl {
 		GL_CHECK(glDepthFunc(getGlDepthFunc(shader->getDesc().graphicsState.depthState).glEnum));
 	}
 
-	void GlDevice::draw(DrawCallState drawCallState, size_t triangleCount, size_t offset) {
+	void GlDevice::draw(DrawCallState drawCallState, size_t triangleCount, size_t offset, size_t instances) {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer == nullptr);
 		ASSERT(drawCallState.shader != nullptr);
 		ASSERT(drawCallState.vertexLayout != nullptr);
 		ASSERT(triangleCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
+		if (instances == 0) {
+			return;
+		}
 
 		// associated vertex layout
 		GL_CHECK(glBindVertexArray(drawCallState.vertexLayout->getNativeObject()));
@@ -272,15 +276,18 @@ namespace gpu::gl {
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
 
 		// Issue draw call
-		GL_CHECK(glDrawArrays(primitiveType.glType, static_cast<GLint>(triangleCount) * 3U /* OpenGL expects number of vertices here, not tris */, static_cast<GLsizei>(offset)));
+		GL_CHECK(glDrawArraysInstanced(primitiveType.glType, static_cast<GLint>(triangleCount) * 3U /* OpenGL expects number of vertices here, not tris */, static_cast<GLsizei>(offset), instances));
 	}
-	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset) {
+	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset, size_t instances) {
 		ASSERT(drawCallState.vertexBufer != nullptr);
 		ASSERT(drawCallState.indexBuffer != nullptr);
 		ASSERT(drawCallState.shader != nullptr);
 		ASSERT(drawCallState.vertexLayout != nullptr);
 		ASSERT(triangleCount > 0);
 		ASSERT(drawCallState.primitiveType != PrimitiveType::Count);
+		if (instances == 0) {
+			return;
+		}
 
 		// associated vertex layout
 		GL_CHECK(glBindVertexArray(drawCallState.vertexLayout->getNativeObject()));
@@ -302,7 +309,7 @@ namespace gpu::gl {
 		auto indexFormat = getGlFormat(drawCallState.indexBuffer->getDesc().format);
 
 		// Issue draw call
-		GL_CHECK(glDrawElements(primitiveType.glType, static_cast<GLsizei>(triangleCount) * 3U /* OpenGL expects number of indices here, not tris */, indexFormat.glType, reinterpret_cast<void*>(offset)));
+		GL_CHECK(glDrawElementsInstanced(primitiveType.glType, static_cast<GLsizei>(triangleCount) * 3U /* OpenGL expects number of indices here, not tris */, indexFormat.glType, reinterpret_cast<void*>(offset), instances));
 	}
 
 	void GlDevice::clearColor(Color color, float depth) {
