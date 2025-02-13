@@ -11,6 +11,9 @@
 namespace engine {
 	App* App::s_instance = nullptr;
 
+	std::mt19937 RandomNumberGenerator::s_rng;
+	std::uniform_int_distribution<std::mt19937::result_type> RandomNumberGenerator::s_distribution;
+
 	App::App(AppDesc desc) {
 		ASSERT(s_instance == nullptr);
 		s_instance = this;

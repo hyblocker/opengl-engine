@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <string>
 #include <memory>
+#include <random>
 
 #include "engine/core.hpp"
 #include "engine/window.hpp"
@@ -26,6 +27,22 @@ struct AppDesc {
 };
 
 namespace engine {
+
+	class RandomNumberGenerator {
+	public:
+		// generates a ranomd number between 0 and 1
+		static float getFloat() {
+			return (float)s_distribution(s_rng) / (float)std::numeric_limits<uint32_t>::max();
+		}
+	private:
+		static void init() {
+			s_rng.seed(std::random_device()());
+		}
+	private:
+		static std::mt19937 s_rng;
+		static std::uniform_int_distribution<std::mt19937::result_type> s_distribution;
+	};
+
 	class App {
 	public:
 		App(AppDesc desc);
