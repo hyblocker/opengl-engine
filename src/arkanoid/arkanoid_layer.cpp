@@ -95,7 +95,7 @@ void ArkanoidLayer::render(double deltaTime) {
     float backbufferAspect = engine::App::getInstance()->getWindow()->getWidth() / (float)engine::App::getInstance()->getWindow()->getHeight();
 
     m_sceneUpdater.render(*m_activeScene);
-    m_sceneRenderer.draw(*m_activeScene, backbufferAspect);
+    m_sceneRenderer.draw(*m_activeScene, backbufferAspect, deltaTime);
 }
 
 bool ArkanoidLayer::windowResized(const engine::events::WindowResizeEvent& event) {

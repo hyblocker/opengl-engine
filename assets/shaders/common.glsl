@@ -19,6 +19,7 @@ layout(std140) uniform GeometryBuffer
     float4x4 view;
     float4x4 projection;
     float3 cameraPos;
+    float elapsedTime;
 };
 
 layout(std140) uniform MaterialBuffer

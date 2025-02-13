@@ -14,7 +14,7 @@ namespace render {
         hlslpp::float4x4 model;
         hlslpp::float4x4 view;
         hlslpp::float4x4 projection;
-        hlslpp::float3 cameraPos;
+        hlslpp::float4 cameraPosTime;
     };
 
     struct MaterialCBuffer {
@@ -49,7 +49,7 @@ namespace render {
     class SceneRenderer {
     public:
         void init(gpu::IDevice* pDevice, managers::AssetManager* pAssetManager);
-        void draw(Scene& scene, const float aspect);
+        void draw(Scene& scene, const float aspect, float deltaTime);
     private:
 
         struct RenderListElement {
@@ -80,5 +80,7 @@ namespace render {
         std::vector<Light*> m_lights;
         std::vector<RenderListElement> m_forwardOpaqueList;
         std::vector<RenderListElement> m_forwardTransparentList;
+
+        float m_elapsedTime = 0;
     };
 }

@@ -49,7 +49,8 @@ namespace render {
                 .faceCullingMode = gpu::FaceCullMode::Never,
             },
             .vertShader = "skybox_procedural_vert.glsl",
-            .fragShader = "skybox_procedural_frag.glsl",
+            // .fragShader = "skybox_procedural_frag.glsl",
+            .fragShader = "skybox_starfield_frag.glsl",
             .debugName = "SkyboxProcedural"
         });
 
@@ -92,7 +93,6 @@ namespace render {
 
                 geometryView->model = hlslpp::float4x4::identity();
                 geometryView->projection = cameraComponent->getProjectionMatrix();
-                geometryView->cameraPos = cameraComponent->getEntity()->transform.getPosition();
                 m_pDevice->unmapBuffer(m_geometryCbuffer);
             }
 
