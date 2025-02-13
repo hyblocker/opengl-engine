@@ -2,6 +2,7 @@
 
 #include "engine/renderer/scene_graph.hpp"
 #include "engine/renderer/mesh.hpp"
+#include <box2d/box2d.h>
 
 enum class BrickType {
     Regular,
@@ -40,6 +41,9 @@ public:
     // if the level handler should "destroy" the brick in the scene graph
     bool shouldExistInScene();
 
+    inline b2BodyId getBrickId() { return m_physicsId; }
+    inline void setBrickId(b2BodyId newId) { m_physicsId = newId; }
+
 private:
     render::MeshRenderer* m_renderer = nullptr;
     int m_posX = 0;
@@ -53,4 +57,6 @@ private:
     uint32_t m_health = 1;
     uint32_t m_totalHealth = 1;
     BrickType m_type = BrickType::Regular;
+
+    b2BodyId m_physicsId = b2_nullBodyId;
 };

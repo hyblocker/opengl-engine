@@ -100,12 +100,15 @@ void LevelHandler::start() {
     m_flipperRightBody = makeFlipper(m_flipperRightEntity, 0.1f, { 6.5f, 1.95057f }, true);
 
     for (auto brickEntity : m_bricksEntityRoot->children) {
-        makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
+        b2BodyId brickPhysicsId = makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
+        Brick* brickComponent = (Brick*)brickEntity->findComponent(render::ComponentType::UserBehaviour);
+        brickComponent->setBrickId(brickPhysicsId);
     }
 
     m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, {0, -1});
 
     LOG_INFO("Created Level Breakanoid::Game!");
+    setLevel(0);
 }
 
 void LevelHandler::sleep() {
@@ -514,15 +517,19 @@ void LevelHandler::spawnPowerup() {
 void LevelHandler::setLevel(uint32_t levelId) {
     ASSERT(levelId < k_MAX_LEVELS);
 
+    LOG_INFO("Setting level to level {}", levelId + 1);
+
     // @TODO: Reset state
     if (levelId == 0) {
         // reset lives if restarting
         m_lives = k_INITIAL_LIVES;
     }
     // keep current lives, kill ball, restore lives
-    int32_t oldLives = m_lives;
+    // int32_t oldLives = m_lives;
+    m_lives++;
+    launchBall();
     killBall();
-    m_lives = oldLives;
+    // m_lives = oldLives;
 
     // set the new level id to what we have stored internally
     m_level = levelId;
@@ -531,6 +538,19 @@ void LevelHandler::setLevel(uint32_t levelId) {
     // Brick::
 
     // enable / disable bricks according to layout pattern
+    m_bricksToProgressToNextLevel = 0;
+    for (auto brickEntity : m_bricksEntityRoot->children) {
+        auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+        // pattern says to enable / disable this brick
+
+        // if enabled, pick from distribution of bricks
+
+        pBrickComponent->getEntity()->enabled = true;
+        b2Body_Enable(pBrickComponent->getBrickId());
+        m_bricksToProgressToNextLevel++;
+    }
+
 }
 
 void LevelHandler::imgui() {
@@ -539,7 +559,7 @@ void LevelHandler::imgui() {
     ImGui::Begin("Level debug");
     ImGui::Text(fmt::format("Level {}", m_level).c_str());
     ImGui::NewLine();
-    ImGui::Text(fmt::format("Lives {}", m_lives).c_str());
+    ImGui::DragInt("Lives", &m_lives, 1, 0, 20);
     ImGui::Text(fmt::format("Score {}", m_score).c_str());
     ImGui::Text(fmt::format("Bricks For Next Level {}", m_bricksToProgressToNextLevel).c_str());
     ImGui::NewLine();
