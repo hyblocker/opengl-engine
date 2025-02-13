@@ -22,7 +22,7 @@ namespace render {
             hlslpp::float3 position = {0,0,0};
             hlslpp::float3 velocity = { 0,0,0 }, velocityVariation = {1,1,1};
             hlslpp::float4 colourBegin = { 1,1,1,1 }, colourEnd = {1,1,1,0};
-            float sizeBegin = 1, sizeEnd = 0, sizeVariation = 1;
+            float sizeBegin = 1, sizeEnd = 0, sizeVariation = 0.1f;
             float lifeTime = 1;
         };
 

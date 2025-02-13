@@ -296,7 +296,8 @@ namespace render {
                     m_pDevice->mapBuffer(m_geometryCbuffer, 0, sizeof(GeometryCBuffer), gpu::MapAccessFlags::Write | gpu::MapAccessFlags::InvalidateBuffer, reinterpret_cast<void**>(&geometryView));
                     if (geometryView != nullptr) {
                         // @TODO: May need to flip
-                        geometryView->model = hlslpp::mul(drawable.parentMatrix, pParticleSystem->getEntity()->transform.getModel());
+                        // geometryView->model = hlslpp::mul(drawable.parentMatrix, pParticleSystem->getEntity()->transform.getModel());
+                        geometryView->model = drawable.parentMatrix;
                         geometryView->view = cameraComponent->getViewMatrix();
                         geometryView->projection = cameraComponent->getProjectionMatrix();
                         geometryView->cameraPosTime.xyz = cameraComponent->getEntity()->transform.getPosition();

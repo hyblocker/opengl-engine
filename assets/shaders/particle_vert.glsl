@@ -44,7 +44,7 @@ void main()
 {
     float size = mix(particles[gl_InstanceID].sizeBegin, particles[gl_InstanceID].sizeEnd, particles[gl_InstanceID].life);
 
-    vec3 particlePos = iPosition.xyz;
+    vec3 particlePos = iPosition.xyz + particles[gl_InstanceID].position;
     particlePos = particlePos * vec3(size, size, size) + particles[gl_InstanceID].velocity * particles[gl_InstanceID].life;
 
     gl_Position = projection * view * model * vec4(particlePos, 1.0);

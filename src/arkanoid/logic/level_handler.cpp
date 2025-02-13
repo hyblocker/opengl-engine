@@ -460,7 +460,7 @@ void LevelHandler::update(float deltaTime) {
     // PARTICLES!!!
     // ball trail
     if (B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
-        hlslpp::float3 ballVelocityTrajectory = (m_ballEntity->transform.getPosition() - ballPos) * hlslpp::float3(-1,-1,1);
+        hlslpp::float3 ballVelocityTrajectory = (m_ballEntity->transform.getPosition() - ballPos) * hlslpp::float3(1,1,1);
         m_ballParticleSystem->emit({
             .position = m_ballEntity->transform.getPosition(),
             .velocity = hlslpp::float3(0, 0, 0),
