@@ -61,4 +61,15 @@ namespace render {
         m_entity->push_back(renderer);
         return *this;
     }
+
+    EntityBuilder& EntityBuilder::withParticleSystem(ParticleSystemCreateParams params) {
+        std::shared_ptr<ParticleSystem> particleSystem = std::make_shared<ParticleSystem>(m_entity.get());
+
+        particleSystem->enabled = params.enabled;
+        particleSystem->material = params.material;
+        particleSystem->blendState = params.blendState;
+
+        m_entity->push_back(particleSystem);
+        return *this;
+    }
 }

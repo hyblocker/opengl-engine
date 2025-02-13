@@ -2,6 +2,7 @@
 
 #include "engine/renderer/scene_graph.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/renderer/particle_system.hpp"
 
 // we use collision matrices to mask out certain types of entities from colliding with one another
 namespace collisions {
@@ -84,6 +85,9 @@ private:
 
     render::Entity* m_flipperLeftEntity = nullptr;
     render::Entity* m_flipperRightEntity = nullptr;
+
+    // particle systems
+    render::ParticleSystem* m_ballParticleSystem = nullptr;
 
     // For making powerups and enemies
     gpu::IShader* m_shader = nullptr;

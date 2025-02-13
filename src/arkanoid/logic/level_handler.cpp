@@ -58,6 +58,7 @@ void LevelHandler::start() {
 
     // get ref to the main shader
     m_shader = ((render::MeshRenderer*)m_ballEntity->findComponent(render::ComponentType::MeshRenderer))->material.shader;
+    m_ballParticleSystem = ((render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem));
 
     render::Entity* wallsContainer = getEntity()->parent->findNamedEntity("ScreenBoundary");
     m_wallLeftEntity = wallsContainer->findNamedEntity("Left");
@@ -453,6 +454,18 @@ void LevelHandler::update(float deltaTime) {
     m_flipperLeftEntity->transform.setRotation(hlslpp::mul(m_initialFlipperLeftRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperLeftRotation })));
     m_flipperRightEntity->transform.setRotation(hlslpp::mul(m_initialFlipperRightRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperRightRotation })));
     
+    // PARTICLES!!!
+    // ball trail
+    if (B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
+        hlslpp::float3 ballVelocityTrajectory = (m_ballEntity->transform.getPosition() - ballPos) * hlslpp::float3(-1,-1,1);
+        m_ballParticleSystem->emit({
+            .position = m_ballEntity->transform.getPosition(),
+            .velocity = hlslpp::float3(0, 0, 0),
+            .velocityVariation = ballVelocityTrajectory,
+
+            .lifeTime = 5 /* seconds */,
+        });
+    }
 
     // Camera should look at the ball when it's above a y = 2.5
     if (m_ballEntity->transform.getPosition().y > 2.5f) {

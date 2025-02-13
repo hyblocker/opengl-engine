@@ -16,6 +16,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
 
     using namespace ::render;
 
+    m_ballParticleBlendState = getDevice()->makeBlendState({
+        .blendEnable = true,
+        .srcFactor = gpu::BlendFactor::SrcAlpha,
+        .dstFactor = gpu::BlendFactor::OneMinusSrcColour,
+        .blendOp = gpu::BlendOp::Add,
+    });
+
     // Metadata
     outScene.sceneName = "Game";
     outScene.lightingParams.skybox = {
@@ -163,8 +170,15 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                 .matcapTex = getAssetManager()->fetchTexture("hdri_matcap.png"),
                 .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr")
             }
-            })
+        })
         .withBehaviour<GraphicsMode>(true, m_shaderClassic)
+        .withParticleSystem({
+            .material = {
+                .shader = m_shaderParticle,
+                .diffuse = {1,1,1}
+            },
+            .blendState = m_ballParticleBlendState
+        })
     );
 
     outScene.push_back(

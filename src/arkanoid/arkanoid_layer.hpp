@@ -60,6 +60,9 @@ private:
     gpu::IShader* m_shaderModernOpaque = nullptr;
     gpu::IShader* m_shaderModernTransparent = nullptr;
     gpu::IShader* m_shaderClassic = nullptr;
+    gpu::IShader* m_shaderParticle = nullptr;
+
+    gpu::BlendStateHandle m_ballParticleBlendState;
 
     // Scene handlers
     render::SceneRenderer m_sceneRenderer;

@@ -52,4 +52,17 @@ void ArkanoidLayer::loadGpuResources() {
     getDevice()->setBufferBinding(m_shaderClassic, "GeometryBuffer", 0);
     getDevice()->setBufferBinding(m_shaderClassic, "MaterialBuffer", 1);
     getDevice()->setBufferBinding(m_shaderClassic, "LightsBuffer", 2);
+
+    m_shaderParticle = getAssetManager()->fetchShader({
+        .graphicsState = {
+            // opaque rendering
+            .faceCullingMode = gpu::FaceCullMode::Never
+        },
+        .vertShader = "particle_vert.glsl",
+        .fragShader = "particle_frag.glsl",
+        .debugName = "Particles"
+        });
+    getDevice()->setBufferBinding(m_shaderParticle, "GeometryBuffer", 0);
+    getDevice()->setBufferBinding(m_shaderParticle, "MaterialBuffer", 1);
+    getDevice()->setBufferBinding(m_shaderParticle, "LightsBuffer", 2);
 }

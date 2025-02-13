@@ -1,6 +1,7 @@
 #include "scene_updater.hpp"
 #include "engine/log.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "particle_system.hpp"
 
 #include "b2debug/debug_draw.hpp"
 
@@ -109,6 +110,12 @@ namespace render {
                     IBehaviour* pBehaviour = (IBehaviour*)component.get();
                     if (pBehaviour->enabled) {
                         pBehaviour->update(deltaTime);
+                    }
+                }
+                if (component->getComponentType() == render::ComponentType::ParticleSystem) {
+                    ParticleSystem* pParticleSystem = (ParticleSystem*)component.get();
+                    if (pParticleSystem->enabled) {
+                        pParticleSystem->update(deltaTime);
                     }
                 }
             }

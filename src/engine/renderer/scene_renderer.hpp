@@ -3,12 +3,14 @@
 #include "scene_graph.hpp"
 #include "engine/gpu/idevice.hpp"
 #include "engine/managers/asset_manager.hpp"
+#include "particle_system.hpp"
 
 namespace render {
 
     class Light;
 
     constexpr uint32_t k_MAX_LIGHTS = 4;
+    constexpr uint32_t k_MAX_PARTICLES = 800;
 
     struct GeometryCBuffer {
         hlslpp::float4x4 model;
@@ -46,6 +48,22 @@ namespace render {
         LightRenderData light[k_MAX_LIGHTS];
     };
 
+    struct RenderParticleElement {
+        hlslpp::float3 position;
+        hlslpp::float3 velocity;
+        hlslpp::float4 colourBegin;
+        hlslpp::float4 colourEnd;
+
+        // packed as float4
+        float sizeBegin;
+        float sizeEnd;
+        float life;
+    };
+
+    struct ParticlesCBuffer {
+        RenderParticleElement particles[k_MAX_PARTICLES];
+    };
+
     class SceneRenderer {
     public:
         void init(gpu::IDevice* pDevice, managers::AssetManager* pAssetManager);
@@ -53,12 +71,16 @@ namespace render {
     private:
 
         struct RenderListElement {
-            MeshRenderer* pMeshRenderer;
+            ComponentType componentType;
+            union {
+                MeshRenderer* pMeshRenderer;
+                ParticleSystem* pParticleSystem;
+            };
             hlslpp::float4x4 parentMatrix;
         };
 
         void buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix);
-        void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight);
+        void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight, gpu::IBlendState* blendState);
         void drawSkybox(Scene& scene, Camera* camera, Light* sunLight);
 
         gpu::IDevice* m_pDevice = nullptr;
@@ -69,10 +91,12 @@ namespace render {
         gpu::BufferHandle m_geometryCbuffer;
         gpu::BufferHandle m_materialCbuffer;
         gpu::BufferHandle m_lightsCbuffer;
+        gpu::BufferHandle m_particlesCbuffer;
 
         gpu::IShader* m_skyboxTexShader;
         gpu::IShader* m_skyboxProceduralShader;
-        Mesh m_skyboxQuad;
+        Mesh m_skyboxSphere;
+        Mesh m_particleQuad;
 
         gpu::BlendStateHandle m_opaque_BlendState;
         gpu::BlendStateHandle m_alphaBlend_BlendState;

@@ -11,6 +11,7 @@
 #include "light.hpp"
 #include "mesh.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "particle_system.hpp"
 #include "scene_graph.hpp"
 
 namespace render {
@@ -101,6 +102,13 @@ namespace render {
             render::Material material;
         };
         EntityBuilder& withMeshRenderer(MeshRendererCreateParams params);
+
+        struct ParticleSystemCreateParams {
+            bool enabled = true;
+            render::Material material;
+            gpu::IBlendState* blendState = nullptr;
+        };
+        EntityBuilder& withParticleSystem(ParticleSystemCreateParams params);
 
         template<class T, typename... Args>
         EntityBuilder& withBehaviour(bool enabled = true, Args&&... args);
