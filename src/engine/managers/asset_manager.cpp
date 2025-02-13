@@ -330,7 +330,7 @@ void main()
             .vertexBuffer = vertexBufferHandle,
             .indexBuffer = indexBufferHandle,
             .vertexLayout = vertexLayoutHandle,
-            .triangleCount = indices.size() // There are 3 vertices per triangle, so divide by 3
+            .triangleCount = indices.size() / 3U // There are 3 vertices per triangle, so divide by 3
         };
 
         m_device->debugMarkerPop();
