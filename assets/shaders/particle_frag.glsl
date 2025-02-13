@@ -24,9 +24,9 @@ void main()
     vec2 uv = uvLife.xy;
     float life = uvLife.z;
 
-    vec4 colourBlend = mix(colourBegin, colourEnd, life);
+    vec4 colourBlend = mix(colourEnd, colourBegin, life);
+    colourBlend.rgb *= colourBlend.a; // premultiplied alpha
 
     vec4 albedo = vec4(texture(diffuseTex, uv).rgb, 1.0f) * vec4(diffuse, 1.0) * colourBlend;
     fragColor = vec4(albedo.rgb, albedo.a);
-    fragColor = vec4(1,0,1,1);
 }

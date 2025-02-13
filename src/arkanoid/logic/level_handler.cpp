@@ -18,6 +18,8 @@ constexpr float k_BALL_NORMAL_SPEED = 35.0f;
 // constexpr float k_BALL_LAUNCH_VELOCITY = 10000.0f;
 constexpr float k_BALL_LAUNCH_VELOCITY = k_BALL_NORMAL_SPEED;
 
+static float k_BALL_PARTICLE_FREQUENCY = 0.018f;
+
 // conversion constants so that box2d works at 100u = 1m
 constexpr float k_UNITS_TO_BOX2D_SCALE = 100.0f;
 constexpr float k_BOX2D_TO_UNITS_SCALE = 0.01f;
@@ -459,8 +461,11 @@ void LevelHandler::update(float deltaTime) {
     
     // PARTICLES!!!
     // ball trail
-    if (B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
-        hlslpp::float3 ballVelocityTrajectory = (m_ballEntity->transform.getPosition() - ballPos) * hlslpp::float3(1,1,1);
+    if (m_ballParticleTimer > 0) {
+        m_ballParticleTimer -= deltaTime;
+    }
+    if (B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId) && m_ballParticleTimer <= 0) {
+        hlslpp::float3 ballVelocityTrajectory = (m_ballEntity->transform.getPosition() - ballPos) * hlslpp::float3(5,5,5);
         m_ballParticleSystem->emit({
             .position = m_ballEntity->transform.getPosition(),
             .velocity = hlslpp::float3(0, 0, 0),
@@ -468,6 +473,7 @@ void LevelHandler::update(float deltaTime) {
 
             .lifeTime = 5 /* seconds */,
         });
+        m_ballParticleTimer = k_BALL_PARTICLE_FREQUENCY;
     }
 
 
@@ -533,7 +539,6 @@ void LevelHandler::setLevel(uint32_t levelId) {
     m_lives++;
     launchBall();
     killBall();
-    // m_lives = oldLives;
 
     // set the new level id to what we have stored internally
     m_level = levelId;
@@ -573,6 +578,7 @@ void LevelHandler::imgui() {
     ImGui::DragFloat("max camera angle", &k_CAMERA_ANGLE_TILT_MAX, 0.01f, 0, 15);
     ImGui::DragFloat("flipper angle neutral", &k_FLIPPER_ANGLE_NEUTRAL, 0.01f, 0, 15);
     ImGui::DragFloat("flipper angle max", &k_FLIPPER_ANGLE_MAX, 0.01f, 0, 15);
+    ImGui::DragFloat("Ball Particle Frequency", &k_BALL_PARTICLE_FREQUENCY, 0.01f, 0, 15);
 
     {
         // Debug UI for Graphics Mode

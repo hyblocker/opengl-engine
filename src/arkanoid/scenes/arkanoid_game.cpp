@@ -175,7 +175,10 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         .withParticleSystem({
             .material = {
                 .shader = m_shaderParticle,
-                .diffuse = {1,1,1}
+                .diffuse = {1,1,1},
+                .diffuseTex = getAssetManager()->fetchTexture("particle_texture.png"),
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr"),
+                .drawOrder = k_drawOrder_Transparent,
             },
             .blendState = m_ballParticleBlendState
         })

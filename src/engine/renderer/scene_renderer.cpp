@@ -47,7 +47,7 @@ namespace render {
         m_skyboxProceduralShader = m_pAssetManager->fetchShader({
         .graphicsState = {
                 .depthState = gpu::CompareFunc::GreaterOrEqual,
-                .depthWrite = true,
+                .depthWrite = false,
                 .depthTest = true,
                 .faceCullingMode = gpu::FaceCullMode::Never,
             },

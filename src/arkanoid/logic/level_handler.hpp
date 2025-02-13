@@ -88,6 +88,7 @@ private:
 
     // particle systems
     render::ParticleSystem* m_ballParticleSystem = nullptr;
+    float m_ballParticleTimer = 0;
 
     // For making powerups and enemies
     gpu::IShader* m_shader = nullptr;

@@ -348,7 +348,7 @@ namespace gpu::gl {
 			GLenum srcAlpha = getGlBlendFactor(desc.srcFactorAlpha).glEnum;
 			GLenum dstRGB = getGlBlendFactor(desc.dstFactor).glEnum;
 			GLenum dstAlpha = getGlBlendFactor(desc.dstFactorAlpha).glEnum;
-			GL_CHECK(glBlendFuncSeparate(srcRGB, srcAlpha, dstRGB, dstAlpha));
+			GL_CHECK(glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha));
 
 			GLenum eqnRGB = getGlBlendOp(desc.blendOp).glEnum;
 			GLenum eqnAlpha = getGlBlendOp(desc.blendOpAlpha).glEnum;
