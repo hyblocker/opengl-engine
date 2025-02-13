@@ -19,7 +19,7 @@ void Brick::start() {
     m_regularBrickMaterial.diffuse = { 1,1,0 };
     m_regularBrickMaterial.roughness = 1;
     m_regularBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
-    m_regularBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("brdf_lut.png");
+    m_regularBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
     m_strongBrickMaterial.shader = m_renderer->material.shader;
     m_strongBrickMaterial.name = "StrongBrick";
@@ -27,7 +27,7 @@ void Brick::start() {
     m_strongBrickMaterial.diffuse = { 1,0,1 };
     m_strongBrickMaterial.roughness = 1;
     m_strongBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
-    m_strongBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("brdf_lut.png");
+    m_strongBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
     m_indestructableBrickMaterial.shader = m_renderer->material.shader;
     m_indestructableBrickMaterial.name = "IndestructableBrick";
@@ -35,7 +35,7 @@ void Brick::start() {
     m_indestructableBrickMaterial.diffuse = { 0,1,1 };
     m_indestructableBrickMaterial.roughness = 1;
     m_indestructableBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
-    m_indestructableBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("brdf_lut.png");
+    m_indestructableBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
     updateBrick(BrickType::Regular);
 }

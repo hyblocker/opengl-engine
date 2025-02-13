@@ -503,7 +503,7 @@ void LevelHandler::spawnPowerup() {
                 .roughness = 1.0f,
                 .diffuseTex = engine::App::getInstance()->getAssetManager()->fetchTexture("smile_albedo.png"),
                 .matcapTex = engine::App::getInstance()->getAssetManager()->fetchTexture("hdri_matcap.png"),
-                .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("brdf_lut.png")
+                .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("dfg.hdr")
             }})
     );
 
