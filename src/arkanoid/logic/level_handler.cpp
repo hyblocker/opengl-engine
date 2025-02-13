@@ -470,22 +470,26 @@ void LevelHandler::update(float deltaTime) {
         });
     }
 
-    // Camera should look at the ball when it's above a y = 2.5
-    // only when in modern mode too
-    if (GraphicsMode::getGraphicsMode() == GraphicsModeTarget::Modern && m_ballEntity->transform.getPosition().y > 2.5f) {
-        // tiltFactor clamped between 0 and 1, clamping a bit before the top of the play area
-        float tiltFactor = hlslpp::saturate((m_ballEntity->transform.getPosition().y - 2.5f) / (m_wallTopEntity->transform.getPosition().y - m_wallTopEntity->transform.getScale().y * 0.5f - 4.0f));
-        m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ easeInOutQuad(tiltFactor) * k_CAMERA_ANGLE_TILT_MAX * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
-    }
 
     // graphics mode toggle
     if (engine::input::InputManager::getInstance()->keyReleased(engine::input::Keycode::F1)) {
         GraphicsModeTarget mode = GraphicsMode::getGraphicsMode();
         if (mode == GraphicsModeTarget::Classic) {
             GraphicsMode::setGraphicsMode(GraphicsModeTarget::Modern);
-        } else {
-            GraphicsMode::setGraphicsMode(GraphicsModeTarget::Classic);
         }
+        else {
+            GraphicsMode::setGraphicsMode(GraphicsModeTarget::Classic);
+            // in classic mode reset the camera to 0
+            m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
+        }
+    }
+
+    // Camera should look at the ball when it's above a y = 2.5
+    // only when in modern mode too
+    if (GraphicsMode::getGraphicsMode() == GraphicsModeTarget::Modern && m_ballEntity->transform.getPosition().y > 2.5f) {
+        // tiltFactor clamped between 0 and 1, clamping a bit before the top of the play area
+        float tiltFactor = hlslpp::saturate((m_ballEntity->transform.getPosition().y - 2.5f) / (m_wallTopEntity->transform.getPosition().y - m_wallTopEntity->transform.getScale().y * 0.5f - 4.0f));
+        m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ easeInOutQuad(tiltFactor) * k_CAMERA_ANGLE_TILT_MAX * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
     }
 
     if (m_bricksToProgressToNextLevel == 0) {
@@ -551,6 +555,8 @@ void LevelHandler::setLevel(uint32_t levelId) {
         m_bricksToProgressToNextLevel++;
     }
 
+    // reset camera rotation
+    m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
 }
 
 void LevelHandler::imgui() {
