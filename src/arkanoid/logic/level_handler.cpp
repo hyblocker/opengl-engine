@@ -23,7 +23,8 @@ constexpr float k_UNITS_TO_BOX2D_SCALE = 100.0f;
 constexpr float k_BOX2D_TO_UNITS_SCALE = 0.01f;
 
 constexpr float k_PADDLE_WIDTH = 10.0f;
-// constexpr float k_CAMERA_ANGLE_TILT_MAX = 5.0f;
+
+constexpr float k_RAMP_ANGLE = 28.024f;
 
 static float k_FLIPPER_ANGLE_NEUTRAL = -30.0f;
 static float k_FLIPPER_ANGLE_MAX = 30.0f;
@@ -320,7 +321,6 @@ void LevelHandler::dampenFlipper(b2BodyId body, float& currentAngle, float delta
 }
 
 void LevelHandler::update(float deltaTime) {
-
     // This is kinda hacky but i didnt have time to flesh out the physics portion of the ECS so do everything in a global manager in a big method :D
 
     // paddle movement
@@ -468,7 +468,8 @@ void LevelHandler::update(float deltaTime) {
     }
 
     // Camera should look at the ball when it's above a y = 2.5
-    if (m_ballEntity->transform.getPosition().y > 2.5f) {
+    // only when in modern mode too
+    if (GraphicsMode::getGraphicsMode() == GraphicsModeTarget::Modern && m_ballEntity->transform.getPosition().y > 2.5f) {
         // tiltFactor clamped between 0 and 1, clamping a bit before the top of the play area
         float tiltFactor = hlslpp::saturate((m_ballEntity->transform.getPosition().y - 2.5f) / (m_wallTopEntity->transform.getPosition().y - m_wallTopEntity->transform.getScale().y * 0.5f - 4.0f));
         m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ easeInOutQuad(tiltFactor) * k_CAMERA_ANGLE_TILT_MAX * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
