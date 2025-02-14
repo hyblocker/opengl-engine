@@ -28,7 +28,9 @@ struct AppDesc {
 
 namespace engine {
 
+	class App;
 	class RandomNumberGenerator {
+		friend class App;
 	public:
 		// generates a random number between 0 and 1
 		static float getFloat() {

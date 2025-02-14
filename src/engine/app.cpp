@@ -19,6 +19,9 @@ namespace engine {
 		s_instance = this;
 		::engine::log::init();
 
+		// init seed
+		RandomNumberGenerator::init();
+
 		m_maxFrameRate = desc.maxFramerate;
 		m_maxFrameTime = 1.0 / desc.maxFramerate;
 
