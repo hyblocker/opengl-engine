@@ -23,6 +23,8 @@ constexpr float k_BALL_LAUNCH_VELOCITY_MAX = k_BALL_NORMAL_SPEED;
 constexpr float k_MAX_SPACE_HELD_TIME_SECONDS = 0.8f;
 static float k_LAUNCH_SPEED_SCALE = 50.0f;
 
+static float k_POWERUP_SPEED = 70.0f;
+
 static float k_BALL_PARTICLE_FREQUENCY = 0.018f;
 
 // conversion constants so that box2d works at 100u = 1m
@@ -449,14 +451,15 @@ void LevelHandler::update(float deltaTime) {
                     m_bricksToProgressToNextLevel--;
                 }
 
-                if (brickComponent->shouldSpawnPowerup()) {
-                    spawnPowerup();
-                }
-
                 if (!brickComponent->shouldExistInScene()) {
                     // disable bricks
                     brick->enabled = false;
                     b2Body_Disable(brickId);
+
+                    if (brickComponent->shouldSpawnPowerup()) {
+                        // ideally we would have a getWorldPosition implemented but no time so awful code it is!
+                        spawnPowerup(brick->transform.getPosition() + brick->parent->transform.getPosition());
+                    }
                 }
             }
         }
@@ -478,6 +481,17 @@ void LevelHandler::update(float deltaTime) {
     m_flipperLeftEntity->transform.setRotation(hlslpp::mul(m_initialFlipperLeftRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperLeftRotation })));
     m_flipperRightEntity->transform.setRotation(hlslpp::mul(m_initialFlipperRightRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperRightRotation })));
     
+    for (const b2BodyId& currPowerupPhysics : m_powerupsPhysics) {
+        render::Entity* powerupEntity = (render::Entity*) b2Body_GetUserData(currPowerupPhysics);
+        hlslpp::float3 powerupPosWorld = powerupEntity->transform.getPosition();
+        b2Vec2 powerupPos = b2Body_GetPosition(currPowerupPhysics);
+        if (!powerupEntity) {
+            LOG_WARN("Failed to get entity from powerup!");
+        } else {
+            powerupEntity->transform.setPosition({ powerupPos.x * k_BOX2D_TO_UNITS_SCALE, powerupPos.y * k_BOX2D_TO_UNITS_SCALE, powerupPosWorld.z });
+        }
+    }
+
     // PARTICLES!!!
     // ball trail
     if (m_ballParticleTimer > 0) {
@@ -523,10 +537,11 @@ void LevelHandler::update(float deltaTime) {
     }
 }
 
-void LevelHandler::spawnPowerup() {
+void LevelHandler::spawnPowerup(hlslpp::float3 brickPos) {
     render::Entity* newPowerUp = m_powerupsContainerEntity->push_back(
         render::EntityBuilder().withName("Powerup")
-        .withPosition({})
+        .withPosition(brickPos)
+        .withScale({0.5f, 0.5f, 0.5f})
         .withMeshRenderer({
             .mesh = engine::App::getInstance()->getAssetManager()->fetchMesh("powerup.obj"),
             .material {
@@ -541,9 +556,13 @@ void LevelHandler::spawnPowerup() {
                 .matcapTex = engine::App::getInstance()->getAssetManager()->fetchTexture("hdri_matcap.png"),
                 .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("dfg.hdr")
             }})
+        // @TODO: Attach powerup behaviour
+        // @TODO: Attach graphics mode thing
     );
 
-    // @TODO: Other powerup shit
+    b2BodyId powerupId = makePowerup(newPowerUp, 1.3f);
+    b2Body_SetLinearVelocity(powerupId, { 0 * k_POWERUP_SPEED, -1.0f * k_POWERUP_SPEED });
+    m_powerupsPhysics.push_back(powerupId);
 }
 
 void LevelHandler::setLevelLayout(LevelBrickLayoutShape shape) {
@@ -734,6 +753,7 @@ void LevelHandler::imgui() {
     ImGui::DragFloat("flipper angle max", &k_FLIPPER_ANGLE_MAX, 0.01f, 0, 15);
     ImGui::DragFloat("Ball Particle Frequency", &k_BALL_PARTICLE_FREQUENCY, 0.01f, 0, 15);
     ImGui::DragFloat("Launch speed", &k_LAUNCH_SPEED_SCALE, 1, 0, 50000);
+    ImGui::DragFloat("powerup drop speed", &k_POWERUP_SPEED, 1, 0, 50000);
 
     {
         // Debug UI for Graphics Mode
@@ -752,6 +772,10 @@ void LevelHandler::imgui() {
 
     if (ImGui::Button("Next level")) {
         setLevel(m_level + 1);
+    }
+
+    if (ImGui::Button("spawn powerup")) {
+        spawnPowerup({});
     }
 
 

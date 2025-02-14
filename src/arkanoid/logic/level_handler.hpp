@@ -51,7 +51,7 @@ private:
     b2BodyId makePowerup(render::Entity* entityData, float radius);
     b2BodyId makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX);
 
-    void spawnPowerup();
+    void spawnPowerup(hlslpp::float3 brickPos);
 
     b2JointId makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset = b2Vec2_zero);
     void destroyWeldJoint(b2JointId& joint);
@@ -109,6 +109,9 @@ private:
     b2BodyId m_flipperLeftBody = b2_nullBodyId;
     b2BodyId m_flipperRightBody = b2_nullBodyId;
 
+    std::vector<b2BodyId> m_powerupsPhysics;
+    std::vector<b2BodyId> m_enemiesPhysics;
+
     hlslpp::float3 m_initialBallPos;
     hlslpp::float3 m_initialPaddlePos;
 
@@ -126,6 +129,7 @@ private:
     float m_currentBallSpeed = 0;
     float m_spaceHeldTime = 0;
     float m_lastMove = 0;
+
 
     enum LevelBrickLayoutShape {
         Full,
