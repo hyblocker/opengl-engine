@@ -24,13 +24,19 @@ namespace engine::input {
 		~InputManager() = default;
 
 		// Keyboard state
+		// if the key is currently not pressed this frame
 		[[nodiscard]] const bool keyUp(Keycode key) const;
+		// if the key is currently pressed this frame
 		[[nodiscard]] const bool keyDown(Keycode key) const;
+		// if the key was released this frame (ie pressed last frame, released this frame)
 		[[nodiscard]] const bool keyReleased(Keycode key) const;
 
 		// Mouse button state
+		// if the mouse button is currently not pressed this frame
 		[[nodiscard]] const bool mouseUp(MouseButton button) const;
+		// if the mouse button is currently pressed this frame
 		[[nodiscard]] const bool mouseDown(MouseButton button) const;
+		// if the mouse button was released this frame (ie pressed last frame, released this frame)
 		[[nodiscard]] const bool mouseReleased(MouseButton button) const;
 
 		// Other mouse data
