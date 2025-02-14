@@ -74,8 +74,8 @@ void LevelHandler::start() {
     m_wallTopEntity = wallsContainer->findNamedEntity("Top");
     m_wallBottomEntity = wallsContainer->findNamedEntity("Bottom");
 
-    m_powerupsContainerEntity = wallsContainer->findNamedEntity("PowerupsContainer");
-    m_enemiesContainerEntity = wallsContainer->findNamedEntity("EnemiesContainer");
+    m_powerupsContainerEntity = getEntity()->parent->findNamedEntity("PowerupsContainer");
+    m_enemiesContainerEntity = getEntity()->parent->findNamedEntity("EnemiesContainer");
     
     // pinball stuff
     m_flipperLeftEntity = getEntity()->parent->findNamedEntity("FlipperLeft");
@@ -528,14 +528,16 @@ void LevelHandler::spawnPowerup() {
         render::EntityBuilder().withName("Powerup")
         .withPosition({})
         .withMeshRenderer({
-            .mesh = engine::App::getInstance()->getAssetManager()->fetchMesh("smile.obj"),
+            .mesh = engine::App::getInstance()->getAssetManager()->fetchMesh("powerup.obj"),
             .material {
                 .shader = m_shader,
                 .name = "Powerup",
                 .ambient = {0.5f, 0.5f, 0.5f},
                 .diffuse = {1, 1, 1},
+                .metallic = 1.0f,
                 .roughness = 1.0f,
-                .diffuseTex = engine::App::getInstance()->getAssetManager()->fetchTexture("smile_albedo.png"),
+                .diffuseTex = engine::App::getInstance()->getAssetManager()->fetchTexture("powerup_albedo.png"),
+                .metaTex = engine::App::getInstance()->getAssetManager()->fetchTexture("powerup_meta.png"),
                 .matcapTex = engine::App::getInstance()->getAssetManager()->fetchTexture("hdri_matcap.png"),
                 .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("dfg.hdr")
             }})
