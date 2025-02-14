@@ -89,6 +89,22 @@ vec3 computeIBL(vec3 albedo, vec3 normal, float roughness, inout vec3 specular) 
     return ambient.rgb;
 }
 
+float genGlint(vec2 uv) {
+    float angle = -45.0 * DEG2RAD;
+    float s = sin(angle);
+    float c = cos(angle);
+
+    mat2 rotMat = mat2(
+        c, -s,
+        s, c
+    );
+    uv.y += elapsedTime * 2.0;
+    float samplePt = (uv * rotMat).y;
+    float glint = pow(clamp(sin(samplePt * 3.0) - 0.75 + sin(samplePt * 4.0) - 0.75, 0.0, 1.0) * 2.2179342161, 1.4);
+    
+    return glint;
+}
+
 void main()
 {
     vec4 albedo = vec4(texture(diffuseTex, uv).rgb, 1.0f) * vec4(diffuse, 1.0);
@@ -105,12 +121,15 @@ void main()
     vec3 light2Contribution = computeLighting(light2, albedo.rgb, normal, perceptualRoughness);
     vec3 light3Contribution = computeLighting(light3, albedo.rgb, normal, perceptualRoughness);
 
+    float glintFac = genGlint(uv) * glintFactor;
+    vec3 glint = vec3(glintFac, glintFac, glintFac);
+
     vec3 finalColor = iblDiffuse.rgb * albedo.rgb +
         ambient.rgb * iblSpecular +
         light0Contribution +
         light1Contribution +
         light2Contribution +
-        light3Contribution;
+        light3Contribution + glint;
 
     fragColor = vec4(finalColor.rgb, albedo.a);
 }

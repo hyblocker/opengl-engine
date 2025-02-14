@@ -13,6 +13,9 @@
 #define float4x3 mat4x3
 #define float4x4 mat4x4
 
+#define DEG2RAD (3.14159265 / 180.0)
+#define RAD2DEG (180.0 / 3.14159265)
+
 layout(std140) uniform GeometryBuffer
 {
     float4x4 model;
@@ -28,7 +31,7 @@ layout(std140) uniform MaterialBuffer
     float3 diffuse;
     float3 specular;
     float3 emissionColour;
-	float _matcbuffer_padding0;
+	float glintFactor;
     float roughness;
     float metallic;
     float emissionIntensity;

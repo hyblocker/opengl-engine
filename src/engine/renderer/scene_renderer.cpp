@@ -194,7 +194,8 @@ namespace render {
                             materialView->ambient = pRenderer->material.ambient;
                             materialView->diffuse = pRenderer->material.diffuse;
                             materialView->specular = pRenderer->material.specular;
-                            materialView->emissionColour = pRenderer->material.emissionColour;
+                            materialView->emissionColour_glintFactor.xyz = pRenderer->material.emissionColour;
+                            materialView->emissionColour_glintFactor.w = pRenderer->material.glintFactor;
                             materialView->roughness = pRenderer->material.roughness;
                             materialView->metallic = pRenderer->material.metallic;
                             materialView->emissionIntensity = pRenderer->material.emissionIntensity;
@@ -313,7 +314,8 @@ namespace render {
                         materialView->ambient = pParticleSystem->material.ambient;
                         materialView->diffuse = pParticleSystem->material.diffuse;
                         materialView->specular = pParticleSystem->material.specular;
-                        materialView->emissionColour = pParticleSystem->material.emissionColour;
+                        materialView->emissionColour_glintFactor.xyz = pParticleSystem->material.emissionColour.xyz;
+                        materialView->emissionColour_glintFactor.w = 0;
                         materialView->roughness = pParticleSystem->material.roughness;
                         materialView->metallic = pParticleSystem->material.metallic;
                         materialView->emissionIntensity = pParticleSystem->material.emissionIntensity;

@@ -71,6 +71,10 @@ void Brick::updateBrick(BrickType type) {
         m_renderer->material = m_strongBrickMaterial;
         m_totalHealth = engine::RandomNumberGenerator::getRangedInt(3, 6);
 
+        // 10% chance of powerup
+        m_hasPowerUp = engine::RandomNumberGenerator::getRangedInt(1, 10) == 10;
+        m_renderer->material.glintFactor = m_hasPowerUp ? 1.0f : 0.0f;
+
         break;
     }
     case BrickType::Indestructable:
@@ -117,8 +121,7 @@ uint32_t Brick::getPoints() {
 bool Brick::shouldSpawnPowerup() {
     switch (m_type) {
     case BrickType::Strong:
-        // @TODO: Random chance brick has powerup?
-        return false;
+        return m_hasPowerUp;
     }
     return false;
 }

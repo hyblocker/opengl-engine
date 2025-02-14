@@ -60,5 +60,7 @@ private:
     uint32_t m_totalHealth = 1;
     BrickType m_type = BrickType::Regular;
 
+    bool m_hasPowerUp = false;
+
     b2BodyId m_physicsId = b2_nullBodyId;
 };

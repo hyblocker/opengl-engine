@@ -23,7 +23,7 @@ namespace render {
         hlslpp::float3 ambient = { 0.2, 0.2, 0.2 };
         hlslpp::float3 diffuse = { 1, 1, 1 };
         hlslpp::float3 specular = { 1, 1, 1 };
-        hlslpp::float3 emissionColour = { 0, 0, 0 };
+        hlslpp::float4 emissionColour_glintFactor = { 0, 0, 0, 0 };
         float roughness = 1;
         float metallic = 0;
         float emissionIntensity = 1.0f;
