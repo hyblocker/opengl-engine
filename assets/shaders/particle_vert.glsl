@@ -46,11 +46,13 @@ void main()
 
     vec3 particlePos = iPosition.xyz * vec3(size, size, size) + particles[gl_InstanceID].position;
     particlePos = particlePos;
+
+    // primitive z sort
     // push particles a hint away based on age
     particlePos.z -= (1.0f - particles[gl_InstanceID].life) * 0.1f;
 
     gl_Position = projection * view * model * vec4(particlePos, 1.0);
-    // gl_Position = billboard(vec4(particlePos, 1.0));
+    gl_Position = billboard(vec4(particlePos, 1.0));
     worldPos = (model * vec4(particlePos, 1.0)).xyz;
     normal = (view * model * vec4(iNormal, 0.0)).xyz;
     uvLife.xy = iUv.xy;
