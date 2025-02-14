@@ -44,6 +44,8 @@ public:
     inline b2BodyId getBrickId() { return m_physicsId; }
     inline void setBrickId(b2BodyId newId) { m_physicsId = newId; }
 
+    inline int getPosX() { return m_posX; };
+    inline int getPosY() { return m_posY; };
 private:
     render::MeshRenderer* m_renderer = nullptr;
     int m_posX = 0;

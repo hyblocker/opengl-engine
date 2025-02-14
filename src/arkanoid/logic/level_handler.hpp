@@ -40,6 +40,7 @@ public:
     void setLevel(uint32_t levelId);
 
     inline const b2WorldId getWorldId() const { return m_world; }
+
 private:
     b2BodyId box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation = true, b2Vec2 posOffset = b2Vec2_zero, float angle = 0);
 
@@ -61,7 +62,11 @@ private:
     void activateFlipper(b2BodyId body, float& currentAngle, bool isFlipped);
     void dampenFlipper(b2BodyId body, float& currentAngle, float deltaTime, bool isFlipped);
 
+    enum LevelBrickLayoutShape;
+    void setLevelLayout(LevelBrickLayoutShape shape);
+
 private:
+
     render::Entity* m_paddleEntity = nullptr;
     render::Entity* m_ballEntity = nullptr;
     render::Entity* m_bricksEntityRoot = nullptr;
@@ -117,4 +122,55 @@ private:
     int32_t m_score = 0;
     int32_t m_bricksToProgressToNextLevel = 10*4;
     uint32_t m_level = 0;
+
+    float m_currentBallSpeed = 0;
+    float m_spaceHeldTime = 0;
+    float m_lastMove = 0;
+
+    enum LevelBrickLayoutShape {
+        Full,
+        Pyramid,
+        Diamond,
+        SemiCircle,
+        Sparse,
+    };
+
+    struct LevelInitParams {
+        LevelBrickLayoutShape shape = LevelBrickLayoutShape::Full;
+        uint32_t indestructableCount = 0;
+        uint32_t numMultihit = 0;
+        uint32_t easyEnemyCount = 0;
+        uint32_t difficultEnemyCount = 0;
+        bool enablePinballFlippers = false;
+        bool enableRamps = false;
+        bool enableBumpers = false;
+        bool enableAttractors = false;
+        bool enableRepellers = false;
+    };
+
+    const LevelInitParams s_levelInitParams[20] = {
+        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 0, .numMultihit = 0, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 0, .numMultihit = 5, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 4, .numMultihit = 5, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 4, .numMultihit = 10, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 4, .numMultihit = 15, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+
+        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 4, .numMultihit = 4, .easyEnemyCount = 1, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 4, .difficultEnemyCount = 0 },
+
+        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+
+        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+    };
 };

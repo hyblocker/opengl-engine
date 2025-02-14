@@ -30,10 +30,17 @@ namespace engine {
 
 	class RandomNumberGenerator {
 	public:
-		// generates a ranomd number between 0 and 1
+		// generates a random number between 0 and 1
 		static float getFloat() {
 			return (float)s_distribution(s_rng) / (float)std::numeric_limits<uint32_t>::max();
 		}
+		// generates a random int between min and max
+		static int getRangedInt(int min, int max) {
+			double randomDouble = (double)s_distribution(s_rng) / (double)std::numeric_limits<uint32_t>::max();
+			return min + static_cast<int>(randomDouble * (max - min + 1));
+		}
+
+		static inline std::mt19937 getRng() { return s_rng; };
 	private:
 		static void init() {
 			s_rng.seed(std::random_device()());

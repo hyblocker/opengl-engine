@@ -1,11 +1,7 @@
 #include "brick.hpp"
 #include "engine/app.hpp"
-#include <random>
 
 // only one for program lifetime, this ensures we don't have collisions
-std::random_device s_dev;
-std::mt19937 s_rng(s_dev());
-
 constexpr uint32_t k_HEALTH_INDESTRUCTABLE = 0xFFFFFFFF;
 
 void Brick::start() {
@@ -15,25 +11,34 @@ void Brick::start() {
 
     m_regularBrickMaterial.shader = m_renderer->material.shader;
     m_regularBrickMaterial.name = "RegularBrick";
-    m_regularBrickMaterial.ambient = { 1,1,1 };
-    m_regularBrickMaterial.diffuse = { 1,1,0 };
+    m_regularBrickMaterial.ambient = { 0.5,0.5,0.5 };
+    m_regularBrickMaterial.diffuse = { 1,1,1 };
+    m_regularBrickMaterial.metallic = 1;
     m_regularBrickMaterial.roughness = 1;
+    m_regularBrickMaterial.diffuseTex = pAssetManager->fetchTexture("brick_regular_albedo.png");
+    m_regularBrickMaterial.metaTex = pAssetManager->fetchTexture("brick_regular_meta.png");
     m_regularBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
     m_regularBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
     m_strongBrickMaterial.shader = m_renderer->material.shader;
     m_strongBrickMaterial.name = "StrongBrick";
-    m_strongBrickMaterial.ambient = { 1,1,1 };
-    m_strongBrickMaterial.diffuse = { 1,0,1 };
+    m_strongBrickMaterial.ambient = { 0.5,0.5,0.5 };
+    m_strongBrickMaterial.diffuse = { 1,1,1 };
+    m_strongBrickMaterial.metallic = 1;
     m_strongBrickMaterial.roughness = 1;
+    m_strongBrickMaterial.diffuseTex = pAssetManager->fetchTexture("brick_strong_albedo.png");
+    m_strongBrickMaterial.metaTex = pAssetManager->fetchTexture("brick_strong_meta.png");
     m_strongBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
     m_strongBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
     m_indestructableBrickMaterial.shader = m_renderer->material.shader;
     m_indestructableBrickMaterial.name = "IndestructableBrick";
-    m_indestructableBrickMaterial.ambient = { 1,1,1 };
-    m_indestructableBrickMaterial.diffuse = { 0,1,1 };
+    m_indestructableBrickMaterial.ambient = { 0.5,0.5,0.5 };
+    m_indestructableBrickMaterial.diffuse = { 1,1,1 };
+    m_indestructableBrickMaterial.metallic = 1;
     m_indestructableBrickMaterial.roughness = 1;
+    m_indestructableBrickMaterial.diffuseTex = pAssetManager->fetchTexture("brick_indestructable_albedo.png");
+    m_indestructableBrickMaterial.metaTex = pAssetManager->fetchTexture("brick_indestructable_meta.png");
     m_indestructableBrickMaterial.matcapTex = pAssetManager->fetchTexture("hdri_matcap.png");
     m_indestructableBrickMaterial.brdfLutTex = pAssetManager->fetchTexture("dfg.hdr");
 
@@ -49,8 +54,6 @@ void Brick::update(float deltaTime) {
 }
 
 BrickType Brick::randomlySelectBrickType() {
-
-
     return BrickType::Regular;
 }
 
@@ -65,9 +68,8 @@ void Brick::updateBrick(BrickType type) {
     case BrickType::Strong:
     {
         // strong bricks may require anywhere from 3 to 6 hits to break
-        std::uniform_int_distribution<std::mt19937::result_type> distStrong(2, 4);
         m_renderer->material = m_strongBrickMaterial;
-        m_totalHealth = distStrong(s_rng);
+        m_totalHealth = engine::RandomNumberGenerator::getRangedInt(3, 6);
 
         break;
     }
@@ -88,7 +90,7 @@ void Brick::updateBrick(BrickType type) {
 }
 
 void Brick::onHit() {
-    if (m_health > 0 && m_health != k_HEALTH_INDESTRUCTABLE) {
+    if (m_health > 0 && m_type != BrickType::Indestructable) {
         m_health--;
     }
 }
@@ -126,7 +128,7 @@ bool Brick::isDestroyed() {
     case BrickType::Indestructable:
         return false;
     }
-    return m_health == 0;
+    return m_health <= 0;
 }
 
 bool Brick::shouldExistInScene() {

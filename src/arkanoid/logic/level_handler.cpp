@@ -12,11 +12,16 @@
 #include <imgui.h>
 #include "imgui_extensions.hpp"
 
+#include <algorithm>
+
 constexpr float k_PADDLE_VELOCITY = 50.0f;
 constexpr float k_BALL_TERMINAL_VELOCITY = 100.0f;
 constexpr float k_BALL_NORMAL_SPEED = 35.0f;
 // constexpr float k_BALL_LAUNCH_VELOCITY = 10000.0f;
-constexpr float k_BALL_LAUNCH_VELOCITY = k_BALL_NORMAL_SPEED;
+constexpr float k_BALL_LAUNCH_VELOCITY_MIN = 16.0f;
+constexpr float k_BALL_LAUNCH_VELOCITY_MAX = k_BALL_NORMAL_SPEED;
+constexpr float k_MAX_SPACE_HELD_TIME_SECONDS = 0.8f;
+static float k_LAUNCH_SPEED_SCALE = 50.0f;
 
 static float k_BALL_PARTICLE_FREQUENCY = 0.018f;
 
@@ -284,9 +289,15 @@ void LevelHandler::launchBall(float move) {
     if (!B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
         destroyWeldJoint(m_ballPaddleJoint);
 
+        // magnitude is between k_BALL_LAUNCH_VELOCITY_MIN and k_BALL_LAUNCH_VELOCITY_MAX.
+        // factor is spaceHeldTime / k_MAX_SPACE_HELD_TIME_SECONDS clamped between 0 and 1
+        float launchMagnitude = hlslpp::lerp(k_BALL_LAUNCH_VELOCITY_MIN, k_BALL_LAUNCH_VELOCITY_MAX, hlslpp::saturate((hlslpp::float1)m_spaceHeldTime / k_MAX_SPACE_HELD_TIME_SECONDS));
+        
         // speed is paddle velocity + a vector up based on magnitude of the ball, this lets us fake momentum for launching the ball
-        hlslpp::float2 speed = hlslpp::normalize(hlslpp::float2{ move * k_BALL_NORMAL_SPEED, k_BALL_NORMAL_SPEED }) * k_BALL_LAUNCH_VELOCITY;
-        b2Body_SetLinearVelocity(m_ballBody, { speed.x, speed.y });
+        hlslpp::float2 speed = hlslpp::normalize(hlslpp::float2{ move * k_BALL_NORMAL_SPEED, k_PADDLE_VELOCITY * k_BALL_NORMAL_SPEED }) * launchMagnitude;
+        b2Body_SetLinearVelocity(m_ballBody, { speed.x * k_LAUNCH_SPEED_SCALE, speed.y * k_LAUNCH_SPEED_SCALE });
+        LOG_INFO("Launch mag: {} ({}, {}) mv = {}", launchMagnitude, (float)speed.x, (float)speed.y, move);
+        m_currentBallSpeed = launchMagnitude;
     }
 }
 
@@ -350,7 +361,6 @@ void LevelHandler::update(float deltaTime) {
     dampenFlipper(m_flipperLeftBody, m_flipperAngleLeft, deltaTime, false);
     dampenFlipper(m_flipperRightBody, m_flipperAngleRight, deltaTime, true);
 
-    // @TODO: Box2d that shit
     // we need to clamp the paddle so that it doesn't go out of bounds from the walls
     float nextPos = m_paddleEntity->transform.getPosition().x + move * deltaTime; // use deltatime here as we're trying to predict where the paddle would be in the next frame
     float wallLeftBoundary = (float)(m_wallLeftEntity->transform.getPosition().x + m_wallLeftEntity->transform.getScale().x * 0.5f);
@@ -363,11 +373,20 @@ void LevelHandler::update(float deltaTime) {
     }
     b2Body_SetLinearVelocity(m_paddleBody, { move * k_UNITS_TO_BOX2D_SCALE, 0 } );
 
+    if (move != 0) {
+        m_lastMove = move;
+    }
 
     // ball update
     if (engine::input::InputManager::getInstance()->keyReleased(engine::input::Keycode::Space)) {
-        launchBall(move);
+        launchBall(m_lastMove);
     }
+    if (engine::input::InputManager::getInstance()->keyDown(engine::input::Keycode::Space)) {
+        m_spaceHeldTime += deltaTime;
+    } else {
+        m_spaceHeldTime = 0;
+    }
+
     // we need to update the ball's velocity here every frame so that it's constant and locked at 45 deg angles
     // we snap it to 45 deg angles to keep the game playable as its far too easy to get the ball stuck going left right / up down forever (also it's not fun like that)
     // only do this if the joint is absent (i.e. ball absent)
@@ -377,7 +396,7 @@ void LevelHandler::update(float deltaTime) {
         hlslpp::float2 ballVelocityAdjusted = { ballVelocityCurr.x, ballVelocityCurr.y };
         ballVelocityAdjusted.x = ballVelocityAdjusted.x < 0 ? -1 : 1;
         ballVelocityAdjusted.y = ballVelocityAdjusted.y < 0 ? -1 : 1;
-        ballVelocityAdjusted = hlslpp::normalize(ballVelocityAdjusted) * k_BALL_NORMAL_SPEED;
+        ballVelocityAdjusted = hlslpp::normalize(ballVelocityAdjusted) * m_currentBallSpeed; // keep launch speed
         b2Body_SetLinearVelocity(m_ballBody, { ballVelocityAdjusted.x * k_UNITS_TO_BOX2D_SCALE, ballVelocityAdjusted.y * k_UNITS_TO_BOX2D_SCALE });
     }
 
@@ -470,7 +489,8 @@ void LevelHandler::update(float deltaTime) {
             .position = m_ballEntity->transform.getPosition(),
             .velocity = hlslpp::float3(0, 0, 0),
             .velocityVariation = ballVelocityTrajectory,
-
+            .colourBegin = hlslpp::float4(1,1,1,1),
+            .colourEnd = hlslpp::float4(1,1,1,0),
             .lifeTime = 5 /* seconds */,
         });
         m_ballParticleTimer = k_BALL_PARTICLE_FREQUENCY;
@@ -524,40 +544,172 @@ void LevelHandler::spawnPowerup() {
     // @TODO: Other powerup shit
 }
 
+void LevelHandler::setLevelLayout(LevelBrickLayoutShape shape) {
+
+    const int columns = 10;
+    const int rows = 4;
+
+    switch (shape) {
+    case LevelBrickLayoutShape::Full:
+    {
+        LOG_INFO("Setting level layout to Full");
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+            pBrickComponent->getEntity()->enabled = true;
+            b2Body_Enable(pBrickComponent->getBrickId());
+        }
+        break;
+    }
+    case LevelBrickLayoutShape::Diamond:
+    {
+        LOG_INFO("Setting level layout to Diamond");
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+            bool shouldEnable = true;
+            if (pBrickComponent->getPosY() == 3 || pBrickComponent->getPosY() == 1) {
+                shouldEnable = std::abs(pBrickComponent->getPosX() / 2 - 2) < 2;
+            }
+            if (pBrickComponent->getPosY() == 2) {
+                shouldEnable = true;
+            }
+            if (pBrickComponent->getPosY() == 0) {
+                shouldEnable = (pBrickComponent->getPosX() / 2 - 2) == 0;
+            }
+
+            if (shouldEnable) {
+                pBrickComponent->getEntity()->enabled = true;
+                b2Body_Enable(pBrickComponent->getBrickId());
+            } else {
+                pBrickComponent->getEntity()->enabled = false;
+                b2Body_Disable(pBrickComponent->getBrickId());
+            }
+        }
+        break;
+    }
+    case LevelBrickLayoutShape::Pyramid:
+    {
+        LOG_INFO("Setting level layout to Pyramid");
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+            int allowableDistance = pBrickComponent->getPosY();
+            int distanceFromCenter = std::abs(pBrickComponent->getPosX() - (columns / 2));
+
+            if (distanceFromCenter <= allowableDistance) {
+                pBrickComponent->getEntity()->enabled = true;
+                b2Body_Enable(pBrickComponent->getBrickId());
+            } else {
+                pBrickComponent->getEntity()->enabled = false;
+                b2Body_Disable(pBrickComponent->getBrickId());
+            }
+        }
+        break;
+    }
+    case LevelBrickLayoutShape::SemiCircle:
+    {
+        LOG_INFO("Setting level layout to Semi Circle");
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+            bool shouldEnable = true;
+            if (pBrickComponent->getPosY() == 3) {
+                shouldEnable = std::abs(pBrickComponent->getPosX() / 2) != 2;
+            }
+            if (pBrickComponent->getPosY() == 2) {
+                shouldEnable = true;
+            }
+            if (pBrickComponent->getPosY() == 1) {
+                shouldEnable = std::abs(pBrickComponent->getPosX() - 4.5f) < 4.0f;
+            }
+            if (pBrickComponent->getPosY() == 0) {
+                shouldEnable = std::abs(pBrickComponent->getPosX() - 4.5f) < 2.0f;
+            }
+
+            if (shouldEnable) {
+                pBrickComponent->getEntity()->enabled = true;
+                b2Body_Enable(pBrickComponent->getBrickId());
+            }
+            else {
+                pBrickComponent->getEntity()->enabled = false;
+                b2Body_Disable(pBrickComponent->getBrickId());
+            }
+        }
+        break;
+    }
+    case LevelBrickLayoutShape::Sparse:
+    {
+        LOG_INFO("Setting level layout to Sparse");
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+
+            if (pBrickComponent->getPosX() != 2 && pBrickComponent->getPosX() != 7) {
+                pBrickComponent->getEntity()->enabled = true;
+                b2Body_Enable(pBrickComponent->getBrickId());
+            } else {
+                pBrickComponent->getEntity()->enabled = false;
+                b2Body_Disable(pBrickComponent->getBrickId());
+            }
+        }
+        break;
+    }
+    }
+}
+
 void LevelHandler::setLevel(uint32_t levelId) {
     ASSERT(levelId < k_MAX_LEVELS);
 
     LOG_INFO("Setting level to level {}", levelId + 1);
 
-    // @TODO: Reset state
     if (levelId == 0) {
         // reset lives if restarting
         m_lives = k_INITIAL_LIVES;
     }
     // keep current lives, kill ball, restore lives
-    // int32_t oldLives = m_lives;
     m_lives++;
     launchBall();
     killBall();
 
     // set the new level id to what we have stored internally
-    m_level = levelId;
+    m_level = std::min(levelId, 20U);
 
-    // alter the weights for the brick generation
-    // Brick::
+    LevelInitParams currentParams = s_levelInitParams[m_level];
 
     // enable / disable bricks according to layout pattern
+    setLevelLayout(currentParams.shape);
     m_bricksToProgressToNextLevel = 0;
-    for (auto brickEntity : m_bricksEntityRoot->children) {
+
+    uint32_t multihitsSpawned = 0;
+    uint32_t indestructablesSpawned = 0;
+
+    // shuffle bricks
+    std::vector<std::shared_ptr<render::Entity>> shuffledBricks = m_bricksEntityRoot->children;
+    std::shuffle(shuffledBricks.begin(), shuffledBricks.end(), engine::RandomNumberGenerator::getRng());
+
+    for (auto brickEntity : shuffledBricks) {
         auto pBrickComponent = (Brick*)(brickEntity.get()->findComponent(render::ComponentType::UserBehaviour));
+        if (!pBrickComponent->getEntity()->enabled)
+            continue;
 
-        // pattern says to enable / disable this brick
+        // Determine brick type
+        BrickType brickType = BrickType::Regular;
 
-        // if enabled, pick from distribution of bricks
+        if (indestructablesSpawned < currentParams.indestructableCount) {
+            brickType = BrickType::Indestructable;
+            indestructablesSpawned++;
+        } else if (multihitsSpawned < currentParams.numMultihit) {
+            brickType = BrickType::Strong;
+            multihitsSpawned++;
+        } else {
+            brickType = BrickType::Regular;
+        }
 
-        pBrickComponent->getEntity()->enabled = true;
-        b2Body_Enable(pBrickComponent->getBrickId());
-        m_bricksToProgressToNextLevel++;
+        pBrickComponent->updateBrick(brickType);
+
+        if (brickType != BrickType::Indestructable) {
+            m_bricksToProgressToNextLevel++;
+        }
     }
 
     // reset camera rotation
@@ -568,7 +720,7 @@ void LevelHandler::imgui() {
 
     // box2d cleanup
     ImGui::Begin("Level debug");
-    ImGui::Text(fmt::format("Level {}", m_level).c_str());
+    ImGui::Text(fmt::format("Level {}", (m_level + 1)).c_str());
     ImGui::NewLine();
     ImGui::DragInt("Lives", &m_lives, 1, 0, 20);
     ImGui::Text(fmt::format("Score {}", m_score).c_str());
@@ -579,6 +731,7 @@ void LevelHandler::imgui() {
     ImGui::DragFloat("flipper angle neutral", &k_FLIPPER_ANGLE_NEUTRAL, 0.01f, 0, 15);
     ImGui::DragFloat("flipper angle max", &k_FLIPPER_ANGLE_MAX, 0.01f, 0, 15);
     ImGui::DragFloat("Ball Particle Frequency", &k_BALL_PARTICLE_FREQUENCY, 0.01f, 0, 15);
+    ImGui::DragFloat("Launch speed", &k_LAUNCH_SPEED_SCALE, 1, 0, 50000);
 
     {
         // Debug UI for Graphics Mode
@@ -589,6 +742,14 @@ void LevelHandler::imgui() {
         if (mode != tempGraphicsMode) {
             GraphicsMode::setGraphicsMode(tempGraphicsMode);
         }
+    }
+
+    if (ImGui::Button("Kill ball")) {
+        killBall();
+    }
+
+    if (ImGui::Button("Next level")) {
+        setLevel(m_level + 1);
     }
 
 
