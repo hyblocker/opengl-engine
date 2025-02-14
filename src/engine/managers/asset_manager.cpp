@@ -432,6 +432,11 @@ void main()
         int texWidth, texHeight, nrChannels;
         unsigned char* texData = stbi_load(fmt::format("{}/assets/textures/{}", m_applicationRootPath, texturePath).c_str(), &texWidth, &texHeight, &nrChannels, STBI_rgb_alpha);
 
+        if (texData == nullptr) {
+            LOG_WARNING("Texture at {} could not be loaded! Using error texture...", (fmt::format("{}/assets/textures/{}", m_applicationRootPath, texturePath)));
+            return m_errorTexture;
+        }
+
         m_device->debugMarkerPush(fmt::format("Loading texture {}...", texturePath));
         gpu::TextureHandle textureHandle = m_device->makeTexture({
             .width = (uint32_t)texWidth,
