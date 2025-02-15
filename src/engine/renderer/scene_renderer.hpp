@@ -4,6 +4,7 @@
 #include "engine/gpu/idevice.hpp"
 #include "engine/managers/asset_manager.hpp"
 #include "particle_system.hpp"
+#include "text_renderer.hpp"
 
 namespace render {
 
@@ -107,5 +108,8 @@ namespace render {
         std::vector<RenderListElement> m_forwardTransparentList;
 
         float m_elapsedTime = 0;
+
+        FontRenderer m_fontRenderer;
+        FontData m_fontData;
     };
 }

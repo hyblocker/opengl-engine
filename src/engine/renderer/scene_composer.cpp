@@ -73,4 +73,39 @@ namespace render {
         m_entity->push_back(particleSystem);
         return *this;
     }
+
+    EntityBuilder& EntityBuilder::withUiCanvas(bool enabled) {
+        std::shared_ptr<UICanvas> uiCanvas = std::make_shared<UICanvas>(m_entity.get());
+
+        uiCanvas->enabled = enabled;
+
+        m_entity->push_back(uiCanvas);
+        return *this;
+    }
+
+    EntityBuilder& EntityBuilder::withUiSprite(UiSpriteCreateParams params) {
+        std::shared_ptr<UIElement> uiElement = std::make_shared<UIElement>(m_entity.get());
+
+        uiElement->enabled = params.enabled;
+        uiElement->uiType = render::UIElementType::Sprite;
+        uiElement->texture = params.texture;
+        uiElement->textureTint = params.textureTint;
+
+        m_entity->push_back(uiElement);
+        return *this;
+    }
+
+    EntityBuilder& EntityBuilder::withUiText(UiTextCreateParams params) {
+        std::shared_ptr<UIElement> uiElement = std::make_shared<UIElement>(m_entity.get());
+
+        uiElement->enabled = params.enabled;
+        uiElement->uiType = render::UIElementType::Text;
+        uiElement->text = params.text;
+        uiElement->textColour = params.textColour;
+        uiElement->outlineColour = params.outlineColour;
+        uiElement->outlineWidth = params.outlineWidth;
+
+        m_entity->push_back(uiElement);
+        return *this;
+    }
 }

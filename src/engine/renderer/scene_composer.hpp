@@ -12,6 +12,7 @@
 #include "mesh.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "particle_system.hpp"
+#include "ui_components.hpp"
 #include "scene_graph.hpp"
 
 namespace render {
@@ -110,6 +111,27 @@ namespace render {
             uint32_t particleTextureCount = 1;
         };
         EntityBuilder& withParticleSystem(ParticleSystemCreateParams params);
+
+        EntityBuilder& withUiCanvas(bool enabled = true);
+
+        struct UiSpriteCreateParams {
+            bool enabled = true;
+
+            hlslpp::float4 textureTint = hlslpp::float4(1, 1, 1, 1);
+            gpu::ITexture* texture = nullptr;
+            
+        };
+        EntityBuilder& withUiSprite(UiSpriteCreateParams params);
+        struct UiTextCreateParams {
+            bool enabled = true;
+
+            std::string text;
+            hlslpp::float4 textColour = hlslpp::float4(1, 1, 1, 1);
+            hlslpp::float4 outlineColour = hlslpp::float4(1, 1, 1, 0);
+            float outlineWidth = 0;
+            
+        };
+        EntityBuilder& withUiText(UiTextCreateParams params);
 
         template<class T, typename... Args>
         EntityBuilder& withBehaviour(bool enabled = true, Args&&... args);

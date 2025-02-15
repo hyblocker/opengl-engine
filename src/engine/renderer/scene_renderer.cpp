@@ -12,6 +12,9 @@ namespace render {
         ASSERT(pAssetManager != nullptr);
         m_pDevice = pDevice;
         m_pAssetManager = pAssetManager;
+        m_fontRenderer.init(pDevice);
+
+        m_fontData = m_fontRenderer.loadFont("font_layout.csv", pAssetManager->fetchTexture("font.png"));
         // prepare renderer state
 
         // 1. load skybox

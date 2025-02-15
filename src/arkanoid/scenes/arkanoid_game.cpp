@@ -345,4 +345,16 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         EntityBuilder().withName("GameManager")
         .withBehaviour<LevelHandler>(true, m_shaderClassic)
     );
+
+    outScene.push_back(
+        EntityBuilder().withName("UICanvas")
+        .withUiCanvas()
+        .withChild(
+            EntityBuilder().withName("UIElement")
+            .withUiText({
+                .text = "Lives 0",
+
+            })
+        )
+    );
 }
