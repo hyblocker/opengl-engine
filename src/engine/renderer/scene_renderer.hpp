@@ -58,7 +58,7 @@ namespace render {
         float sizeBegin;
         float sizeEnd;
         float life;
-        uint32_t _padding;
+        float particleTextureCount;
     };
 
     struct ParticlesCBuffer {

@@ -107,6 +107,7 @@ namespace render {
             bool enabled = true;
             render::Material material;
             gpu::IBlendState* blendState = nullptr;
+            uint32_t particleTextureCount = 1;
         };
         EntityBuilder& withParticleSystem(ParticleSystemCreateParams params);
 

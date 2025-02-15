@@ -30,10 +30,10 @@ namespace managers {
         gpu::IShader* fetchShader(const FetchShaderParams& params);
         gpu::ITexture* fetchTexture(const std::string& texturePath, const bool genMipmaps = true);
         inline gpu::ITexture* fetchWhiteTexture() { return m_whiteTexture; }
+        std::string getExecutableDir();
         
     private:
         void initialiseErrorData();
-        std::string getExecutableDir();
 
     private:
 

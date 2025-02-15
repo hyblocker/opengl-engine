@@ -28,7 +28,7 @@ constexpr int32_t k_INITIAL_LIVES = 3;
 
 class LevelHandler : public render::IBehaviour {
 public:
-    LevelHandler(render::Entity* parent) : IBehaviour(parent) {}
+    LevelHandler(render::Entity* parent, gpu::IShader* classicShader) : IBehaviour(parent) { m_classicShader = classicShader; }
     ~LevelHandler() = default;
 
     void start() override;
@@ -93,10 +93,12 @@ private:
 
     // particle systems
     render::ParticleSystem* m_ballParticleSystem = nullptr;
+    render::ParticleSystem* m_brickParticleSystem = nullptr;
     float m_ballParticleTimer = 0;
 
     // For making powerups and enemies
     gpu::IShader* m_shader = nullptr;
+    gpu::IShader* m_classicShader = nullptr;
 
     // box2d props
     b2WorldId m_world = b2_nullWorldId;

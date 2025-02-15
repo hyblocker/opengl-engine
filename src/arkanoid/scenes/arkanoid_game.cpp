@@ -230,7 +230,18 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
 
     EntityBuilder brickContainer;
     brickContainer.withName("BrickContainer")
-        .withPosition({ -15.75f, 5.980f, 0 });
+        .withPosition({ -15.75f, 5.980f, 0 })
+        .withParticleSystem({
+            .material = {
+                .shader = m_shaderParticle,
+                .diffuse = {1,1,1},
+                .diffuseTex = getAssetManager()->fetchTexture("particles/dirt_particles.png"),
+                .brdfLutTex = getAssetManager()->fetchTexture("dfg.hdr"),
+                .drawOrder = k_drawOrder_Transparent,
+            },
+            .blendState = m_ballParticleBlendState,
+            .particleTextureCount = 3,
+        });
     for (int x = 0; x < k_BRICKS_COLUMNS; x++) {
         for (int y = 0; y < k_BRICKS_ROWS; y++) {
             brickContainer.withChild(
@@ -332,6 +343,6 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
 
     outScene.push_back(
         EntityBuilder().withName("GameManager")
-        .withBehaviour<LevelHandler>()
+        .withBehaviour<LevelHandler>(true, m_shaderClassic)
     );
 }

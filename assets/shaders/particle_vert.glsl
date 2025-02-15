@@ -15,6 +15,7 @@ struct ParticleData
     float sizeBegin;
     float sizeEnd;
     float life;
+    float particleTextureCount; // technically worse as its per particle, but these 4 bytes would've been padding anyway
 };
 
 layout(std140) uniform ParticleBuffer
@@ -40,6 +41,37 @@ vec4 billboard(vec4 vertex)
     return projection * billboardPosition;
 }
 
+ivec2 calculateAtlasDimensions(float particleTextureCountRaw) {
+    int particleTextureCount = int(particleTextureCountRaw);
+    if (particleTextureCount <= 0) {
+        return ivec2(0, 0);
+    }
+
+    int size = 1;
+    particleTextureCount--;
+    size |= particleTextureCount >> 1U;
+    size |= particleTextureCount >> 2U;
+    size |= particleTextureCount >> 4U;
+    size |= particleTextureCount >> 8U;
+    size |= particleTextureCount >> 16U;
+    size++;
+
+    int cols = size;
+    int rows = size;
+
+    if (particleTextureCount + 1 <= size * (size / 2)) {
+        cols = size / 2;
+    }
+    if (particleTextureCount == 0) {
+        cols = 1;
+        rows = 1;
+    }
+    
+    cols = max(cols, rows);
+
+    return ivec2(float(cols), float(rows));
+}
+
 void main()
 {
     float size = mix(particles[gl_InstanceID].sizeEnd, particles[gl_InstanceID].sizeBegin, particles[gl_InstanceID].life);
@@ -55,8 +87,25 @@ void main()
     gl_Position = billboard(vec4(particlePos, 1.0));
     worldPos = (model * vec4(particlePos, 1.0)).xyz;
     normal = (view * model * vec4(iNormal, 0.0)).xyz;
-    uvLife.xy = iUv.xy;
+    
+    // UVs
+    int particleTextureIndex = int(mod(gl_InstanceID, int(particles[gl_InstanceID].particleTextureCount)));
+    ivec2 atlasImageCount = calculateAtlasDimensions(particles[gl_InstanceID].particleTextureCount);
+    
+    float uvScaleX = 1.0 / float(atlasImageCount.x);
+    float uvScaleY = 1.0 / float(atlasImageCount.y);
+
+    int col = int(mod(int(particleTextureIndex), int(atlasImageCount.x)));
+    int row = particleTextureIndex / atlasImageCount.x;
+
+    float uvOffsetX = float(col) * uvScaleX;
+    float uvOffsetY = float(row) * uvScaleY;
+
+    vec2 finalUv = iUv.xy * vec2(uvScaleX, uvScaleY) + vec2(uvOffsetX, uvOffsetY);
+
+    uvLife.xy = finalUv.xy;
     uvLife.z = particles[gl_InstanceID].life;
+
     colourBegin = particles[gl_InstanceID].colourBegin;
     colourEnd = particles[gl_InstanceID].colourEnd;
 }

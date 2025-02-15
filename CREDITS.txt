@@ -1,1 +1,5 @@
 skybox shader: https://www.shadertoy.com/view/XlfGRj
+brdf eqns: https://sayan1an.github.io/pdfs/references/disneyBrdf.pdf
+skybox hdri (projected onto matcap via blender): https://ambientcg.com
+font: poppins semi-bold
+particle textures: https://kenney.nl/assets/particle-pack

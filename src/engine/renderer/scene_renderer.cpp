@@ -381,6 +381,7 @@ namespace render {
                             particlesView->particles[particleCount].sizeBegin = pParticleSystem->m_particlePool[i].sizeBegin;
                             particlesView->particles[particleCount].sizeEnd = pParticleSystem->m_particlePool[i].sizeEnd;
                             particlesView->particles[particleCount].life = pParticleSystem->m_particlePool[i].lifeRemaining / pParticleSystem->m_particlePool[i].lifeTime;
+                            particlesView->particles[particleCount].particleTextureCount = pParticleSystem->particleTextureCount;
                             particleCount++;
                         }
                         m_pDevice->unmapBuffer(m_particlesCbuffer);

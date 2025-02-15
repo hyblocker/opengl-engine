@@ -68,6 +68,7 @@ namespace render {
         particleSystem->enabled = params.enabled;
         particleSystem->material = params.material;
         particleSystem->blendState = params.blendState;
+        particleSystem->particleTextureCount = params.particleTextureCount;
 
         m_entity->push_back(particleSystem);
         return *this;

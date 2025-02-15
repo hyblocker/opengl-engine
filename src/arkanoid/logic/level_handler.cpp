@@ -22,8 +22,11 @@ constexpr float k_BALL_LAUNCH_VELOCITY_MIN = 16.0f;
 constexpr float k_BALL_LAUNCH_VELOCITY_MAX = k_BALL_NORMAL_SPEED;
 constexpr float k_MAX_SPACE_HELD_TIME_SECONDS = 0.8f;
 static float k_LAUNCH_SPEED_SCALE = 50.0f;
+static int32_t k_BRICK_PARTICLE_EMIT_COUNT = 5;
+static hlslpp::float4 k_BRICK_PARTICLE_COLOUR_BEGIN = hlslpp::float4(1, 1, 1, 1);
+static hlslpp::float4 k_BRICK_PARTICLE_COLOUR_END = hlslpp::float4(1, 1, 1, 0);
 
-static float k_POWERUP_SPEED = 70.0f;
+static float k_POWERUP_SPEED = 250.0f;
 
 static float k_BALL_PARTICLE_FREQUENCY = 0.018f;
 
@@ -69,6 +72,7 @@ void LevelHandler::start() {
     // get ref to the main shader
     m_shader = ((render::MeshRenderer*)m_ballEntity->findComponent(render::ComponentType::MeshRenderer))->material.shader;
     m_ballParticleSystem = ((render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem));
+    m_brickParticleSystem = ((render::ParticleSystem*)m_bricksEntityRoot->findComponent(render::ComponentType::ParticleSystem));
 
     render::Entity* wallsContainer = getEntity()->parent->findNamedEntity("ScreenBoundary");
     m_wallLeftEntity = wallsContainer->findNamedEntity("Left");
@@ -461,6 +465,20 @@ void LevelHandler::update(float deltaTime) {
                         spawnPowerup(brick->transform.getPosition() + brick->parent->transform.getPosition());
                     }
                 }
+
+                for (int i = 0; i < k_BRICK_PARTICLE_EMIT_COUNT; i++) {
+                    m_brickParticleSystem->emit({
+                        .position = m_ballEntity->transform.getPosition(),
+                        .velocity = hlslpp::float3(0, 0, 0),
+                        .velocityVariation = hlslpp::float3(1, 1, 0),
+                        .colourBegin = k_BRICK_PARTICLE_COLOUR_BEGIN,
+                        .colourEnd = k_BRICK_PARTICLE_COLOUR_END,
+                        .sizeBegin = 2,
+                        .sizeEnd = 0,
+                        .sizeVariation = 1,
+                        .lifeTime = 6 /* seconds */,
+                        });
+                }
             }
         }
         // LOG_INFO("Begin {} with {}!", bodyA->name, bodyB->name);
@@ -557,7 +575,7 @@ void LevelHandler::spawnPowerup(hlslpp::float3 brickPos) {
                 .brdfLutTex = engine::App::getInstance()->getAssetManager()->fetchTexture("dfg.hdr")
             }})
         // @TODO: Attach powerup behaviour
-        // @TODO: Attach graphics mode thing
+        .withBehaviour<GraphicsMode>(true, m_classicShader)
     );
 
     b2BodyId powerupId = makePowerup(newPowerUp, 1.3f);
@@ -754,6 +772,9 @@ void LevelHandler::imgui() {
     ImGui::DragFloat("Ball Particle Frequency", &k_BALL_PARTICLE_FREQUENCY, 0.01f, 0, 15);
     ImGui::DragFloat("Launch speed", &k_LAUNCH_SPEED_SCALE, 1, 0, 50000);
     ImGui::DragFloat("powerup drop speed", &k_POWERUP_SPEED, 1, 0, 50000);
+    ImGui::DragInt("Brick Particle Emit Count", &k_BRICK_PARTICLE_EMIT_COUNT, 1, 0, 20);
+    ImGui::ColorEdit4("Brick Particle Begin colour", k_BRICK_PARTICLE_COLOUR_BEGIN.f32);
+    ImGui::ColorEdit4("Brick Particle End colour", k_BRICK_PARTICLE_COLOUR_END.f32);
 
     {
         // Debug UI for Graphics Mode

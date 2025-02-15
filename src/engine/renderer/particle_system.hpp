@@ -43,6 +43,8 @@ namespace render {
         Material material = {};
         gpu::IBlendState* blendState = nullptr;
 
+        uint32_t particleTextureCount = 1;
+
     private:
         // derived classes are forbidden from modifying componentType
         using IComponent::componentType;
