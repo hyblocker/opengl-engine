@@ -560,7 +560,7 @@ void LevelHandler::update(float deltaTime) {
 
     // Update UI state
     m_livesUi->text = fmt::format("Lives {}", m_lives);
-    m_levelsUi->text = fmt::format("Levels {}", m_level);
+    m_levelsUi->text = fmt::format("Level {}", (m_level + 1));
     m_scoresUi->text = fmt::format("Score {}", m_score);
 }
 

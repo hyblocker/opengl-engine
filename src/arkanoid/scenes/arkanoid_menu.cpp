@@ -1,6 +1,7 @@
 #include "arkanoid/arkanoid_layer.hpp"
 #include "engine/input/input_manager.hpp"
 #include "engine/renderer/scene_composer.hpp"
+#include "arkanoid/logic/ui_stuff.hpp"
 
 #include <imgui.h>
 
@@ -65,11 +66,13 @@ void ArkanoidLayer::initMenuScene(render::Scene& outScene) {
             EntityBuilder().withName("PlayButton")
             .withUiSprite({
                 .posX = 52.3f,
-                .posY = -86.89f,
+                .posY = 86.89f,
                 .sizeX = 268,
                 .sizeY = 145,
                 .texture = getAssetManager()->fetchTexture("brick_wall.png"),
-                }).withChild(
+                })
+                .withBehaviour<MainMenuInteractions>(true, outScene.layer)
+                .withChild(
                 EntityBuilder().withName("PlayButton_Text")
                 .withUiText({
                     .posX = -0.570f,

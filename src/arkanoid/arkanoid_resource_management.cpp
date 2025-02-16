@@ -4,11 +4,11 @@
 #include <imgui.h>
 
 void ArkanoidLayer::initScenes() {
-    m_menuScene.layer = this;
-    m_gameScene.layer = this;
+    menuScene.layer = this;
+    gameScene.layer = this;
 
-    initMenuScene(m_menuScene);
-    initGameScene(m_gameScene);
+    initMenuScene(menuScene);
+    initGameScene(gameScene);
 }
 
 void ArkanoidLayer::loadGpuResources() {

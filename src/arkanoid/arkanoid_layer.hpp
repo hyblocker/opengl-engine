@@ -29,6 +29,11 @@ public:
         m_sceneUpdater.start(*m_activeScene);
     }
 
+    // Scenes loaded in memory
+    // Ideally these would be serialised and we would just load from disk but for the purposes of the assignment this should suffice
+    render::Scene menuScene;
+    render::Scene gameScene;
+
 private:
     bool windowResized(const engine::events::WindowResizeEvent& event);
 
@@ -46,11 +51,6 @@ private:
     // Scene management
     // The currently active scene
     render::Scene* m_activeScene = nullptr;
-
-    // Scenes loaded in memory
-    // Ideally these would be serialised and we would just load from disk but for the purposes of the assignment this should suffice
-    render::Scene m_menuScene;
-    render::Scene m_gameScene;
 
     // Gpu handles
     gpu::IShader* m_shaderModernOpaque = nullptr;

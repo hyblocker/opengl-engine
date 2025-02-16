@@ -22,7 +22,7 @@ void main()
     // take in pos and scale it such that we are sizeX x sizeY pixels in size at the end
     // projection takes 
     vec2 newPos = iPosition.xy;
-    newPos.xy = newPos.xy * size.xy * 0.5f + offset.xy;
+    newPos.xy = newPos.xy * size.xy * 0.5f + vec2(offset.x, -offset.y); // flip offset y because OpenGL
     vec4 pos = projection * model * vec4(newPos, 0.0, 1.0);
     gl_Position = vec4(pos.xy, 0.0, pos.w);
     uv = iUv.xy;

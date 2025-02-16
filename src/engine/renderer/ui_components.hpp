@@ -29,6 +29,7 @@ namespace render {
 
         UIElementType uiType = UIElementType::Sprite;
 
+        // dont use hlslpp::float2 because padding makes it use double the space
         float posX = 0;
         float posY = 0;
         float sizeX = 1;
@@ -43,6 +44,7 @@ namespace render {
 
         hlslpp::float4 textureTint = hlslpp::float4(1, 1, 1, 1);
 
+        // for ui interactons like mouse click etc
         bool isMouseOver();
     private:
         // derived classes are forbidden from modifying componentType
