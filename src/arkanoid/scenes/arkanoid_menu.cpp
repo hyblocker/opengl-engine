@@ -4,7 +4,7 @@
 
 #include <imgui.h>
 
-void ArkanoidLayer::initMenuScene() {
+void ArkanoidLayer::initMenuScene(render::Scene& outScene) {
 
     constexpr uint32_t k_BRICKS_COLUMNS = 10;
     constexpr uint32_t k_BRICKS_ROWS = 4;
@@ -13,14 +13,14 @@ void ArkanoidLayer::initMenuScene() {
     using namespace ::render;
 
     // Metadata
-    m_menuScene.sceneName = "Menu";
-    m_menuScene.lightingParams.skybox = {
+    outScene.sceneName = "Menu";
+    outScene.lightingParams.skybox = {
         .type = render::SkyboxType::Procedural,
     };
 
 
     // construct scene
-    m_menuScene.push_back(
+    outScene.push_back(
         EntityBuilder().withName("Camera")
         .withPosition({0,0,30})
         .withCamera({
@@ -34,9 +34,10 @@ void ArkanoidLayer::initMenuScene() {
         )
         );
 
-    m_menuScene.push_back(
+    outScene.push_back(
         EntityBuilder().withName("Suzanne")
         .withPosition({0, 1.900, -5})
+        .withEnabled(false)
         .withMeshRenderer({
             .mesh = getAssetManager()->fetchMesh("test.obj"),
             .material = {
@@ -46,6 +47,37 @@ void ArkanoidLayer::initMenuScene() {
                 .diffuseTex = getAssetManager()->fetchTexture("brick_wall.png")
             }
             })
+    );
+
+    outScene.push_back(
+        EntityBuilder().withName("UICanvas")
+        .withUiCanvas()
+        .withChild(
+            EntityBuilder().withName("Logo")
+            .withUiText({
+                .posX = -2.970f,
+                .posY = -0.960f,
+                .text = "BREAKANOID",
+                .textScale = 5,
+                })
+                )
+        .withChild(
+            EntityBuilder().withName("PlayButton")
+            .withUiSprite({
+                .posX = 52.3f,
+                .posY = -86.89f,
+                .sizeX = 268,
+                .sizeY = 145,
+                .texture = getAssetManager()->fetchTexture("brick_wall.png"),
+                }).withChild(
+                EntityBuilder().withName("PlayButton_Text")
+                .withUiText({
+                    .posX = -0.570f,
+                    .posY = 1.160f,
+                    .text = "Play",
+                    .textScale = 2.550f,
+                    }))
+            )
     );
 
 }

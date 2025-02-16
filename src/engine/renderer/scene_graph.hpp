@@ -9,6 +9,10 @@
 #include "engine/gpu/idevice.hpp"
 #include "engine/renderer/skybox.hpp"
 
+namespace engine {
+    class ILayer;
+}
+
 namespace render {
 
     class Camera;
@@ -130,6 +134,8 @@ namespace render {
             b2WorldId m_box2Dworld = b2_nullWorldId;
             bool m_initialised = false;
         } physicsParams;
+
+        engine::ILayer* layer = nullptr;
 
         Entity* findNamedEntity(const std::string& name, bool ignoreDisabled = false) const;
         Entity* push_back(EntityBuilder& entity);

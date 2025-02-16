@@ -71,8 +71,8 @@ void LevelHandler::start() {
 
     // get ref to the main shader
     m_shader = ((render::MeshRenderer*)m_ballEntity->findComponent(render::ComponentType::MeshRenderer))->material.shader;
-    m_ballParticleSystem = ((render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem));
-    m_brickParticleSystem = ((render::ParticleSystem*)m_bricksEntityRoot->findComponent(render::ComponentType::ParticleSystem));
+    m_ballParticleSystem = (render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem);
+    m_brickParticleSystem = (render::ParticleSystem*)m_bricksEntityRoot->findComponent(render::ComponentType::ParticleSystem);
 
     render::Entity* wallsContainer = getEntity()->parent->findNamedEntity("ScreenBoundary");
     m_wallLeftEntity = wallsContainer->findNamedEntity("Left");

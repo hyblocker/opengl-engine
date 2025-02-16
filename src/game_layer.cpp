@@ -154,8 +154,6 @@ bool GameLayer::windowResized(const engine::events::WindowResizeEvent& event) {
         .bottom = event.height,
         });
 
-    // @TODO: Signal post-processing stack resize fbos
-
     return false;
 }
 

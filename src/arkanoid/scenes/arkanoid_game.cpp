@@ -350,11 +350,31 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         EntityBuilder().withName("UICanvas")
         .withUiCanvas()
         .withChild(
-            EntityBuilder().withName("UIElement")
+            EntityBuilder().withName("LivesUI")
             .withUiText({
-                .text = "Lives 0",
-
-            })
-        )
+                .posX = -17.500f,
+                .posY = -9.8f,
+                .text = "<LIVES PLACEHOLDER>",
+                .textScale = 1.25f,
+                })
+            )
+        .withChild(
+            EntityBuilder().withName("LevelsUI")
+            .withUiText({
+                .posX = 13.700f,
+                .posY = -9.8f,
+                .text = "<LEVELS PLACEHOLDER>",
+                .textScale = 1.25f,
+                })
+            )
+        .withChild(
+            EntityBuilder().withName("ScoreUI")
+            .withUiText({
+                .posX = -1.850f,
+                .posY = -9.8f,
+                .text = "<SCORE PLACEHOLDER>",
+                .textScale = 1.25f,
+                })
+            )
     );
 }
