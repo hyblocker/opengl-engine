@@ -155,6 +155,9 @@ namespace render {
                 advanceY += params.lineHeight * scale;
                 continue;
             }
+            if (c == 0) {
+                continue;
+            }
 
             const auto& currGlyph = fontData.glyphs.at(c);
             hlslpp::float4 pixelBounds = currGlyph.pixelBounds;
@@ -177,6 +180,11 @@ namespace render {
             });
 
             advanceX += currGlyph.horizAdvanceEm * scale;
+        }
+
+        // sometimes text may not print, so the vertex buffer would be empty, if so, don't bother rendering anything
+        if (m_vertices.size() == 0) {
+            return;
         }
 
         // upload to gpu
