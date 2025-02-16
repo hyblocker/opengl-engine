@@ -15,14 +15,20 @@ namespace collisions {
         constexpr uint64_t BRICK    = 1u << 3;
         constexpr uint64_t POWERUP  = 1u << 4;
         constexpr uint64_t FLIPPER  = 1u << 5;
+        constexpr uint64_t BUMPER   = 1u << 6;
+        constexpr uint64_t ENEMY    = 1u << 7;
+        constexpr uint64_t LASER    = 1u << 8;
     }
     namespace masks {
-        constexpr uint64_t BALL     = category::WALL | category::PADDLE | category::BRICK | category::FLIPPER;
+        constexpr uint64_t BALL     = category::WALL | category::PADDLE | category::BRICK | category::FLIPPER | category::BUMPER | category::ENEMY;
         constexpr uint64_t PADDLE   = category::BALL | category::WALL | category::POWERUP;
         constexpr uint64_t WALL     = category::BALL | category::POWERUP | category::FLIPPER;
         constexpr uint64_t BRICK    = category::BALL;
-        constexpr uint64_t POWERUP  = category::WALL | category::PADDLE | category::FLIPPER;
+        constexpr uint64_t POWERUP  = category::PADDLE | category::WALL;
         constexpr uint64_t FLIPPER  = category::BALL | category::WALL | category::POWERUP;
+        constexpr uint64_t BUMPER   = category::BUMPER | category::BALL;
+        constexpr uint64_t ENEMY    = category::WALL | category::BALL | category::PADDLE;
+        constexpr uint64_t LASER    = category::ENEMY | category::BRICK;
     }
 }
 
@@ -32,6 +38,15 @@ enum class GameState {
     Gameplay,
     GameOver,
     Victory,
+};
+
+enum class PowerupType {
+    PaddleExpansion,
+    MultiBall,
+    SlowMotion,
+    StickyPaddle,
+    LaserCannon,
+    Count,
 };
 
 class LevelHandler : public render::IBehaviour {
@@ -53,6 +68,12 @@ public:
     bool firstFrame = false;
 
 private:
+    struct FlipperPhysics {
+        b2BodyId pivot = b2_nullBodyId;
+        b2BodyId body = b2_nullBodyId;
+        b2JointId joint = b2_nullJointId;
+    };
+
     b2BodyId box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation = true, b2Vec2 posOffset = b2Vec2_zero, float angle = 0);
 
     b2BodyId makePaddle(render::Entity* entityData, hlslpp::float2 size);
@@ -60,7 +81,9 @@ private:
     b2BodyId makeWall(render::Entity* entityData, hlslpp::float2 size, float angle = 0);
     b2BodyId makeBrick(render::Entity* entityData, hlslpp::float2 size, hlslpp::float2 offset);
     b2BodyId makePowerup(render::Entity* entityData, float radius);
-    b2BodyId makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX);
+    FlipperPhysics makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX);
+    b2BodyId makeBumper(render::Entity* entityData, float radius);
+    b2BodyId makeEnemy(render::Entity* entityData, float radius);
 
     void spawnPowerup(hlslpp::float3 brickPos);
 
@@ -69,6 +92,12 @@ private:
     
     void launchBall(float move = 0);
     void killBall();
+
+    void killPowerup(render::Entity* powerup, b2BodyId powerupBody);
+    void equipRandomPowerup();
+
+    void expandPaddle();
+    void shrinkPaddle();
 
     void activateFlipper(b2BodyId body, float& currentAngle, bool isFlipped);
     void dampenFlipper(b2BodyId body, float& currentAngle, float deltaTime, bool isFlipped);
@@ -100,7 +129,7 @@ private:
     render::Entity* m_rampLeft = nullptr;
     render::Entity* m_rampRight = nullptr;
 
-    render::Entity* m_bumper = nullptr;
+    render::Entity* m_bumperEntity = nullptr;
 
     render::Entity* m_flipperLeftEntity = nullptr;
     render::Entity* m_flipperRightEntity = nullptr;
@@ -117,16 +146,26 @@ private:
     // box2d props
     b2WorldId m_world = b2_nullWorldId;
     b2BodyId m_paddleBody = b2_nullBodyId;
+    b2BodyId m_paddleBodyExpanded = b2_nullBodyId;
     b2BodyId m_ballBody = b2_nullBodyId;
     b2BodyId m_wallBodies[4] = { b2_nullBodyId, b2_nullBodyId, b2_nullBodyId, b2_nullBodyId };
     
     b2JointId m_ballPaddleJoint = b2_nullJointId;
 
-    b2BodyId m_flipperLeftBody = b2_nullBodyId;
-    b2BodyId m_flipperRightBody = b2_nullBodyId;
+    FlipperPhysics m_flipperLeftBody;
+    FlipperPhysics m_flipperRightBody;
+
+    b2BodyId m_bumperBody = b2_nullBodyId;
 
     std::vector<b2BodyId> m_powerupsPhysics;
     std::vector<b2BodyId> m_enemiesPhysics;
+
+    struct PowerupData {
+        PowerupType type = PowerupType::Count;
+        float elapsedTime = 0;
+    };
+
+    std::vector<PowerupData> m_activePowerups;
 
     hlslpp::float3 m_initialBallPos;
     hlslpp::float3 m_initialPaddlePos;
@@ -139,12 +178,16 @@ private:
 
     int32_t m_lives = k_INITIAL_LIVES;
     int32_t m_score = 0;
+    int32_t m_oldScore = 0;
     int32_t m_bricksToProgressToNextLevel = 10*4;
     uint32_t m_level = 0;
 
     float m_currentBallSpeed = 0;
+    float m_normalBallSpeed = 0;
+    float m_paddleWidthFactor = 1.0f;
     float m_spaceHeldTime = 0;
     float m_lastMove = 0;
+    bool m_isPaddleExpanded = false;
 
     render::UIElement* m_livesUi = nullptr;
     render::UIElement* m_levelsUi = nullptr;
@@ -190,28 +233,28 @@ private:
     };
 
     const LevelInitParams s_levelInitParams[20] = {
-        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 0, .numMultihit = 0, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 0, .numMultihit = 5, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 4, .numMultihit = 5, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 4, .numMultihit = 10, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 4, .numMultihit = 15, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Full,        .indestructableCount = 0, .numMultihit = 0,  .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = false, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Diamond,     .indestructableCount = 0, .numMultihit = 5,  .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = false, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Pyramid,     .indestructableCount = 4, .numMultihit = 5,  .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = false, .enableBumpers = false, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::SemiCircle,  .indestructableCount = 4, .numMultihit = 10, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = false, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Sparse,      .indestructableCount = 4, .numMultihit = 15, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = false, .enableBumpers = false, .enableAttractors = false, .enableRepellers = false },
 
-        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 4, .numMultihit = 4, .easyEnemyCount = 1, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 2, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 4, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Full,        .indestructableCount = 4, .numMultihit = 4, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = true, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Pyramid,     .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = false, .enableBumpers = true, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Diamond,     .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::SemiCircle,  .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = false, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::Sparse,      .indestructableCount = 4, .numMultihit = 8, .easyEnemyCount = 0, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = true, .enableRepellers = true },
 
-        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Diamond,     .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 1, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = true, .enableAttractors = true, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Full,        .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 2, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = false, .enableAttractors = true, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::Sparse,      .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 2, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = false, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::SemiCircle,  .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 2, .difficultEnemyCount = 0, .enablePinballFlippers = false, .enableRamps = false, .enableBumpers = true, .enableAttractors = false, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::Pyramid,     .indestructableCount = 5, .numMultihit = 20, .easyEnemyCount = 4, .difficultEnemyCount = 0, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = false, .enableAttractors = true, .enableRepellers = true },
 
-        { .shape = LevelBrickLayoutShape::Diamond,      .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Pyramid,      .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::SemiCircle,   .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Full,         .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
-        { .shape = LevelBrickLayoutShape::Sparse,       .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 0, .difficultEnemyCount = 0 },
+        { .shape = LevelBrickLayoutShape::Diamond,     .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 1, .difficultEnemyCount = 1, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = true, .enableRepellers = false },
+        { .shape = LevelBrickLayoutShape::Pyramid,     .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 4, .difficultEnemyCount = 1, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = false, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::SemiCircle,  .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 4, .difficultEnemyCount = 2, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = false, .enableAttractors = true, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::Full,        .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 4, .difficultEnemyCount = 3, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = true, .enableRepellers = true },
+        { .shape = LevelBrickLayoutShape::Sparse,      .indestructableCount = 6, .numMultihit = 20, .easyEnemyCount = 4, .difficultEnemyCount = 4, .enablePinballFlippers = true, .enableRamps = true, .enableBumpers = true, .enableAttractors = true, .enableRepellers = true },
     };
 };

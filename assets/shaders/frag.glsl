@@ -26,7 +26,9 @@ vec3 computeLighting(LightData lightData, in vec3 albedo, vec3 normal, float per
 
     // We check if the magnitude of the dir vector is > 0.5 (i.e. it's a valid normalised value)
     // if it's a 0 vector the magnitude would be ~0, in which case we assume the light is disabled.
-    float lightFactor = (abs(length(lightData.direction)) > 0.5f) ? 1.0 : 0.0;
+    float lightAttenuation = 1.0;
+    vec3 lightColour = vec3(0,0,0);
+    ComputeLight(lightData, worldPos, l, lightColour, lightAttenuation);
 
     float NdotL = saturate(dot(n, l));
     float NdotV = saturate(dot(n, v));
@@ -45,10 +47,10 @@ vec3 computeLighting(LightData lightData, in vec3 albedo, vec3 normal, float per
     float G = V_SmithGGXCorrelated(NdotV, NdotL, perceptualRoughness);
     vec3  Fr = (NDF * G * F) / (4.0 * NdotV * NdotL + 0.001f /* avoid divide by 0 */);
 
-    float lightAtten = lightFactor * NdotL;
+    float finalAtten = lightAttenuation * NdotL;
 
-    return albedo * Fd * lightData.colour * lightData.intensity * lightAtten +
-        Fr * lightData.intensity * lightData.colour * lightAtten;
+    return albedo * Fd * lightColour * finalAtten +
+        Fr * lightColour * finalAtten;
 }
 
 vec4 sampleMatcap(vec3 normal, float roughness) {

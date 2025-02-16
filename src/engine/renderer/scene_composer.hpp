@@ -29,6 +29,7 @@ namespace render {
 
         inline EntityBuilder& withEnabled(bool enabled) {
             m_entity->enabled = enabled;
+            m_entity->_lastFrameEnabled = enabled;
             return *this;
         }
 
@@ -159,6 +160,7 @@ namespace render {
     EntityBuilder& EntityBuilder::withBehaviour(bool enabled, Args&&... args) {
         std::shared_ptr<T> userBehaviour = std::make_shared<T>(m_entity.get(), std::forward<Args>(args)...);
         userBehaviour->enabled = enabled;
+        userBehaviour->m_lastFrameEnabled = enabled;
         m_entity->push_back(userBehaviour);
         return *this;
     }

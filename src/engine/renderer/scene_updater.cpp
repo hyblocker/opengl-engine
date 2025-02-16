@@ -109,7 +109,11 @@ namespace render {
                 if (component->getComponentType() == render::ComponentType::UserBehaviour) {
                     IBehaviour* pBehaviour = (IBehaviour*)component.get();
                     if (pBehaviour->enabled) {
+                        if (pBehaviour->m_lastFrameEnabled != pBehaviour->enabled || entity->_lastFrameEnabled != entity->enabled) {
+                            pBehaviour->start();
+                        }
                         pBehaviour->update(deltaTime);
+                        pBehaviour->m_lastFrameEnabled = pBehaviour->enabled;
                     }
                 }
                 if (component->getComponentType() == render::ComponentType::ParticleSystem) {
@@ -119,6 +123,8 @@ namespace render {
                     }
                 }
             }
+
+            entity->_lastFrameEnabled = entity->enabled;
 
             // Entity didn't have any components we wanted attached to itself, check children
             for (const std::shared_ptr<Entity> childEntity : entity->children) {

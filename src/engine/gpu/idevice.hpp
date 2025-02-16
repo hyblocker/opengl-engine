@@ -74,7 +74,7 @@ namespace gpu {
 		// Shader to draw and it's associated vertex layout
 		IShader* shader = nullptr;
 
-		// Because OpenGL is horrible and vertex layout is tied to the fucking vertex buffer (whats the point of even binding a vertex buffer then??)
+		// Because OpenGL is horrible and vertex layout is tied to the vertex buffer (whats the point of even binding a vertex buffer then??)
 		IInputLayout* vertexLayout = nullptr;
 
 		// Blending properties

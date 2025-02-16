@@ -298,11 +298,11 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
 
     outScene.push_back(
         EntityBuilder().withName("ObstacleContainer")
-        .withEnabled(false)
         .withChild(
             EntityBuilder().withName("Bumper")
+            .withEnabled(false)
             .withPosition({ 0,0,0 })
-            .withRotationEulerAngles({ 270 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD })
+            .withRotationEulerAngles({ 0 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD })
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("bumper.obj"),
                 .material = {
@@ -322,13 +322,14 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
         )
         .withChild(
             EntityBuilder().withName("RampLeft")
+            .withEnabled(false)
             .withPosition({ 0,0,0 })
             .withRotationEulerAngles({ 0,0,0 })
             .withMeshRenderer({
                 .mesh = getAssetManager()->fetchMesh("box.obj"),
                 .material = {
                     .shader = m_shaderModernOpaque,
-                    .name = "Bumper",
+                    .name = "Ramp",
                     .ambient = {0.5f, 0.5f, 0.5f},
                     .diffuse = {1.0f, 1.0f, 1.0f},
                     .metallic = 1.0f,

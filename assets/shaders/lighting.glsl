@@ -9,6 +9,8 @@
 #define k_PI (3.14159265359)
 #define k_F0 (0.04f)
 
+#define k_LIGHT_ATTEN_CUTOFF (0.01f)
+
 float F_Schlick(float u, float f0, float f90) {
     return f0 + (f90 - f0) * pow(1.0 - u, 5.0);
 }
@@ -61,26 +63,28 @@ float getSpotAngleAttenuation(vec3 l, vec3 lightDir, float innerAngle, float out
     return attenuation * attenuation;
 }
 
-void ComputeLight(LightData lightData, out vec3 pLightDir, out vec3 pLightColour, out float attenuation) {
+void ComputeLight(LightData lightData, const vec3 worldPos, out vec3 pLightDir, out vec3 pLightColour, out float attenuation) {
     // Assume directional light
     attenuation = 1.0;
     pLightColour = lightData.colour * lightData.intensity;
     pLightDir = vec3(0,1,0);
 
     // Handle directional lights
-    if (lightData.type == LIGHT_TYPE_POINT) {
+    if (lightData.type == LIGHT_TYPE_DIRECTIONAL) {
         attenuation = 1.0;
         pLightDir = lightData.direction;
     }
 
     // Handle point / spot lights
     if (lightData.type == LIGHT_TYPE_POINT) {
-        attenuation = 1.0;
+        // inverse square law
+        attenuation = getSquareFalloffAttenuation(worldPos - lightData.position, lightData.outerRadius);
         pLightDir = lightData.direction;
     }
 
     if (lightData.type == LIGHT_TYPE_SPOT) {
-        attenuation = 1.0;
+        attenuation = getSquareFalloffAttenuation(worldPos - lightData.position, lightData.outerRadius) *
+            getSpotAngleAttenuation(worldPos, lightData.direction, lightData.innerRadius, lightData.outerRadius);
         pLightDir = lightData.direction;
     }
 }

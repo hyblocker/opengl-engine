@@ -22,6 +22,7 @@ constexpr float k_BALL_LAUNCH_VELOCITY_MIN = 16.0f;
 constexpr float k_BALL_LAUNCH_VELOCITY_MAX = k_BALL_NORMAL_SPEED;
 constexpr float k_MAX_SPACE_HELD_TIME_SECONDS = 0.8f;
 static float k_LAUNCH_SPEED_SCALE = 50.0f;
+static float k_BUMPER_RADIUS = 1.25f;
 static int32_t k_BRICK_PARTICLE_EMIT_COUNT = 5;
 static hlslpp::float4 k_BRICK_PARTICLE_COLOUR_BEGIN = hlslpp::float4(1, 1, 1, 1);
 static hlslpp::float4 k_BRICK_PARTICLE_COLOUR_END = hlslpp::float4(1, 1, 1, 0);
@@ -50,6 +51,8 @@ constexpr uint32_t k_BRICKS_COLUMNS = 10;
 constexpr uint32_t k_BRICKS_ROWS = 4;
 
 constexpr uint32_t k_MAX_LEVELS = 20;
+
+constexpr int32_t k_SCORE_BUMPER = 75;
 
 // for nicer camera motion
 // https://easings.net/#easeInOutQuad
@@ -90,7 +93,7 @@ void LevelHandler::start() {
         m_initialFlipperLeftRot = m_flipperLeftEntity->transform.getRotation();
         m_initialFlipperRightRot = m_flipperRightEntity->transform.getRotation();
 
-        m_bumper = getEntity()->parent->findNamedEntity("Bumper");
+        m_bumperEntity = getEntity()->parent->findNamedEntity("Bumper", true);
 
         m_livesUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LivesUI")->findComponent(render::ComponentType::UIElement);
         m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
@@ -113,6 +116,7 @@ void LevelHandler::start() {
         m_world = b2CreateWorld(&worldDef);
 
         m_paddleBody = makePaddle(m_paddleEntity, { k_PADDLE_WIDTH, 1.5f });
+        m_paddleBodyExpanded = makePaddle(m_paddleEntity, { k_PADDLE_WIDTH * 1.5f, 1.5f });
         m_ballBody = makeBall(m_ballEntity, 1.0f);
 
         m_wallBodies[0] = makeWall(m_wallLeftEntity, m_wallLeftEntity->transform.getScale().xy);
@@ -122,6 +126,8 @@ void LevelHandler::start() {
 
         m_flipperLeftBody = makeFlipper(m_flipperLeftEntity, 0.1f, { 6.5f, 1.95057f }, false);
         m_flipperRightBody = makeFlipper(m_flipperRightEntity, 0.1f, { 6.5f, 1.95057f }, true);
+
+        m_bumperBody = makeBumper(m_bumperEntity, k_BUMPER_RADIUS);
 
         for (auto brickEntity : m_bricksEntityRoot->children) {
             b2BodyId brickPhysicsId = makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
@@ -136,6 +142,11 @@ void LevelHandler::start() {
 
         m_leaderboardFilePath = fmt::format("{}/{}", engine::App::getInstance()->getAssetManager()->getExecutableDir(), "leaderboard.dat");
         m_leaderboard.load(m_leaderboardFilePath);
+
+        // sim 1 frame
+        b2World_Step(m_world, 1.0 / 60.0f, physics::k_PHYSICS_SUBSTEP_COUNT);
+        
+        b2Body_Disable(m_paddleBodyExpanded); // disable powerup colliders
 
         LOG_INFO("Created Level Breakanoid::Game!");
         setLevel(0);
@@ -258,7 +269,7 @@ b2BodyId LevelHandler::makePowerup(render::Entity* entityData, float radius) {
     return powerupBody;
 }
 
-b2BodyId LevelHandler::makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX) {
+LevelHandler::FlipperPhysics LevelHandler::makeFlipper(render::Entity* entityData, float pivotRadius, hlslpp::float2 flipperSize, bool flipX) {
 
     b2BodyId flipperPivot = box2dMakeBody(b2_staticBody, entityData, false, b2Vec2((flipX ? 0.52f : -0.25f) * flipperSize.x, 0), 0);
     b2BodyId flipperBody = box2dMakeBody(b2_dynamicBody, entityData, false);
@@ -290,8 +301,55 @@ b2BodyId LevelHandler::makeFlipper(render::Entity* entityData, float pivotRadius
     jointDef.localAnchorB = b2Vec2(0, 0);
     b2JointId joint = b2CreateRevoluteJoint(m_world, &jointDef);
 
-    return flipperBody;
+    FlipperPhysics outData{ 
+        .pivot = flipperPivot,
+        .body = flipperBody,
+        .joint = joint
+    };
+    return outData;
 }
+
+b2BodyId LevelHandler::makeBumper(render::Entity* entityData, float radius) {
+
+    b2BodyId ballBody = box2dMakeBody(b2_staticBody, entityData);
+
+    b2ShapeDef shapeDef = b2DefaultShapeDef();
+    shapeDef.enableContactEvents = true;
+    shapeDef.density = 1.0f;
+
+    shapeDef.filter.categoryBits = collisions::category::BUMPER;
+    shapeDef.filter.maskBits = collisions::masks::BUMPER;
+
+    b2Circle circleCollider = {
+        .center = {0, 1},
+        .radius = radius * k_UNITS_TO_BOX2D_SCALE
+    };
+    b2CreateCircleShape(ballBody, &shapeDef, &circleCollider);
+
+    return ballBody;
+}
+
+
+b2BodyId LevelHandler::makeEnemy(render::Entity* entityData, float radius) {
+
+    b2BodyId ballBody = box2dMakeBody(b2_dynamicBody, entityData);
+
+    b2ShapeDef shapeDef = b2DefaultShapeDef();
+    shapeDef.enableContactEvents = true;
+    shapeDef.density = 1.0f;
+
+    shapeDef.filter.categoryBits = collisions::category::ENEMY;
+    shapeDef.filter.maskBits = collisions::masks::ENEMY;
+
+    b2Circle circleCollider = {
+        .center = {0, 1},
+        .radius = radius * k_UNITS_TO_BOX2D_SCALE
+    };
+    b2CreateCircleShape(ballBody, &shapeDef, &circleCollider);
+
+    return ballBody;
+}
+
 
 b2JointId LevelHandler::makeWeldJoint(b2BodyId pA, b2BodyId pB, b2Vec2 anchorOffset) {
     b2WeldJointDef weldJointDef = b2DefaultWeldJointDef();
@@ -323,6 +381,7 @@ void LevelHandler::launchBall(float move) {
         b2Body_SetLinearVelocity(m_ballBody, { speed.x * k_LAUNCH_SPEED_SCALE, speed.y * k_LAUNCH_SPEED_SCALE });
         LOG_INFO("Launch mag: {} ({}, {}) mv = {}", launchMagnitude, (float)speed.x, (float)speed.y, move);
         m_currentBallSpeed = launchMagnitude;
+        m_normalBallSpeed = launchMagnitude;
     }
 }
 
@@ -330,15 +389,97 @@ void LevelHandler::killBall() {
     m_lives--;
     if (m_lives >= 0) {
         // stop all movement on the ball and paddle
+        b2BodyId actualPaddleBody = m_isPaddleExpanded ? m_paddleBodyExpanded : m_paddleBody;
         b2Body_SetLinearVelocity(m_ballBody, { 0,0 });
-        b2Body_SetLinearVelocity(m_paddleBody, { 0,0 });
+        b2Body_SetLinearVelocity(actualPaddleBody, { 0,0 });
         // reset transform
         b2Body_SetTransform(m_ballBody, { m_initialBallPos.x * k_UNITS_TO_BOX2D_SCALE, m_initialBallPos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
-        b2Body_SetTransform(m_paddleBody, { m_initialPaddlePos.x * k_UNITS_TO_BOX2D_SCALE, m_initialPaddlePos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
+        b2Body_SetTransform(actualPaddleBody, { m_initialPaddlePos.x * k_UNITS_TO_BOX2D_SCALE, m_initialPaddlePos.y * k_UNITS_TO_BOX2D_SCALE }, b2Rot_identity);
         // stick the ball to the paddle
-        m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, { 0, -1 });
+        m_ballPaddleJoint = makeWeldJoint(actualPaddleBody, m_ballBody, { 0, -1 });
     } else {
         setGameOver();
+    }
+}
+
+void LevelHandler::killPowerup(render::Entity* powerup, b2BodyId powerupBody) {
+    b2DestroyBody(powerupBody);
+
+    // find powerup in the scene graph and delete it
+    auto iterEntity = std::find_if(powerup->parent->children.begin(), powerup->parent->children.end(), [&](const std::shared_ptr<render::Entity>& child) {
+        return child.get() == powerup;
+    });
+    if (iterEntity != powerup->parent->children.end()) {
+        powerup->parent->children.erase(iterEntity);
+    }
+
+    // find powerup collider and also remove it
+    auto iterBody = std::find_if(m_powerupsPhysics.begin(), m_powerupsPhysics.end(), [&](const b2BodyId& physBody) {
+        return B2_ID_EQUALS(physBody, powerupBody);
+    });
+    if (iterBody != m_powerupsPhysics.end()) {
+        m_powerupsPhysics.erase(iterBody);
+    }
+}
+
+void LevelHandler::equipRandomPowerup() {
+    PowerupType desiredPowerup = PowerupType::PaddleExpansion;
+
+    desiredPowerup = (PowerupType) engine::RandomNumberGenerator::getRangedInt(0, ((int)PowerupType::Count - 1));
+
+    // only this was implemented sorry!!
+    desiredPowerup = PowerupType::SlowMotion;
+    
+    switch (desiredPowerup) {
+    case PowerupType::PaddleExpansion:
+    {
+        LOG_INFO("PADDLE EXPANSION");
+        m_activePowerups.push_back({
+            .type = PowerupType::PaddleExpansion,
+            .elapsedTime = 30.0f,
+            });
+        m_paddleWidthFactor = 1.5f;
+        // BREAKS PHYSICS
+        expandPaddle();
+        break;
+    }
+    case PowerupType::MultiBall:
+    {
+        LOG_INFO("MULTI BALL");
+        m_activePowerups.push_back({
+            .type = PowerupType::MultiBall,
+            .elapsedTime = 30.0f,
+            });
+        break;
+    }
+    case PowerupType::SlowMotion:
+    {
+        LOG_INFO("SLOW MOTION");
+        m_activePowerups.push_back({
+            .type = PowerupType::SlowMotion,
+            .elapsedTime = 30.0f,
+        });
+        m_currentBallSpeed = 4.0f;
+        break;
+    }
+    case PowerupType::StickyPaddle:
+    {
+        LOG_INFO("STICKY PADDLE");
+        m_activePowerups.push_back({
+            .type = PowerupType::StickyPaddle,
+            .elapsedTime = 30.0f,
+            });
+        break;
+    }
+    case PowerupType::LaserCannon:
+    {
+        LOG_INFO("LASER CANNON");
+        m_activePowerups.push_back({
+            .type = PowerupType::LaserCannon,
+            .elapsedTime = 30.0f,
+            });
+        break;
+    }
     }
 }
 
@@ -358,6 +499,52 @@ void LevelHandler::dampenFlipper(b2BodyId body, float& currentAngle, float delta
         float angularVelocity = b2Body_GetAngularVelocity(body);
         b2Body_SetAngularVelocity(body, angularVelocity + (isFlipped ? -1.0f : 1.0f) * k_FLIPPER_GRAVITY * (1.0f - currentAngle));
     }
+}
+
+void LevelHandler::expandPaddle() {
+    m_isPaddleExpanded = true;
+
+    if (!B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
+        destroyWeldJoint(m_ballPaddleJoint);
+        m_ballPaddleJoint = b2_nullJointId;
+    }
+
+    b2BodyId currentPaddleBody = m_paddleBody;
+    b2BodyId oldPaddleBody = m_paddleBodyExpanded;
+
+    b2Transform bodyTransform = b2Body_GetTransform(currentPaddleBody);
+
+    b2Body_Disable(currentPaddleBody);
+    b2Body_Enable(oldPaddleBody);
+
+    b2Body_SetTransform(oldPaddleBody, bodyTransform.p, bodyTransform.q);
+    m_ballPaddleJoint = makeWeldJoint(oldPaddleBody, m_ballBody, { 0, -1 });
+
+    hlslpp::float3 paddleScale = m_paddleEntity->transform.getScale();
+    m_paddleEntity->transform.setScale({ 1.5f, paddleScale.yz });
+}
+
+void LevelHandler::shrinkPaddle() {
+    m_isPaddleExpanded = false;
+
+    if (!B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
+        destroyWeldJoint(m_ballPaddleJoint);
+        m_ballPaddleJoint = b2_nullJointId;
+    }
+
+    b2BodyId currentPaddleBody = m_paddleBody;
+    b2BodyId oldPaddleBody = m_paddleBodyExpanded;
+
+    b2Transform bodyTransform = b2Body_GetTransform(currentPaddleBody);
+
+    b2Body_Disable(currentPaddleBody);
+    b2Body_Enable(oldPaddleBody);
+
+    b2Body_SetTransform(oldPaddleBody, bodyTransform.p, bodyTransform.q);
+    m_ballPaddleJoint = makeWeldJoint(oldPaddleBody, m_ballBody, { 0, -1 });
+
+    hlslpp::float3 paddleScale = m_paddleEntity->transform.getScale();
+    m_paddleEntity->transform.setScale({ 1.0f, paddleScale.yz });
 }
 
 void LevelHandler::update(float deltaTime) {
@@ -387,13 +574,13 @@ void LevelHandler::update(float deltaTime) {
 
     // pinball stuff
     if (engine::input::InputManager::getInstance()->mouseReleased(engine::input::MouseButton::ButtonLeft)) {
-        activateFlipper(m_flipperLeftBody, m_flipperAngleLeft, false);
+        activateFlipper(m_flipperLeftBody.body, m_flipperAngleLeft, false);
     }
     if (engine::input::InputManager::getInstance()->mouseReleased(engine::input::MouseButton::ButtonRight)) {
-        activateFlipper(m_flipperRightBody, m_flipperAngleRight, true);
+        activateFlipper(m_flipperRightBody.body, m_flipperAngleRight, true);
     }
-    dampenFlipper(m_flipperLeftBody, m_flipperAngleLeft, deltaTime, false);
-    dampenFlipper(m_flipperRightBody, m_flipperAngleRight, deltaTime, true);
+    dampenFlipper(m_flipperLeftBody.body, m_flipperAngleLeft, deltaTime, false);
+    dampenFlipper(m_flipperRightBody.body, m_flipperAngleRight, deltaTime, true);
 
     // we need to clamp the paddle so that it doesn't go out of bounds from the walls
     float nextPos = m_paddleEntity->transform.getPosition().x + move * deltaTime; // use deltatime here as we're trying to predict where the paddle would be in the next frame
@@ -405,7 +592,8 @@ void LevelHandler::update(float deltaTime) {
     if ((nextPos + k_PADDLE_WIDTH * 0.5f) > wallRightBoundary) {
         move = 0;
     }
-    b2Body_SetLinearVelocity(m_paddleBody, { move * k_UNITS_TO_BOX2D_SCALE, 0 } );
+    b2BodyId actualPaddleBody = m_isPaddleExpanded ? m_paddleBodyExpanded : m_paddleBody;
+    b2Body_SetLinearVelocity(actualPaddleBody, { move * k_UNITS_TO_BOX2D_SCALE, 0 } );
 
     if (move != 0) {
         m_lastMove = move;
@@ -425,7 +613,7 @@ void LevelHandler::update(float deltaTime) {
     // we snap it to 45 deg angles to keep the game playable as its far too easy to get the ball stuck going left right / up down forever (also it's not fun like that)
     // only do this if the joint is absent (i.e. ball absent)
     if (B2_ID_EQUALS(m_ballPaddleJoint, b2_nullJointId)) {
-        // @TODO: Maybe bad once we add the pinball shit??
+        // @TODO: Maybe bad once we add the pinball stuff??
         b2Vec2 ballVelocityCurr = b2Body_GetLinearVelocity(m_ballBody);
         hlslpp::float2 ballVelocityAdjusted = { ballVelocityCurr.x, ballVelocityCurr.y };
         ballVelocityAdjusted.x = ballVelocityAdjusted.x < 0 ? -1 : 1;
@@ -436,6 +624,37 @@ void LevelHandler::update(float deltaTime) {
 
     // attractors / repellers
 
+
+    // handle powerups
+    for (int i = m_activePowerups.size() - 1; i >= 0; i--) {
+        switch (m_activePowerups[i].type) {
+
+        case PowerupType::PaddleExpansion:
+        /*
+        {
+            m_activePowerups[i].elapsedTime -= deltaTime;
+            if (m_activePowerups[i].elapsedTime < 0) {
+                // delete
+                m_activePowerups.erase(m_activePowerups.begin() + i);
+                m_paddleWidthFactor = 1.0f;
+                shrinkPaddle();
+            }
+            break;
+        }
+        */
+
+        case PowerupType::SlowMotion: {
+            m_activePowerups[i].elapsedTime -= deltaTime;
+            if (m_activePowerups[i].elapsedTime < 0) {
+                // delete
+                m_activePowerups.erase(m_activePowerups.begin() + i);
+                m_currentBallSpeed = m_normalBallSpeed;
+            }
+            break;
+        }
+
+        }
+    }
 
     // simulate physics
     b2World_Step(m_world, deltaTime, physics::k_PHYSICS_SUBSTEP_COUNT);
@@ -449,11 +668,11 @@ void LevelHandler::update(float deltaTime) {
 
         // check if the ball is one of the entities
         if (bodyA == m_ballEntity || bodyB == m_ballEntity) {
-            // LOG_INFO("BIG BOUNCY BALLS");
-
             // Ok so we have the ball, now check if it went out of bounds
             if (bodyA == m_wallBottomEntity || bodyB == m_wallBottomEntity) {
                 killBall();
+            } else if (bodyA == m_bumperEntity || bodyB == m_bumperEntity) {
+                m_score += k_SCORE_BUMPER;
             } else if (bodyA->parent == m_bricksEntityRoot || bodyB->parent == m_bricksEntityRoot) {
                 render::Entity* brick = nullptr;
                 b2BodyId brickId = b2_nullBodyId;
@@ -504,12 +723,36 @@ void LevelHandler::update(float deltaTime) {
                 }
             }
         }
+
+        if (bodyA->parent == m_powerupsContainerEntity || bodyB->parent == m_powerupsContainerEntity) {
+
+            render::Entity* pPowerupEntity = nullptr;
+            b2BodyId powerupBody = b2_nullBodyId;
+            if (bodyA->parent == m_powerupsContainerEntity) {
+                pPowerupEntity = bodyA;
+                powerupBody = b2Shape_GetBody(events.beginEvents[i].shapeIdA);
+            } else if (bodyB->parent == m_powerupsContainerEntity) {
+                pPowerupEntity = bodyB;
+                powerupBody = b2Shape_GetBody(events.beginEvents[i].shapeIdB);
+            }
+
+            // powerup hit something
+            if (bodyA == m_paddleEntity || bodyB == m_paddleEntity) {
+                // paddle
+                equipRandomPowerup();
+                killPowerup(pPowerupEntity, powerupBody);
+            } else if (bodyA == m_wallBottomEntity || bodyB == m_wallBottomEntity) {
+                // bottom
+                killPowerup(pPowerupEntity, powerupBody);
+            }
+
+        }
         // LOG_INFO("Begin {} with {}!", bodyA->name, bodyB->name);
     }
 
     // update positions before exiting
     paddlePos = m_paddleEntity->transform.getPosition();
-    b2Vec2 paddlePosSim = b2Body_GetPosition(m_paddleBody);
+    b2Vec2 paddlePosSim = b2Body_GetPosition(actualPaddleBody);
     m_paddleEntity->transform.setPosition({ paddlePosSim.x * k_BOX2D_TO_UNITS_SCALE, paddlePos.y, paddlePos.z });
 
     hlslpp::float3 ballPos = m_ballEntity->transform.getPosition();
@@ -517,8 +760,8 @@ void LevelHandler::update(float deltaTime) {
     m_ballEntity->transform.setPosition({ ballPosSim.x * k_BOX2D_TO_UNITS_SCALE, ballPosSim.y * k_BOX2D_TO_UNITS_SCALE, ballPos.z });
 
     // update flippers rotation
-    float flipperLeftRotation = b2Rot_GetAngle(b2Body_GetRotation(m_flipperLeftBody));
-    float flipperRightRotation = -b2Rot_GetAngle(b2Body_GetRotation(m_flipperRightBody)); // right is rotated 180 deg so we need to negate it to translate to the scene graph correctly
+    float flipperLeftRotation = b2Rot_GetAngle(b2Body_GetRotation(m_flipperLeftBody.body));
+    float flipperRightRotation = -b2Rot_GetAngle(b2Body_GetRotation(m_flipperRightBody.body)); // right is rotated 180 deg so we need to negate it to translate to the scene graph correctly
     m_flipperLeftEntity->transform.setRotation(hlslpp::mul(m_initialFlipperLeftRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperLeftRotation })));
     m_flipperRightEntity->transform.setRotation(hlslpp::mul(m_initialFlipperRightRot, hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, flipperRightRotation })));
     
@@ -587,6 +830,16 @@ void LevelHandler::update(float deltaTime) {
     m_levelsUi->text = fmt::format("Level {}", (m_level + 1));
     m_scoresUi->text = fmt::format("Score {}", m_score);
     break;
+
+    if (m_score != m_oldScore) {
+
+        if (m_oldScore % 10000 > m_score % 10000) {
+            // we passed a multiple of 10k
+            m_lives++;
+        }
+
+        m_oldScore = m_score;
+    }
     }
     case GameState::GameOver:
     case GameState::Victory: {
@@ -841,7 +1094,33 @@ void LevelHandler::setLevel(uint32_t levelId) {
     }
 
     // @TODO: Toggle pinball stuff and enemies etc
+    if (currentParams.enablePinballFlippers) {
+        m_flipperLeftEntity->enabled = true;
+        m_flipperRightEntity->enabled = true;
+        b2Body_Enable(m_flipperLeftBody.pivot);
+        b2Body_Enable(m_flipperLeftBody.body);
+        b2Body_Enable(m_flipperRightBody.pivot);
+        b2Body_Enable(m_flipperRightBody.body);
+    } else {
+        m_flipperLeftEntity->enabled = false;
+        m_flipperRightEntity->enabled = false;
+        b2Body_Disable(m_flipperLeftBody.pivot);
+        b2Body_Disable(m_flipperLeftBody.body);
+        b2Body_Disable(m_flipperRightBody.pivot);
+        b2Body_Disable(m_flipperRightBody.body);
+    }
 
+    if (currentParams.enableBumpers) {
+        m_bumperEntity->enabled = true;
+        b2Body_Enable(m_bumperBody);
+    } else {
+        m_bumperEntity->enabled = false;
+        b2Body_Disable(m_bumperBody);
+    }
+
+    // clearp powerups
+    m_powerupsContainerEntity->children.clear();
+    m_powerupsPhysics.clear();
 
     // reset camera rotation
     m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));

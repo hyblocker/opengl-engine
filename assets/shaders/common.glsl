@@ -47,8 +47,8 @@ struct LightData
     // These 4 floats would be aligned into a float4, meaning a single light occupies 16 bytes
     uint type;
     float intensity;
-    float innerRadius; // For spot lights
-    float outerRadius; // For spot lights
+    float innerRadius; // For spot lights (radians)
+    float outerRadius; // For spot lights (radians)
 
     // Ignored for dir lights
     float3 position;

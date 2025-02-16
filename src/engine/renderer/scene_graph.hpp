@@ -65,6 +65,7 @@ namespace render {
         friend class EntityBuilder;
         friend class Entity;
         friend class Scene;
+        friend class SceneUpdater;
     public:
         IComponent(Entity* parent) : m_parent (parent) {}
         bool enabled = true;
@@ -75,10 +76,12 @@ namespace render {
         void setParent(Entity* entity) { m_parent = entity; }
         ComponentType componentType = ComponentType::Unknown;
         Entity* m_parent = nullptr;
+        bool m_lastFrameEnabled = true;
     };
 
     // One is supposed to inherit from this and extend the functions attached here to define custom behaviour on entities
     class IBehaviour : public IComponent {
+        friend class SceneUpdater;
     public:
         IBehaviour(Entity* parent) : IComponent(parent) {
             componentType = ComponentType::UserBehaviour;
@@ -115,6 +118,7 @@ namespace render {
         Entity* push_back(std::shared_ptr<Entity> entity);
         Entity* push_back(EntityBuilder& entity);
         void push_back(std::shared_ptr<IComponent> component);
+        bool _lastFrameEnabled = true;
     };
 
     class Scene {
