@@ -148,11 +148,16 @@ private:
     render::UIElement* m_livesUi = nullptr;
     render::UIElement* m_levelsUi = nullptr;
     render::UIElement* m_scoresUi = nullptr;
+    render::UIElement* m_gameoverUsernameInput = nullptr;
+    render::UIElement* m_victoryUsernameInput = nullptr;
 
     GameState m_gameState = GameState::Gameplay;
 
     render::Entity* m_gameoverUiRoot = nullptr;
     render::Entity* m_victoryUiRoot = nullptr;
+
+    char m_userNameBuffer[128] = {};
+    uint32_t m_usernameBufferPointer = 0;
 
     enum LevelBrickLayoutShape {
         Full,

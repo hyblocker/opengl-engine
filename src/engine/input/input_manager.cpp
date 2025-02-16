@@ -111,11 +111,11 @@ namespace engine::input {
 		return m_lastMouseState[(size_t)button] == true && m_currentMouseState[(size_t)button] == false;
 	}
 
-	[[nodiscard]] const bool InputManager::anyKeyReleased(char* pReleasedKey) const {
-		for (size_t i = (size_t)Keycode::Space; i < (uint16_t)Keycode::Count; i++) {
+	[[nodiscard]] const bool InputManager::anyKeyReleased(engine::input::Keycode* pReleasedKey) const {
+		for (size_t i = 0; i < (uint16_t)Keycode::Count; i++) {
 			if (m_lastKeyboardState[(size_t)i] == true && m_currentKeyboardState[(size_t)i] == false) {
 				if (pReleasedKey) {
-					*pReleasedKey = (char)i;
+					*pReleasedKey = (engine::input::Keycode)i;
 				}
 				return true;
 			}

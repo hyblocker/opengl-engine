@@ -24,26 +24,35 @@ namespace engine::input {
 		~InputManager() = default;
 
 		// Keyboard state
+		
 		// if the key is currently not pressed this frame
 		[[nodiscard]] const bool keyUp(Keycode key) const;
+
 		// if the key is currently pressed this frame
 		[[nodiscard]] const bool keyDown(Keycode key) const;
+
 		// if the key was released this frame (ie pressed last frame, released this frame)
 		[[nodiscard]] const bool keyReleased(Keycode key) const;
+
 		// if any key was released
-		[[nodiscard]] const bool anyKeyReleased(char* pReleasedKey) const;
+		[[nodiscard]] const bool anyKeyReleased(engine::input::Keycode* pReleasedKey) const;
 
 		// Mouse button state
+		
 		// if the mouse button is currently not pressed this frame
 		[[nodiscard]] const bool mouseUp(MouseButton button) const;
+
 		// if the mouse button is currently pressed this frame
 		[[nodiscard]] const bool mouseDown(MouseButton button) const;
+
 		// if the mouse button was released this frame (ie pressed last frame, released this frame)
 		[[nodiscard]] const bool mouseReleased(MouseButton button) const;
 
 		// Other mouse data
+
 		[[nodiscard]] inline const hlslpp::float2 mousePos() const { return m_mousePos; }
-		// Y = normal scroll, X = side scroll on supported hardware
+		
+		// Y = normal (vertical) scroll, X = side scroll on supported hardware
 		[[nodiscard]] inline const hlslpp::float2 mouseScroll() const { return m_mouseScroll; }
 
 		[[nodiscard]] static inline InputManager* getInstance() { return s_instance; }

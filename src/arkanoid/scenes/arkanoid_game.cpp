@@ -391,15 +391,22 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                 })
                 .withChild(EntityBuilder().withName("Text")
                     .withUiText({
-                        .posX = -2.75f,
-                        .posY = -1.0f,
+                        .posX = -3.13f,
+                        .posY = -2.17f,
                         .text = "GAME OVER!",
                         .textScale = 2.17f,
                         }))
+                .withChild(EntityBuilder().withName("GameOver_Username_Tooltip")
+                    .withUiText({
+                        .posX = -10.82f,
+                        .posY = 0.08f,
+                        .text = "Insert your name:",
+                        .textScale = 1.1f,
+                        }))
                 .withChild(EntityBuilder().withName("GameOver_Username_TextBuffer")
                     .withUiText({
-                        .posX = -1.850f,
-                        .posY = -9.8f,
+                        .posX = -1.11f,
+                        .posY = 0.11f,
                         .text = "YOUR NAME HERE",
                         .textScale = 1.25f,
                         }))
@@ -448,12 +455,71 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
 
         .withChild(
             EntityBuilder().withName("WinScreen")
-            .withUiText({
-                .posX = -1.850f,
-                .posY = -9.8f,
-                .text = "VICTORY!",
-                .textScale = 1.25f,
+            .withUiSprite({
+                .posX = 0,
+                .posY = 0,
+                .sizeX = 4000,
+                .sizeY = 4000,
+                .textureTint = hlslpp::float4(0,0,0,0.25f),
+                .texture = getAssetManager()->fetchWhiteTexture(),
                 })
-                )
+                .withChild(EntityBuilder().withName("Text")
+                    .withUiText({
+                        .posX = -3.13f,
+                        .posY = -2.17f,
+                        .text = "VICTORY!",
+                        .textScale = 2.17f,
+                        }))
+                .withChild(EntityBuilder().withName("Victory_Username_Tooltip")
+                    .withUiText({
+                        .posX = -10.82f,
+                        .posY = 0.08f,
+                        .text = "Insert your name:",
+                        .textScale = 1.1f,
+                        }))
+                .withChild(EntityBuilder().withName("Victory_Username_TextBuffer")
+                    .withUiText({
+                        .posX = -1.11f,
+                        .posY = 0.11f,
+                        .text = "YOUR NAME HERE",
+                        .textScale = 1.25f,
+                        }))
+                .withChild(
+                EntityBuilder().withName("RetryButton")
+                .withUiSprite({
+                    .posX = 200,
+                    .posY = 280,
+                    .sizeX = 260,
+                    .sizeY = 72,
+                    .texture = getAssetManager()->fetchTexture("ui/button_play.png"),
+                    })
+                    .withBehaviour<GameplayUiInteractions>(true, outScene.layer, GameplayButtonClass::Restart)
+                    .withChild(
+                    EntityBuilder().withName("RetryButton_Text")
+                    .withUiText({
+                        .posX = 1.79f,
+                        .posY = 6.58f,
+                        .text = "Play Again",
+                        .textScale = 1.18f,
+                        }))
+            ).withChild(
+                EntityBuilder().withName("QuitButton")
+                .withUiSprite({
+                    .posX = -200,
+                    .posY = 280,
+                    .sizeX = 200,
+                    .sizeY = 72,
+                    .texture = getAssetManager()->fetchTexture("ui/button_play.png"),
+                    })
+                    .withBehaviour<GameplayUiInteractions>(true, outScene.layer, GameplayButtonClass::ReturnToMenu)
+                    .withChild(
+                    EntityBuilder().withName("QuitButton_Text")
+                    .withUiText({
+                        .posX = -4.72f,
+                        .posY = 5.39f,
+                        .text = "Quit",
+                        .textScale = 1.46f,
+                        }))
+            ))
     );
 }

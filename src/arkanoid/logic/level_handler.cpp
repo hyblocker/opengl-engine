@@ -95,6 +95,8 @@ void LevelHandler::start() {
         m_livesUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LivesUI")->findComponent(render::ComponentType::UIElement);
         m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
         m_scoresUi = (render::UIElement*)getEntity()->parent->findNamedEntity("ScoreUI")->findComponent(render::ComponentType::UIElement);
+        m_gameoverUsernameInput = (render::UIElement*)getEntity()->parent->findNamedEntity("GameOver_Username_TextBuffer")->findComponent(render::ComponentType::UIElement);
+        m_victoryUsernameInput = (render::UIElement*)getEntity()->parent->findNamedEntity("Victory_Username_TextBuffer")->findComponent(render::ComponentType::UIElement);
 
         // for resetting the scene, for level transitions
         m_initialBallPos = m_ballEntity->transform.getPosition();
@@ -580,9 +582,42 @@ void LevelHandler::update(float deltaTime) {
     break;
     }
     case GameState::GameOver: {
+        engine::input::Keycode key = engine::input::Keycode::Count;
+        if (engine::input::InputManager::getInstance()->anyKeyReleased(&key)) {
+            uint16_t keyUnicode = (uint16_t)key;
+            if (key == engine::input::Keycode::Backspace) {
+                if (m_usernameBufferPointer > 0) {
+                    m_usernameBufferPointer--;
+                }
+                m_userNameBuffer[m_usernameBufferPointer] = '\0';
+            } else if (((keyUnicode >= 65 && keyUnicode <= 90) || // A-Z
+                (keyUnicode >= 48 && keyUnicode <= 57)) && m_usernameBufferPointer < 3) // 0-9
+            {
+                m_userNameBuffer[m_usernameBufferPointer] = (char)key;
+                m_usernameBufferPointer++;
+            }
+        }
+        m_gameoverUsernameInput->text = m_userNameBuffer;
         break;
     }
     case GameState::Victory: {
+        engine::input::Keycode key = engine::input::Keycode::Count;
+        if (engine::input::InputManager::getInstance()->anyKeyReleased(&key)) {
+            uint16_t keyUnicode = (uint16_t)key;
+            if (key == engine::input::Keycode::Backspace) {
+                if (m_usernameBufferPointer > 0) {
+                    m_usernameBufferPointer--;
+                }
+                m_userNameBuffer[m_usernameBufferPointer] = '\0';
+            }
+            else if (((keyUnicode >= 65 && keyUnicode <= 90) || // A-Z
+                (keyUnicode >= 48 && keyUnicode <= 57)) && m_usernameBufferPointer < 3) // 0-9
+            {
+                m_userNameBuffer[m_usernameBufferPointer] = (char)key;
+                m_usernameBufferPointer++;
+            }
+        }
+        m_victoryUsernameInput->text = m_userNameBuffer;
         break;
     }
     }
@@ -792,6 +827,8 @@ void LevelHandler::setLevel(uint32_t levelId) {
 }
 
 void LevelHandler::setGameOver() {
+    memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
+    m_usernameBufferPointer = 0;
     m_gameoverUiRoot->enabled = true;
     m_victoryUiRoot->enabled = false;
     m_livesUi->getEntity()->enabled = false;
@@ -804,6 +841,8 @@ void LevelHandler::setGameOver() {
 }
 
 void LevelHandler::setWin() {
+    memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
+    m_usernameBufferPointer = 0;
     m_gameoverUiRoot->enabled = false;
     m_victoryUiRoot->enabled = true;
     m_livesUi->getEntity()->enabled = false;
@@ -813,6 +852,8 @@ void LevelHandler::setWin() {
 }
 
 void LevelHandler::restart() {
+    memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
+    m_usernameBufferPointer = 0;
     m_gameoverUiRoot->enabled = false;
     m_victoryUiRoot->enabled = false;
     m_livesUi->getEntity()->enabled = true;
