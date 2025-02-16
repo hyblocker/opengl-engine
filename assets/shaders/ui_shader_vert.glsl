@@ -25,5 +25,5 @@ void main()
     newPos.xy = newPos.xy * size.xy * 0.5f + vec2(offset.x, -offset.y); // flip offset y because OpenGL
     vec4 pos = projection * model * vec4(newPos, 0.0, 1.0);
     gl_Position = vec4(pos.xy, 0.0, pos.w);
-    uv = iUv.xy;
+    uv = vec2(1.0f - iUv.x, iUv.y);
 }

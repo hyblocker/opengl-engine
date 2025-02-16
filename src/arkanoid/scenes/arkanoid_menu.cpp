@@ -69,7 +69,7 @@ void ArkanoidLayer::initMenuScene(render::Scene& outScene) {
                 .posY = 86.89f,
                 .sizeX = 268,
                 .sizeY = 145,
-                .texture = getAssetManager()->fetchTexture("brick_wall.png"),
+                .texture = getAssetManager()->fetchTexture("ui/button_play.png"),
                 })
                 .withBehaviour<MainMenuInteractions>(true, outScene.layer)
                 .withChild(
@@ -81,6 +81,78 @@ void ArkanoidLayer::initMenuScene(render::Scene& outScene) {
                     .textScale = 2.550f,
                     }))
             )
+        .withChild(
+            EntityBuilder().withName("ControlsPaddle")
+            .withUiSprite({
+                .posX = -550.0f,
+                .posY = 450.0f,
+                .sizeX = 48,
+                .sizeY = 48,
+                .texture = getAssetManager()->fetchTexture("ui/keyboard_arrows_horizontal.png"),
+                })
+            .withChild(
+                EntityBuilder().withName("KeyboardPaddle_Text")
+                .withUiText({
+                    .posX = -22.110f,
+                    .posY = 12.360f,
+                    .text = "Move Paddle",
+                    .textScale = 0.990f,
+                    }))
+            .withChild(
+                EntityBuilder().withName("KeyboardPaddle_A")
+                .withUiSprite({
+                    .posX = -400.0f,
+                    .posY = 450.0f,
+                    .sizeX = 48,
+                    .sizeY = 48,
+                    .texture = getAssetManager()->fetchTexture("ui/keyboard_a.png"),
+                    }))
+            .withChild(
+                EntityBuilder().withName("KeyboardPaddle_D")
+                .withUiSprite({
+                    .posX = -350.0f,
+                    .posY = 450.0f,
+                    .sizeX = 48,
+                    .sizeY = 48,
+                    .texture = getAssetManager()->fetchTexture("ui/keyboard_d.png"),
+                    }))
+            .withChild(
+                EntityBuilder().withName("KeyboardPaddle_LEFT")
+                .withUiSprite({
+                    .posX = -500.0f,
+                    .posY = 450.0f,
+                    .sizeX = 48,
+                    .sizeY = 48,
+                    .texture = getAssetManager()->fetchTexture("ui/keyboard_arrow_left.png"),
+                    }))
+            .withChild(
+                EntityBuilder().withName("KeyboardPaddle_RIGHT")
+                .withUiSprite({
+                    .posX = -450.0f,
+                    .posY = 450.0f,
+                    .sizeX = 48,
+                    .sizeY = 48,
+                    .texture = getAssetManager()->fetchTexture("ui/keyboard_arrow_right.png"),
+                    }))
+                )
+
+        .withChild(
+            EntityBuilder().withName("Flippers")
+            .withUiSprite({
+                .posX = 750.0f,
+                .posY = 450.0f,
+                .sizeX = 48,
+                .sizeY = 48,
+                .texture = getAssetManager()->fetchTexture("ui/mouse_buttons.png"),
+                })
+            .withChild(
+                EntityBuilder().withName("PlayButton_Text")
+                .withUiText({
+                    .posX = 11.4f,
+                    .posY = 12.360f,
+                    .text = "Toggle Flippers",
+                    .textScale = 0.990f,
+                    })))
     );
 
 }

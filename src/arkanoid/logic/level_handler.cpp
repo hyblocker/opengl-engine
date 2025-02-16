@@ -63,75 +63,81 @@ float randomFloat() {
 }
 
 void LevelHandler::start() {
-    // get pointers to entities in the scene
-    m_ballEntity = getEntity()->parent->findNamedEntity("Ball");
-    m_paddleEntity = getEntity()->parent->findNamedEntity("Paddle");
-    m_cameraEntity = getEntity()->parent->findNamedEntity("Camera");
-    m_bricksEntityRoot = getEntity()->parent->findNamedEntity("BrickContainer");
+    if (!firstFrame) {
+        // get pointers to entities in the scene
+        m_ballEntity = getEntity()->parent->findNamedEntity("Ball");
+        m_paddleEntity = getEntity()->parent->findNamedEntity("Paddle");
+        m_cameraEntity = getEntity()->parent->findNamedEntity("Camera");
+        m_bricksEntityRoot = getEntity()->parent->findNamedEntity("BrickContainer");
 
-    // get ref to the main shader
-    m_shader = ((render::MeshRenderer*)m_ballEntity->findComponent(render::ComponentType::MeshRenderer))->material.shader;
-    m_ballParticleSystem = (render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem);
-    m_brickParticleSystem = (render::ParticleSystem*)m_bricksEntityRoot->findComponent(render::ComponentType::ParticleSystem);
+        // get ref to the main shader
+        m_shader = ((render::MeshRenderer*)m_ballEntity->findComponent(render::ComponentType::MeshRenderer))->material.shader;
+        m_ballParticleSystem = (render::ParticleSystem*)m_ballEntity->findComponent(render::ComponentType::ParticleSystem);
+        m_brickParticleSystem = (render::ParticleSystem*)m_bricksEntityRoot->findComponent(render::ComponentType::ParticleSystem);
 
-    render::Entity* wallsContainer = getEntity()->parent->findNamedEntity("ScreenBoundary");
-    m_wallLeftEntity = wallsContainer->findNamedEntity("Left");
-    m_wallRightEntity = wallsContainer->findNamedEntity("Right");
-    m_wallTopEntity = wallsContainer->findNamedEntity("Top");
-    m_wallBottomEntity = wallsContainer->findNamedEntity("Bottom");
+        render::Entity* wallsContainer = getEntity()->parent->findNamedEntity("ScreenBoundary");
+        m_wallLeftEntity = wallsContainer->findNamedEntity("Left");
+        m_wallRightEntity = wallsContainer->findNamedEntity("Right");
+        m_wallTopEntity = wallsContainer->findNamedEntity("Top");
+        m_wallBottomEntity = wallsContainer->findNamedEntity("Bottom");
 
-    m_powerupsContainerEntity = getEntity()->parent->findNamedEntity("PowerupsContainer");
-    m_enemiesContainerEntity = getEntity()->parent->findNamedEntity("EnemiesContainer");
-    
-    // pinball stuff
-    m_flipperLeftEntity = getEntity()->parent->findNamedEntity("FlipperLeft");
-    m_flipperRightEntity = getEntity()->parent->findNamedEntity("FlipperRight");
-    m_initialFlipperLeftRot = m_flipperLeftEntity->transform.getRotation();
-    m_initialFlipperRightRot = m_flipperRightEntity->transform.getRotation();
+        m_powerupsContainerEntity = getEntity()->parent->findNamedEntity("PowerupsContainer");
+        m_enemiesContainerEntity = getEntity()->parent->findNamedEntity("EnemiesContainer");
 
-    m_bumper = getEntity()->parent->findNamedEntity("Bumper");
+        // pinball stuff
+        m_flipperLeftEntity = getEntity()->parent->findNamedEntity("FlipperLeft");
+        m_flipperRightEntity = getEntity()->parent->findNamedEntity("FlipperRight");
+        m_initialFlipperLeftRot = m_flipperLeftEntity->transform.getRotation();
+        m_initialFlipperRightRot = m_flipperRightEntity->transform.getRotation();
 
-    m_livesUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LivesUI")->findComponent(render::ComponentType::UIElement);
-    m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
-    m_scoresUi = (render::UIElement*)getEntity()->parent->findNamedEntity("ScoreUI")->findComponent(render::ComponentType::UIElement);
+        m_bumper = getEntity()->parent->findNamedEntity("Bumper");
 
-    // for resetting the scene, for level transitions
-    m_initialBallPos = m_ballEntity->transform.getPosition();
-    m_initialPaddlePos = m_paddleEntity->transform.getPosition();
+        m_livesUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LivesUI")->findComponent(render::ComponentType::UIElement);
+        m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
+        m_scoresUi = (render::UIElement*)getEntity()->parent->findNamedEntity("ScoreUI")->findComponent(render::ComponentType::UIElement);
 
-    // box2d setup
-    b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = { 0, 0 };
-    worldDef.maximumLinearVelocity = k_BALL_TERMINAL_VELOCITY * k_UNITS_TO_BOX2D_SCALE;
-    m_world = b2CreateWorld(&worldDef);
+        // for resetting the scene, for level transitions
+        m_initialBallPos = m_ballEntity->transform.getPosition();
+        m_initialPaddlePos = m_paddleEntity->transform.getPosition();
 
-    m_paddleBody = makePaddle(m_paddleEntity, { k_PADDLE_WIDTH, 1.5f });
-    m_ballBody = makeBall(m_ballEntity, 1.0f);
+        // box2d setup
+        b2WorldDef worldDef = b2DefaultWorldDef();
+        worldDef.gravity = { 0, 0 };
+        worldDef.maximumLinearVelocity = k_BALL_TERMINAL_VELOCITY * k_UNITS_TO_BOX2D_SCALE;
+        m_world = b2CreateWorld(&worldDef);
 
-    m_wallBodies[0] = makeWall(m_wallLeftEntity, m_wallLeftEntity->transform.getScale().xy);
-    m_wallBodies[1] = makeWall(m_wallRightEntity, m_wallRightEntity->transform.getScale().xy);
-    m_wallBodies[2] = makeWall(m_wallTopEntity, m_wallTopEntity->transform.getScale().xy);
-    m_wallBodies[3] = makeWall(m_wallBottomEntity, m_wallBottomEntity->transform.getScale().xy);
+        m_paddleBody = makePaddle(m_paddleEntity, { k_PADDLE_WIDTH, 1.5f });
+        m_ballBody = makeBall(m_ballEntity, 1.0f);
 
-    m_flipperLeftBody = makeFlipper(m_flipperLeftEntity, 0.1f, { 6.5f, 1.95057f }, false);
-    m_flipperRightBody = makeFlipper(m_flipperRightEntity, 0.1f, { 6.5f, 1.95057f }, true);
+        m_wallBodies[0] = makeWall(m_wallLeftEntity, m_wallLeftEntity->transform.getScale().xy);
+        m_wallBodies[1] = makeWall(m_wallRightEntity, m_wallRightEntity->transform.getScale().xy);
+        m_wallBodies[2] = makeWall(m_wallTopEntity, m_wallTopEntity->transform.getScale().xy);
+        m_wallBodies[3] = makeWall(m_wallBottomEntity, m_wallBottomEntity->transform.getScale().xy);
 
-    for (auto brickEntity : m_bricksEntityRoot->children) {
-        b2BodyId brickPhysicsId = makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
-        Brick* brickComponent = (Brick*)brickEntity->findComponent(render::ComponentType::UserBehaviour);
-        brickComponent->setBrickId(brickPhysicsId);
+        m_flipperLeftBody = makeFlipper(m_flipperLeftEntity, 0.1f, { 6.5f, 1.95057f }, false);
+        m_flipperRightBody = makeFlipper(m_flipperRightEntity, 0.1f, { 6.5f, 1.95057f }, true);
+
+        for (auto brickEntity : m_bricksEntityRoot->children) {
+            b2BodyId brickPhysicsId = makeBrick(brickEntity.get(), { 3.0f, 1.5f }, m_bricksEntityRoot->transform.getPosition().xy);
+            Brick* brickComponent = (Brick*)brickEntity->findComponent(render::ComponentType::UserBehaviour);
+            brickComponent->setBrickId(brickPhysicsId);
+        }
+
+        m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, { 0, -1 });
+
+        m_gameoverUiRoot = getEntity()->parent->findNamedEntity("GameOverScreen");
+        m_victoryUiRoot = getEntity()->parent->findNamedEntity("WinScreen");
+
+        LOG_INFO("Created Level Breakanoid::Game!");
+        setLevel(0);
     }
-
-    m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, {0, -1});
-
-    LOG_INFO("Created Level Breakanoid::Game!");
-    setLevel(0);
 }
 
 void LevelHandler::sleep() {
-
-    // box2d cleanup
-    b2DestroyWorld(m_world);
+    if (!firstFrame) {
+        // box2d cleanup
+        b2DestroyWorld(m_world);
+    }
 }
 
 b2BodyId LevelHandler::box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation, b2Vec2 posOffset, float angle) {
@@ -323,8 +329,7 @@ void LevelHandler::killBall() {
         // stick the ball to the paddle
         m_ballPaddleJoint = makeWeldJoint(m_paddleBody, m_ballBody, { 0, -1 });
     } else {
-        LOG_INFO("lol lmao skill issue dumbass bitch");
-        // @TODO: Main menu
+        setGameOver();
     }
 }
 
@@ -347,8 +352,18 @@ void LevelHandler::dampenFlipper(b2BodyId body, float& currentAngle, float delta
 }
 
 void LevelHandler::update(float deltaTime) {
+
+    // defer some stuff to first frame
+    if (!firstFrame) {
+        m_gameoverUiRoot->enabled = false;
+        m_victoryUiRoot->enabled = false;
+        firstFrame = true;
+    }
+
     // This is kinda hacky but i didnt have time to flesh out the physics portion of the ECS so do everything in a global manager in a big method :D
 
+    switch (m_gameState) {
+    case GameState::Gameplay: {
     // paddle movement
     hlslpp::float3 paddlePos = m_paddleEntity->transform.getPosition();
     float move = 0;
@@ -429,13 +444,8 @@ void LevelHandler::update(float deltaTime) {
 
             // Ok so we have the ball, now check if it went out of bounds
             if (bodyA == m_wallBottomEntity || bodyB == m_wallBottomEntity) {
-                LOG_INFO("womp womp fuck you!");
-                
                 killBall();
             } else if (bodyA->parent == m_bricksEntityRoot || bodyB->parent == m_bricksEntityRoot) {
-
-                LOG_INFO("*lego brick sound effect*");
-                
                 render::Entity* brick = nullptr;
                 b2BodyId brickId = b2_nullBodyId;
 
@@ -555,13 +565,27 @@ void LevelHandler::update(float deltaTime) {
     }
 
     if (m_bricksToProgressToNextLevel == 0) {
-        setLevel(m_level + 1);
+        // level 20
+        if (m_level + 1 == 19) {
+            setWin();
+        } else {
+            setLevel(m_level + 1);
+        }
     }
 
     // Update UI state
     m_livesUi->text = fmt::format("Lives {}", m_lives);
     m_levelsUi->text = fmt::format("Level {}", (m_level + 1));
     m_scoresUi->text = fmt::format("Score {}", m_score);
+    break;
+    }
+    case GameState::GameOver: {
+        break;
+    }
+    case GameState::Victory: {
+        break;
+    }
+    }
 }
 
 void LevelHandler::spawnPowerup(hlslpp::float3 brickPos) {
@@ -760,8 +784,43 @@ void LevelHandler::setLevel(uint32_t levelId) {
         }
     }
 
+    // @TODO: Toggle pinball stuff and enemies etc
+
+
     // reset camera rotation
     m_cameraEntity->transform.setRotation(hlslpp::quaternion::rotation_euler_zxy({ 0 * DEG2RAD, 0 * DEG2RAD, 0 * DEG2RAD }));
+}
+
+void LevelHandler::setGameOver() {
+    m_gameoverUiRoot->enabled = true;
+    m_victoryUiRoot->enabled = false;
+    m_livesUi->getEntity()->enabled = false;
+    m_levelsUi->getEntity()->enabled = false;
+    m_scoresUi->getEntity()->enabled = false;
+
+    m_gameState = GameState::GameOver;
+
+
+}
+
+void LevelHandler::setWin() {
+    m_gameoverUiRoot->enabled = false;
+    m_victoryUiRoot->enabled = true;
+    m_livesUi->getEntity()->enabled = false;
+    m_levelsUi->getEntity()->enabled = false;
+    m_scoresUi->getEntity()->enabled = false;
+    m_gameState = GameState::Victory;
+}
+
+void LevelHandler::restart() {
+    m_gameoverUiRoot->enabled = false;
+    m_victoryUiRoot->enabled = false;
+    m_livesUi->getEntity()->enabled = true;
+    m_levelsUi->getEntity()->enabled = true;
+    m_scoresUi->getEntity()->enabled = true;
+    m_gameState = GameState::Gameplay;
+    m_score = 0;
+    setLevel(0);
 }
 
 void LevelHandler::imgui() {
@@ -805,6 +864,32 @@ void LevelHandler::imgui() {
 
     if (ImGui::Button("spawn powerup")) {
         spawnPowerup({});
+    }
+
+    {
+        // Debug UI for Graphics Mode
+        const char* gameStateTypes[] = { "Gameplay", "GameOver", "Victory" };
+        auto tempGameState = m_gameState;
+        ImGui::ComboboxEx("Game State", (int*)&tempGameState, gameStateTypes, IM_ARRAYSIZE(gameStateTypes));
+        if (m_gameState != tempGameState) {
+            switch (tempGameState) {
+            case GameState::Gameplay:
+            {
+                restart();
+                break;
+            }
+            case GameState::GameOver:
+            {
+                setGameOver();
+                break;
+            }
+            case GameState::Victory:
+            {
+                setWin();
+                break;
+            }
+            }
+        }
     }
 
 

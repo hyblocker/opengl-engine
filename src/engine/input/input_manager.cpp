@@ -110,4 +110,17 @@ namespace engine::input {
 	[[nodiscard]] const bool InputManager::mouseReleased(MouseButton button) const {
 		return m_lastMouseState[(size_t)button] == true && m_currentMouseState[(size_t)button] == false;
 	}
+
+	[[nodiscard]] const bool InputManager::anyKeyReleased(char* pReleasedKey) const {
+		for (size_t i = (size_t)Keycode::Space; i < (uint16_t)Keycode::Count; i++) {
+			if (m_lastKeyboardState[(size_t)i] == true && m_currentKeyboardState[(size_t)i] == false) {
+				if (pReleasedKey) {
+					*pReleasedKey = (char)i;
+				}
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

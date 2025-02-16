@@ -30,6 +30,8 @@ namespace engine::input {
 		[[nodiscard]] const bool keyDown(Keycode key) const;
 		// if the key was released this frame (ie pressed last frame, released this frame)
 		[[nodiscard]] const bool keyReleased(Keycode key) const;
+		// if any key was released
+		[[nodiscard]] const bool anyKeyReleased(char* pReleasedKey) const;
 
 		// Mouse button state
 		// if the mouse button is currently not pressed this frame

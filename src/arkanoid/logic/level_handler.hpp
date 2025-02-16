@@ -27,6 +27,12 @@ namespace collisions {
 
 constexpr int32_t k_INITIAL_LIVES = 3;
 
+enum class GameState {
+    Gameplay,
+    GameOver,
+    Victory,
+};
+
 class LevelHandler : public render::IBehaviour {
 public:
     LevelHandler(render::Entity* parent, gpu::IShader* classicShader) : IBehaviour(parent) { m_classicShader = classicShader; }
@@ -39,8 +45,11 @@ public:
 
     // setups the scene for a particular level layout. effectively a "load level"
     void setLevel(uint32_t levelId);
+    void restart();
 
     inline const b2WorldId getWorldId() const { return m_world; }
+
+    bool firstFrame = false;
 
 private:
     b2BodyId box2dMakeBody(b2BodyType bodyType, render::Entity* entityData, bool fixedRotation = true, b2Vec2 posOffset = b2Vec2_zero, float angle = 0);
@@ -65,6 +74,9 @@ private:
 
     enum LevelBrickLayoutShape;
     void setLevelLayout(LevelBrickLayoutShape shape);
+
+    void setGameOver();
+    void setWin();
 
 private:
 
@@ -136,6 +148,11 @@ private:
     render::UIElement* m_livesUi = nullptr;
     render::UIElement* m_levelsUi = nullptr;
     render::UIElement* m_scoresUi = nullptr;
+
+    GameState m_gameState = GameState::Gameplay;
+
+    render::Entity* m_gameoverUiRoot = nullptr;
+    render::Entity* m_victoryUiRoot = nullptr;
 
     enum LevelBrickLayoutShape {
         Full,
