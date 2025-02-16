@@ -4,6 +4,7 @@
 #include "engine/renderer/mesh.hpp"
 #include "engine/renderer/camera.hpp"
 #include "engine/core.hpp"
+#include "engine/app.hpp"
 
 namespace render {
 
@@ -34,6 +35,9 @@ namespace render {
         m_particlesCbuffer = m_pDevice->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic, .debugName = "ParticlesCbuffer" });
         m_pDevice->writeBuffer(m_particlesCbuffer, sizeof(ParticlesCBuffer), nullptr);
 
+        m_UiCbuffer = m_pDevice->makeBuffer({ .type = gpu::BufferType::ConstantBuffer, .usage = gpu::Usage::Dynamic, .debugName = "UiCbuffer" });
+        m_pDevice->writeBuffer(m_UiCbuffer, sizeof(ParticlesCBuffer), nullptr);
+
         m_trillinearAniso16ClampSampler = m_pDevice->makeTextureSampler({ /* default (linear, wrap, 16x-aniso) */ });
         
         m_skyboxTexShader = m_pAssetManager->fetchShader({
@@ -59,6 +63,19 @@ namespace render {
             .fragShader = "skybox_starfield_frag.glsl",
             .debugName = "SkyboxProcedural"
         });
+
+        m_uiShader = m_pAssetManager->fetchShader({
+        .graphicsState = {
+                .depthState = gpu::CompareFunc::Always,
+                .depthWrite = false,
+                .depthTest = false,
+                .faceCullingMode = gpu::FaceCullMode::Never,
+            },
+            .vertShader = "ui_shader_vert.glsl",
+            .fragShader = "ui_shader_frag.glsl",
+            .debugName = "UIShader"
+        });
+        m_pDevice->setBufferBinding(m_uiShader, "UiBuffer", 0);
 
         // m_skyboxQuad = m_pAssetManager->fetchMesh("skybox_quad.obj");
         m_skyboxSphere = m_pAssetManager->fetchMesh("skybox_sphere.obj");
@@ -393,8 +410,7 @@ namespace render {
                     // Bind textures with trillinearAniso16ClampSampler at slots 0, 1, 2, falling back to the built-in white texture if not set
                     if (pParticleSystem->material.diffuseTex) {
                         m_pDevice->bindTexture(pParticleSystem->material.diffuseTex, m_trillinearAniso16ClampSampler, 0);
-                    }
-                    else {
+                    } else {
                         m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 0);
                     }
 
@@ -440,6 +456,68 @@ namespace render {
                     // Restore blend state
                     m_pDevice->bindBlendState(blendState);
 
+                }
+                break;
+            }
+            case ComponentType::UIElement:
+            {
+                UIElement* pUiElement = drawable.pUiElement;
+                switch (pUiElement->uiType) {
+                case render::UIElementType::Sprite:
+                {
+                    // Set geometry cbuffer on bind slot 0
+                    m_pDevice->setConstantBuffer(m_UiCbuffer, 0);
+                    UiCBuffer* uiBufferView = nullptr;
+                    m_pDevice->mapBuffer(m_UiCbuffer, 0, sizeof(UiCBuffer), gpu::MapAccessFlags::Write | gpu::MapAccessFlags::InvalidateBuffer, reinterpret_cast<void**>(&uiBufferView));
+                    if (uiBufferView != nullptr) {
+                        uiBufferView->model = drawable.parentMatrix;
+                        uiBufferView->view = cameraComponent->getViewMatrix();
+                        uiBufferView->projection = hlslpp::float4x4::orthographic(hlslpp::projection(hlslpp::frustum(
+                            /* width */ engine::App::getInstance()->getWindow()->getWidth(),
+                            /* height */ engine::App::getInstance()->getWindow()->getHeight(),
+                            /* near_z */ 0.1f,
+                            /* far_z */ 100.0f),
+                            hlslpp::zclip::minus_one, hlslpp::zdirection::reverse, hlslpp::zplane::infinite));
+                        uiBufferView->sizePosition = hlslpp::float4(pUiElement->sizeX, pUiElement->sizeY, pUiElement->posX, pUiElement->posY);
+                        uiBufferView->textureTint = pUiElement->textureTint;
+                        uiBufferView->screenSize = hlslpp::float4(
+                            engine::App::getInstance()->getWindow()->getWidth(),
+                            engine::App::getInstance()->getWindow()->getHeight(),
+                            1.0f / engine::App::getInstance()->getWindow()->getWidth(),
+                            1.0f / engine::App::getInstance()->getWindow()->getHeight()
+                        );
+                        m_pDevice->unmapBuffer(m_UiCbuffer);
+                    }
+
+                    // bind texture to slot 0
+                    if (pUiElement->texture) {
+                        m_pDevice->bindTexture(pUiElement->texture, m_trillinearAniso16ClampSampler, 0);
+                    } else {
+                        m_pDevice->bindTexture(m_pAssetManager->fetchWhiteTexture(), m_trillinearAniso16ClampSampler, 0);
+                    }
+
+                    m_pDevice->drawIndexed({
+                        .vertexBufer = m_particleQuad.vertexBuffer,
+                        .indexBuffer = m_particleQuad.indexBuffer,
+                        .shader = m_uiShader,
+                        .vertexLayout = m_particleQuad.vertexLayout,
+                        }, m_particleQuad.triangleCount
+                        );
+                    break;
+                }
+                case render::UIElementType::Text:
+                {
+                    m_fontRenderer.drawText(m_fontData, {
+                        .posX = pUiElement->posX,
+                        .posY = pUiElement->posY,
+                        .outlineWidth = pUiElement->outlineWidth,
+                        .colourForeground = pUiElement->textColour,
+                        .colourOutline = pUiElement->outlineColour,
+                        .size = pUiElement->textScale,
+                        .text = pUiElement->text,
+                        }, pUiElement->getEntity(), cameraComponent);
+                    break;
+                }
                 }
                 break;
             }
@@ -500,11 +578,37 @@ namespace render {
         }
     }
 
+    void SceneRenderer::buildUiRenderGraph(Entity* entity) {
+
+        // iterate through the scene and push entities / renderers into 
+        ASSERT(entity != nullptr);
+
+        // entity.children
+        if (entity->enabled) {
+
+            for (const std::shared_ptr<IComponent> component : entity->components) {
+                if (component->getComponentType() == render::ComponentType::UIElement) {
+                    UIElement* pElement = (UIElement*)component.get();
+                    if (pElement->enabled) {
+                        m_uiRenderList.push_back({ .componentType = render::ComponentType::UIElement, .pUiElement = pElement, .parentMatrix = hlslpp::float4x4::identity() });
+                    }
+                }
+            }
+
+            // Entity didn't have any components we wanted attached to itself, check children
+            for (const std::shared_ptr<Entity> childEntity : entity->children) {
+                // may return null, if not null its what we're after anyway
+                if (childEntity->enabled) {
+                    buildUiRenderGraph(childEntity.get());
+                }
+            }
+        }
+    }
+
     void SceneRenderer::draw(Scene& scene, const float aspect, float deltaTime) {
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         // Find the active camera
-        // @TODO: Consider caching the camera entity??
         Entity* cameraEntity = scene.findEntityWithType(ComponentType::Camera);
         if (!cameraEntity) {
             return;
@@ -530,8 +634,10 @@ namespace render {
         m_lights.clear();
         m_forwardOpaqueList.clear();
         m_forwardTransparentList.clear();
+        m_uiRenderList.clear();
         // find lights and meshes
         buildForwardRenderGraph(&scene.root, hlslpp::float4x4::identity());
+        buildUiRenderGraph(&scene.root);
 
         // sort draw graphs
         auto compareByDrawOrderFrontToBack = [cameraComponent](RenderListElement a, RenderListElement b) -> bool {
@@ -646,6 +752,8 @@ namespace render {
         
         m_pDevice->bindBlendState(m_alphaBlend_BlendState);
         drawRenderList(m_forwardTransparentList, cameraComponent, scene.lightingParams.sunLight, m_alphaBlend_BlendState);
+
+        drawRenderList(m_uiRenderList, cameraComponent, scene.lightingParams.sunLight, m_alphaBlend_BlendState);
         
         m_pDevice->bindBlendState(m_opaque_BlendState);
 

@@ -276,7 +276,7 @@ namespace gpu::gl {
 		auto primitiveType = getGlPrimitiveType(drawCallState.primitiveType);
 
 		// Issue draw call
-		GL_CHECK(glDrawArraysInstanced(primitiveType.glType, static_cast<GLint>(triangleCount) * 3U /* OpenGL expects number of vertices here, not tris */, static_cast<GLsizei>(offset), instances));
+		GL_CHECK(glDrawArraysInstanced(primitiveType.glType, static_cast<GLint>(offset), static_cast<GLsizei>(triangleCount) * 3U /* OpenGL expects number of vertices here, not tris */, instances));
 	}
 	void GlDevice::drawIndexed(DrawCallState drawCallState, size_t triangleCount, size_t offset, size_t instances) {
 		ASSERT(drawCallState.vertexBufer != nullptr);

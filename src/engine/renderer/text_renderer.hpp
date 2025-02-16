@@ -4,29 +4,33 @@
 #include "engine/gpu/idevice.hpp"
 #include "scene_graph.hpp"
 
+#include <unordered_map>
+
 namespace render {
 
     class FontRenderer;
 
+    struct GlyphRect {
+        double left;
+        double right;
+        double top;
+        double bottom;
+    };
+
     struct GlyphInfo {
         uint32_t unicodeCodePoint;
-        double horizAdvanceEm;
-        double quadBoundLeft;
-        double quadBoundBottom;
-        double quadBoundRight;
-        double quadBoundTop;
-        double pixelBoundLeft;
-        double pixelBoundBottom;
-        double pixelBoundRight;
-        double pixelBoundTop;
+        float horizAdvanceEm;
+        hlslpp::float4 quadBounds; // quadBound
+        hlslpp::float4 pixelBounds; // pixelBound
     };
     struct FontData {
         friend class FontRenderer;
 
-        std::vector<GlyphInfo> glyphs;
+        std::unordered_map<uint32_t, GlyphInfo> glyphs;
     private:
         bool isValid = false;
         uint32_t firstCodePoint = 0;
+        float fontSize = 37.84375f; // Hardcoded, ik its bad but imagine adding a json parser
         gpu::ITexture* texture = nullptr;
     };
 
@@ -36,11 +40,13 @@ namespace render {
         void init(gpu::IDevice* device);
 
         struct TextDrawParams {
-            uint32_t posX = 0;
-            uint32_t posY = 0;
+            float posX = 0;
+            float posY = 0;
             float outlineWidth;
             hlslpp::float4 colourForeground;
             hlslpp::float4 colourOutline;
+            float size = 1.0f;
+            float lineHeight = 1.0f;
             std::string text;
         };
 
@@ -57,7 +63,7 @@ namespace render {
         std::vector<TextVertex> m_vertices;
 
         gpu::IDevice* m_pDevice = nullptr;
-        gpu::IShader* m_textShader;
+        gpu::IShader* m_textShader = nullptr;
         gpu::TextureSamplerHandle m_trillinearAniso16ClampSampler;
         gpu::InputLayoutHandle m_textVertexLayout;
         gpu::BufferHandle m_textVertexBuffer;

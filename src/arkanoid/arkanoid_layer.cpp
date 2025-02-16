@@ -31,8 +31,8 @@ ArkanoidLayer::ArkanoidLayer(gpu::DeviceManager* deviceManager, managers::AssetM
     initScenes();
 
     // Start on the menu scene
-    // setActiveScene(m_menuScene);
-    setActiveScene(m_gameSceneL1);
+    // setActiveScene(m_gameScene);
+    setActiveScene(m_menuScene);
 
     // @TODO: init post processing stack
 
@@ -78,8 +78,6 @@ void ArkanoidLayer::update(double timeElapsed, double deltaTime) {
     }
 
     m_sceneUpdater.update(*m_activeScene, deltaTime);
-
-    // @TODO: Box2D state update
 
 }
 

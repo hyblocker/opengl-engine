@@ -4,18 +4,16 @@
 #include <imgui.h>
 
 void ArkanoidLayer::initScenes() {
-    initMenuScene();
-    initGameScene(m_gameSceneL1);
-    // initGameScene(m_gameSceneL2);
-    // initGameScene(m_gameSceneL3);
-    // initGameScene(m_gameSceneL4);
-    // initGameScene(m_gameSceneL5);
+    m_menuScene.layer = this;
+    m_gameScene.layer = this;
+
+    initMenuScene(m_menuScene);
+    initGameScene(m_gameScene);
 }
 
 void ArkanoidLayer::loadGpuResources() {
 
     // Load shader for materials
-    // @TODO: Replace with proper generic shader
     m_shaderModernOpaque = getAssetManager()->fetchShader({
         .graphicsState = {
             // opaque rendering

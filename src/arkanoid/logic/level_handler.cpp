@@ -91,6 +91,10 @@ void LevelHandler::start() {
 
     m_bumper = getEntity()->parent->findNamedEntity("Bumper");
 
+    m_livesUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LivesUI")->findComponent(render::ComponentType::UIElement);
+    m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
+    m_scoresUi = (render::UIElement*)getEntity()->parent->findNamedEntity("ScoreUI")->findComponent(render::ComponentType::UIElement);
+
     // for resetting the scene, for level transitions
     m_initialBallPos = m_ballEntity->transform.getPosition();
     m_initialPaddlePos = m_paddleEntity->transform.getPosition();
@@ -553,6 +557,11 @@ void LevelHandler::update(float deltaTime) {
     if (m_bricksToProgressToNextLevel == 0) {
         setLevel(m_level + 1);
     }
+
+    // Update UI state
+    m_livesUi->text = fmt::format("Lives {}", m_lives);
+    m_levelsUi->text = fmt::format("Levels {}", m_level);
+    m_scoresUi->text = fmt::format("Score {}", m_score);
 }
 
 void LevelHandler::spawnPowerup(hlslpp::float3 brickPos) {
@@ -760,7 +769,6 @@ void LevelHandler::imgui() {
     // box2d cleanup
     ImGui::Begin("Level debug");
     ImGui::Text(fmt::format("Level {}", (m_level + 1)).c_str());
-    ImGui::NewLine();
     ImGui::DragInt("Lives", &m_lives, 1, 0, 20);
     ImGui::Text(fmt::format("Score {}", m_score).c_str());
     ImGui::Text(fmt::format("Bricks For Next Level {}", m_bricksToProgressToNextLevel).c_str());

@@ -256,7 +256,7 @@ namespace render {
 
     void SceneUpdater::start(const Scene& scene) {
 
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             start(entity);
@@ -265,7 +265,7 @@ namespace render {
 
     void SceneUpdater::sleep(const Scene& scene) {
 
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             sleep(entity);
@@ -276,7 +276,7 @@ namespace render {
 
     void SceneUpdater::render(const Scene& scene) {
 
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             render(entity);
@@ -286,7 +286,7 @@ namespace render {
 
     void SceneUpdater::imgui(const Scene& scene) {
 
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             imgui(entity);
@@ -295,7 +295,7 @@ namespace render {
 
     void SceneUpdater::update(Scene& scene, const float deltaTime) {
 
-        // @TODO: We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
+        // We could do a more complex scene graph to optimise searching for entities but it doesn't harm performance enough to matter
 
         for (const std::shared_ptr<Entity> entity : scene.root.children) {
             update(entity, deltaTime);

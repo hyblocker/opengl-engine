@@ -14,7 +14,5 @@ namespace render {
     {
         SkyboxType type = SkyboxType::Procedural;
         gpu::ITexture* m_skyTexture = nullptr; // skybox HDRI texture
-
-        // @TODO: Skybox params
     };
 }

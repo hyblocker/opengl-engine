@@ -5,6 +5,7 @@
 #include "engine/managers/asset_manager.hpp"
 #include "particle_system.hpp"
 #include "text_renderer.hpp"
+#include "ui_components.hpp"
 
 namespace render {
 
@@ -66,6 +67,15 @@ namespace render {
         RenderParticleElement particles[k_MAX_PARTICLES];
     };
 
+    struct UiCBuffer {
+        hlslpp::float4x4 model;
+        hlslpp::float4x4 view;
+        hlslpp::float4x4 projection;
+        hlslpp::float4 textureTint;
+        hlslpp::float4 sizePosition;
+        hlslpp::float4 screenSize;
+    };
+
     class SceneRenderer {
     public:
         void init(gpu::IDevice* pDevice, managers::AssetManager* pAssetManager);
@@ -77,11 +87,13 @@ namespace render {
             union {
                 MeshRenderer* pMeshRenderer;
                 ParticleSystem* pParticleSystem;
+                UIElement* pUiElement;
             };
             hlslpp::float4x4 parentMatrix;
         };
 
         void buildForwardRenderGraph(Entity* entity, hlslpp::float4x4 parentMatrix);
+        void buildUiRenderGraph(Entity* entity);
         void drawRenderList(std::vector<RenderListElement>& drawables, Camera* cameraComponent, Light* sunLight, gpu::IBlendState* blendState);
         void drawSkybox(Scene& scene, Camera* camera, Light* sunLight);
 
@@ -94,9 +106,11 @@ namespace render {
         gpu::BufferHandle m_materialCbuffer;
         gpu::BufferHandle m_lightsCbuffer;
         gpu::BufferHandle m_particlesCbuffer;
+        gpu::BufferHandle m_UiCbuffer;
 
-        gpu::IShader* m_skyboxTexShader;
-        gpu::IShader* m_skyboxProceduralShader;
+        gpu::IShader* m_skyboxTexShader = nullptr;
+        gpu::IShader* m_skyboxProceduralShader = nullptr;
+        gpu::IShader* m_uiShader = nullptr;
         Mesh m_skyboxSphere;
         Mesh m_particleQuad;
 
@@ -106,6 +120,7 @@ namespace render {
         std::vector<Light*> m_lights;
         std::vector<RenderListElement> m_forwardOpaqueList;
         std::vector<RenderListElement> m_forwardTransparentList;
+        std::vector<RenderListElement> m_uiRenderList;
 
         float m_elapsedTime = 0;
 

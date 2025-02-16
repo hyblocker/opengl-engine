@@ -29,13 +29,19 @@ namespace render {
 
         UIElementType uiType = UIElementType::Sprite;
 
+        float posX = 0;
+        float posY = 0;
+        float sizeX = 1;
+        float sizeY = 1;
+        float outlineWidth = 0;
+        float textScale = 1.0f;
+
+        gpu::ITexture* texture = nullptr;
         std::string text;
         hlslpp::float4 textColour = hlslpp::float4(1, 1, 1, 1);
         hlslpp::float4 outlineColour = hlslpp::float4(1, 1, 1, 0);
-        float outlineWidth = 0;
 
         hlslpp::float4 textureTint = hlslpp::float4(1, 1, 1, 1);
-        gpu::ITexture* texture = nullptr;
 
         bool isMouseOver();
     private:

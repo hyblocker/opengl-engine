@@ -88,6 +88,10 @@ namespace render {
 
         uiElement->enabled = params.enabled;
         uiElement->uiType = render::UIElementType::Sprite;
+        uiElement->posX = params.posX;
+        uiElement->posY = params.posY;
+        uiElement->sizeX = params.sizeX;
+        uiElement->sizeY = params.sizeY;
         uiElement->texture = params.texture;
         uiElement->textureTint = params.textureTint;
 
@@ -100,10 +104,13 @@ namespace render {
 
         uiElement->enabled = params.enabled;
         uiElement->uiType = render::UIElementType::Text;
+        uiElement->posX = params.posX;
+        uiElement->posY = params.posY;
         uiElement->text = params.text;
         uiElement->textColour = params.textColour;
         uiElement->outlineColour = params.outlineColour;
         uiElement->outlineWidth = params.outlineWidth;
+        uiElement->textScale = params.textScale;
 
         m_entity->push_back(uiElement);
         return *this;

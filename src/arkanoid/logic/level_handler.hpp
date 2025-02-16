@@ -3,6 +3,7 @@
 #include "engine/renderer/scene_graph.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/particle_system.hpp"
+#include "engine/renderer/ui_components.hpp"
 
 // we use collision matrices to mask out certain types of entities from colliding with one another
 namespace collisions {
@@ -132,6 +133,9 @@ private:
     float m_spaceHeldTime = 0;
     float m_lastMove = 0;
 
+    render::UIElement* m_livesUi = nullptr;
+    render::UIElement* m_levelsUi = nullptr;
+    render::UIElement* m_scoresUi = nullptr;
 
     enum LevelBrickLayoutShape {
         Full,

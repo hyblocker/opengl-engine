@@ -10,12 +10,29 @@
 #include "camera.hpp"
 #include "light.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "ui_components.hpp"
 
 namespace render {
 
     using namespace ::physics;
 
     size_t s_sceneTreeCounter = 0;
+
+    void ImGui_DrawTextureDebug(gpu::ITexture* tex) {
+        if (tex) {
+            bool isMipmapEnabled = tex->getDesc().generateMipmaps;
+            gpu::TextureType textureType = tex->getDesc().type;
+            ImGui::PushID(tex->getNativeObject());
+            ImGui::Text(fmt::format("{} x {}", tex->getDesc().width, tex->getDesc().height).c_str());
+            ImGui::Image((ImTextureID)(intptr_t)tex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::BeginDisabled();
+            ImGui::Checkbox("Mipmaps", &isMipmapEnabled);
+            const char* textureTypeNames[] = { "Texture2D", "Texture3D", "TextureArray2D", "TextureCubeMap" };
+            ImGui::ComboboxEx("Texture Type", (int*)&textureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames));
+            ImGui::EndDisabled();
+            ImGui::PopID();
+        }
+    }
 
     void SceneUpdater::drawDebugSceneGraphEntity(const std::string& sceneName, const std::shared_ptr<Entity> entity, void** pSelectedEntity) {
 #if _DEBUG
@@ -224,42 +241,23 @@ namespace render {
                         ImGui::NewLine();
                     }
 
-                    // I couldn't be bothered making an inline function so here we go
-#define IMGUI_DRAW_TEX_DEBUG(tex) \
-    if (tex) { \
-        bool isMipmapEnabled = tex->getDesc().generateMipmaps; \
-        gpu::TextureType textureType = tex->getDesc().type; \
-        ImGui::PushID(tex->getNativeObject()); \
-        ImGui::Text(fmt::format("{} x {}", tex->getDesc().width, tex->getDesc().height).c_str()); \
-        ImGui::Image((ImTextureID)(intptr_t)tex->getNativeObject(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0)); \
-        ImGui::BeginDisabled(); \
-        ImGui::Checkbox("Mipmaps", &isMipmapEnabled); \
-        const char* textureTypeNames[] = { "Texture2D", "Texture3D", "TextureArray2D", "TextureCubeMap" }; \
-        ImGui::ComboboxEx("Texture Type", (int*)&textureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames)); \
-        ImGui::EndDisabled(); \
-        ImGui::PopID(); \
-    }
-                    
-
                     ImGui::Text("Shader %s", pMeshRenderer->material.shader->getDesc().debugName.c_str());
                     ImGui::ColorEdit3("Ambient", pMeshRenderer->material.ambient.f32);
                     ImGui::ColorEdit3("Diffuse", pMeshRenderer->material.diffuse.f32);
-                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.diffuseTex);
+                    ImGui_DrawTextureDebug(pMeshRenderer->material.diffuseTex);
                     ImGui::ColorEdit3("Specular", pMeshRenderer->material.specular.f32);
                     ImGui::ColorEdit3("Emission", pMeshRenderer->material.emissionColour.f32);
-                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.emissionTex);
+                    ImGui_DrawTextureDebug(pMeshRenderer->material.emissionTex);
                     ImGui::DragFloat("Intensity", &pMeshRenderer->material.emissionIntensity, 0.1f, 0, 10.0f);
                     ImGui::DragFloat("Metallic", &pMeshRenderer->material.metallic, 0.01f, 0, 1.0f);
                     ImGui::DragFloat("Roughness", &pMeshRenderer->material.roughness, 0.01f, 0, 1.0f);
                     ImGui::Text("Meta (R: metal G: rough)");
-                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.metaTex);
+                    ImGui_DrawTextureDebug(pMeshRenderer->material.metaTex);
                     ImGui::Text("Matcap");
-                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.matcapTex);
+                    ImGui_DrawTextureDebug(pMeshRenderer->material.matcapTex);
                     ImGui::Text("BRDF LUT");
-                    IMGUI_DRAW_TEX_DEBUG(pMeshRenderer->material.brdfLutTex);
+                    ImGui_DrawTextureDebug(pMeshRenderer->material.brdfLutTex);
                     ImGui::EndGroupPanel();
-
-#undef IMGUI_DRAW_TEX_DEBUG
 
                     break;
 
@@ -350,6 +348,46 @@ namespace render {
                     ImGui::DragFloat2("Velocity", &velocity.x);
                     ImGui::EndDisabled();
 
+                    break;
+                }
+                case ComponentType::UIElement:
+                {
+                    UIElement* pUiElement = (UIElement*)component.get();
+
+                    const char* uiTypeNames[] = { "Text", "Sprite" };
+                    ImGui::ComboboxEx("Type", (int*)&pUiElement->uiType, uiTypeNames, IM_ARRAYSIZE(uiTypeNames));
+
+                    ImGui::DragFloat2("Position", &pUiElement->posX, 0.01f);
+                    
+                    switch (pUiElement->uiType) {
+                    case UIElementType::Text: {
+
+                        ImGui::InputText("Text", pUiElement->text.data(), pUiElement->text.size());
+                        ImGui::DragFloat("Text Scale", &pUiElement->textScale, 0.01f, 0);
+                        ImGui::ColorEdit4("Text Colour", pUiElement->textColour.f32);
+                        ImGui::DragFloat("Outline Width", &pUiElement->outlineWidth, 0.01f, 0, 1.8f);
+                        if (pUiElement->outlineWidth == 0) {
+                            ImGui::BeginDisabled();
+                        }
+                        ImGui::ColorEdit4("Outline Colour", pUiElement->outlineColour.f32);
+                        if (pUiElement->outlineWidth == 0) {
+                            ImGui::EndDisabled();
+                        }
+                        break;
+                    }
+                    case UIElementType::Sprite: {
+                        ImGui::DragFloat2("Size", &pUiElement->sizeX, 0.01f);
+                        ImGui::ColorEdit4("Texture Tint", pUiElement->textureTint.f32);
+                        ImGui::Text("Texture");
+                        ImGui_DrawTextureDebug(pUiElement->texture);
+                        break;
+                    }
+                    default:
+                        ImGui::BeginDisabled();
+                        ImGui::Text("Unknown UI Type");
+                        ImGui::EndDisabled();
+                        break;
+                    }
                     break;
                 }
                 default:
