@@ -91,7 +91,7 @@ namespace render {
         m_alphaBlend_BlendState = m_pDevice->makeBlendState({
             .blendEnable        = true,
             .srcFactor          = gpu::BlendFactor::SrcAlpha,
-            .dstFactor          = gpu::BlendFactor::OneMinusSrcColour,
+            .dstFactor          = gpu::BlendFactor::OneMinusSrcAlpha,
             .blendOp            = gpu::BlendOp::Add,
         });
     }
@@ -571,7 +571,6 @@ namespace render {
             for (const std::shared_ptr<Entity> childEntity : entity->children) {
                 // may return null, if not null its what we're after anyway
                 if (childEntity->enabled) {
-                    // @TODO: May need to flip
                     buildForwardRenderGraph(childEntity.get(), hlslpp::mul(entity->transform.getModel(), parentMatrix));
                 }
             }
