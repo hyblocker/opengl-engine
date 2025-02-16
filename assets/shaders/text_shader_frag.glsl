@@ -36,8 +36,8 @@ void main()
     float screenPxDistanceOutline = screenPxRange() * (sd - 0.5 - outlineWidth);
     float outlineOpacity = clamp(screenPxDistance + 0.5 + outlineWidth, 0.0, 1.0);
     
-    vec4 textColor = vec4(colourForeground.rgb * opacity, opacity);
-    vec4 outlineColor = vec4(colourOutline.rgb * outlineOpacity, outlineOpacity);
+    vec4 textColor = vec4(colourForeground.rgb * opacity * colourForeground.a, opacity * colourForeground.a);
+    vec4 outlineColor = vec4(colourOutline.rgb * outlineOpacity * colourOutline.a, outlineOpacity * colourOutline.a);
     
     fragColor = mix(outlineColor, textColor, opacity);
 }
