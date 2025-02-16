@@ -447,10 +447,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                         .textScale = 1.46f,
                         }))
             )
-
-            // retry
-
-            // return to menu
+            .withChild(EntityBuilder().withName("GameOver_Leaderboard")
+                .withUiText({
+                    .posX = -1.590f,
+                    .posY = 0.0f,
+                    .text = "leaderboard placeholder",
+                    .textScale = 0.9f,
+                    }))
         )
 
         .withChild(
@@ -465,7 +468,7 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                 })
                 .withChild(EntityBuilder().withName("Text")
                     .withUiText({
-                        .posX = -3.13f,
+                        .posX = -2.03f,
                         .posY = -2.17f,
                         .text = "VICTORY!",
                         .textScale = 2.17f,
@@ -520,6 +523,13 @@ void ArkanoidLayer::initGameScene(render::Scene& outScene) {
                         .text = "Quit",
                         .textScale = 1.46f,
                         }))
-            ))
+            )
+            .withChild(EntityBuilder().withName("Victory_Leaderboard")
+            .withUiText({
+                .posX = -1.590f,
+                .posY = 0.0f,
+                .text = "leaderboard placeholder",
+                .textScale = 0.9f,
+            })))
     );
 }

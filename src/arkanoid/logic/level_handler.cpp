@@ -96,7 +96,11 @@ void LevelHandler::start() {
         m_levelsUi = (render::UIElement*)getEntity()->parent->findNamedEntity("LevelsUI")->findComponent(render::ComponentType::UIElement);
         m_scoresUi = (render::UIElement*)getEntity()->parent->findNamedEntity("ScoreUI")->findComponent(render::ComponentType::UIElement);
         m_gameoverUsernameInput = (render::UIElement*)getEntity()->parent->findNamedEntity("GameOver_Username_TextBuffer")->findComponent(render::ComponentType::UIElement);
+        m_gameoverUsernameTooltip = (render::UIElement*)getEntity()->parent->findNamedEntity("GameOver_Username_Tooltip")->findComponent(render::ComponentType::UIElement);
+        m_gameoverLeaderboard = (render::UIElement*)getEntity()->parent->findNamedEntity("GameOver_Leaderboard")->findComponent(render::ComponentType::UIElement);
         m_victoryUsernameInput = (render::UIElement*)getEntity()->parent->findNamedEntity("Victory_Username_TextBuffer")->findComponent(render::ComponentType::UIElement);
+        m_victoryUsernameTooltip = (render::UIElement*)getEntity()->parent->findNamedEntity("Victory_Username_Tooltip")->findComponent(render::ComponentType::UIElement);
+        m_victoryLeaderboard = (render::UIElement*)getEntity()->parent->findNamedEntity("Victory_Leaderboard")->findComponent(render::ComponentType::UIElement);
 
         // for resetting the scene, for level transitions
         m_initialBallPos = m_ballEntity->transform.getPosition();
@@ -129,6 +133,9 @@ void LevelHandler::start() {
 
         m_gameoverUiRoot = getEntity()->parent->findNamedEntity("GameOverScreen");
         m_victoryUiRoot = getEntity()->parent->findNamedEntity("WinScreen");
+
+        m_leaderboardFilePath = fmt::format("{}/{}", engine::App::getInstance()->getAssetManager()->getExecutableDir(), "leaderboard.dat");
+        m_leaderboard.load(m_leaderboardFilePath);
 
         LOG_INFO("Created Level Breakanoid::Game!");
         setLevel(0);
@@ -581,43 +588,57 @@ void LevelHandler::update(float deltaTime) {
     m_scoresUi->text = fmt::format("Score {}", m_score);
     break;
     }
-    case GameState::GameOver: {
-        engine::input::Keycode key = engine::input::Keycode::Count;
-        if (engine::input::InputManager::getInstance()->anyKeyReleased(&key)) {
-            uint16_t keyUnicode = (uint16_t)key;
-            if (key == engine::input::Keycode::Backspace) {
-                if (m_usernameBufferPointer > 0) {
-                    m_usernameBufferPointer--;
-                }
-                m_userNameBuffer[m_usernameBufferPointer] = '\0';
-            } else if (((keyUnicode >= 65 && keyUnicode <= 90) || // A-Z
-                (keyUnicode >= 48 && keyUnicode <= 57)) && m_usernameBufferPointer < 3) // 0-9
-            {
-                m_userNameBuffer[m_usernameBufferPointer] = (char)key;
-                m_usernameBufferPointer++;
-            }
-        }
-        m_gameoverUsernameInput->text = m_userNameBuffer;
-        break;
-    }
+    case GameState::GameOver:
     case GameState::Victory: {
-        engine::input::Keycode key = engine::input::Keycode::Count;
-        if (engine::input::InputManager::getInstance()->anyKeyReleased(&key)) {
-            uint16_t keyUnicode = (uint16_t)key;
-            if (key == engine::input::Keycode::Backspace) {
-                if (m_usernameBufferPointer > 0) {
-                    m_usernameBufferPointer--;
+        if (!m_isUsernameAccepted) {
+            engine::input::Keycode key = engine::input::Keycode::Count;
+            if (engine::input::InputManager::getInstance()->anyKeyReleased(&key)) {
+                uint16_t keyUnicode = (uint16_t)key;
+                if (key == engine::input::Keycode::Backspace) {
+                    if (m_usernameBufferPointer > 0) {
+                        m_usernameBufferPointer--;
+                    }
+                    m_userNameBuffer[m_usernameBufferPointer] = '\0';
                 }
-                m_userNameBuffer[m_usernameBufferPointer] = '\0';
+                else if (((keyUnicode >= 65 && keyUnicode <= 90) || // A-Z
+                    (keyUnicode >= 48 && keyUnicode <= 57)) && m_usernameBufferPointer < 3) // 0-9
+                {
+                    m_userNameBuffer[m_usernameBufferPointer] = (char)key;
+                    m_usernameBufferPointer++;
+                }
+                if (key == engine::input::Keycode::Enter) {
+                    // validate and accept / reject
+                    if (m_usernameBufferPointer == 3) {
+                        // accept
+                        m_leaderboard.addEntry(m_userNameBuffer, m_score);
+                        m_leaderboard.save(m_leaderboardFilePath);
+                        m_isUsernameAccepted = true;
+                        m_gameoverUsernameTooltip->enabled = false;
+                        m_victoryUsernameTooltip->enabled = false;
+                        m_victoryUsernameInput->enabled = false;
+                        m_gameoverUsernameInput->enabled = false;
+
+                        std::string leaderboardStr = "";
+                        for (int i = 0; i < m_leaderboard.size(); i++) {
+                            auto currentEntry = m_leaderboard.getEntry(i);
+                            if (currentEntry.isValid()) {
+                                leaderboardStr += fmt::format("{}  {}\n", currentEntry.initials, currentEntry.score);
+                            }
+                        }
+
+                        m_gameoverLeaderboard->text = leaderboardStr;
+                        m_victoryLeaderboard->text = leaderboardStr;
+                    }
+                }
             }
-            else if (((keyUnicode >= 65 && keyUnicode <= 90) || // A-Z
-                (keyUnicode >= 48 && keyUnicode <= 57)) && m_usernameBufferPointer < 3) // 0-9
-            {
-                m_userNameBuffer[m_usernameBufferPointer] = (char)key;
-                m_usernameBufferPointer++;
-            }
+            m_victoryUsernameInput->text = m_userNameBuffer;
+            m_gameoverUsernameInput->text = m_userNameBuffer;
+
+            m_gameoverLeaderboard->enabled = m_isUsernameAccepted;
+            m_victoryLeaderboard->enabled = m_isUsernameAccepted;
+
         }
-        m_victoryUsernameInput->text = m_userNameBuffer;
+        
         break;
     }
     }
@@ -829,22 +850,33 @@ void LevelHandler::setLevel(uint32_t levelId) {
 void LevelHandler::setGameOver() {
     memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
     m_usernameBufferPointer = 0;
+    m_isUsernameAccepted = false;
     m_gameoverUiRoot->enabled = true;
+    m_gameoverUsernameTooltip->enabled = true;
     m_victoryUiRoot->enabled = false;
+    m_victoryUsernameTooltip->enabled = false;
+    m_gameoverLeaderboard->enabled = false;
+    m_victoryLeaderboard->enabled = false;
+    m_victoryUsernameInput->enabled = true;
+    m_gameoverUsernameInput->enabled = true;
     m_livesUi->getEntity()->enabled = false;
     m_levelsUi->getEntity()->enabled = false;
     m_scoresUi->getEntity()->enabled = false;
-
     m_gameState = GameState::GameOver;
-
-
 }
 
 void LevelHandler::setWin() {
     memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
     m_usernameBufferPointer = 0;
+    m_isUsernameAccepted = false;
     m_gameoverUiRoot->enabled = false;
+    m_gameoverUsernameTooltip->enabled = false;
     m_victoryUiRoot->enabled = true;
+    m_victoryUsernameTooltip->enabled = true;
+    m_gameoverLeaderboard->enabled = false;
+    m_victoryLeaderboard->enabled = false;
+    m_victoryUsernameInput->enabled = true;
+    m_gameoverUsernameInput->enabled = true;
     m_livesUi->getEntity()->enabled = false;
     m_levelsUi->getEntity()->enabled = false;
     m_scoresUi->getEntity()->enabled = false;
@@ -854,8 +886,15 @@ void LevelHandler::setWin() {
 void LevelHandler::restart() {
     memset(m_userNameBuffer, 0, sizeof(m_userNameBuffer));
     m_usernameBufferPointer = 0;
+    m_isUsernameAccepted = false;
     m_gameoverUiRoot->enabled = false;
+    m_gameoverUsernameTooltip->enabled = false;
     m_victoryUiRoot->enabled = false;
+    m_victoryUsernameTooltip->enabled = false;
+    m_gameoverLeaderboard->enabled = false;
+    m_victoryLeaderboard->enabled = false;
+    m_victoryUsernameInput->enabled = true;
+    m_gameoverUsernameInput->enabled = true;
     m_livesUi->getEntity()->enabled = true;
     m_levelsUi->getEntity()->enabled = true;
     m_scoresUi->getEntity()->enabled = true;
@@ -932,7 +971,6 @@ void LevelHandler::imgui() {
             }
         }
     }
-
 
     ImGui::End();
 }

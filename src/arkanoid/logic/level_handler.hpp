@@ -4,6 +4,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/particle_system.hpp"
 #include "engine/renderer/ui_components.hpp"
+#include "leaderboard.hpp"
 
 // we use collision matrices to mask out certain types of entities from colliding with one another
 namespace collisions {
@@ -149,15 +150,23 @@ private:
     render::UIElement* m_levelsUi = nullptr;
     render::UIElement* m_scoresUi = nullptr;
     render::UIElement* m_gameoverUsernameInput = nullptr;
+    render::UIElement* m_gameoverUsernameTooltip = nullptr;
+    render::UIElement* m_gameoverLeaderboard = nullptr;
     render::UIElement* m_victoryUsernameInput = nullptr;
+    render::UIElement* m_victoryUsernameTooltip = nullptr;
+    render::UIElement* m_victoryLeaderboard = nullptr;
 
     GameState m_gameState = GameState::Gameplay;
 
     render::Entity* m_gameoverUiRoot = nullptr;
     render::Entity* m_victoryUiRoot = nullptr;
 
-    char m_userNameBuffer[128] = {};
+    char m_userNameBuffer[8] = {};
     uint32_t m_usernameBufferPointer = 0;
+    bool m_isUsernameAccepted = false;
+
+    std::string m_leaderboardFilePath;
+    Leaderboard m_leaderboard;
 
     enum LevelBrickLayoutShape {
         Full,
