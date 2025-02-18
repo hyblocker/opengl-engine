@@ -362,7 +362,8 @@ namespace render {
                     switch (pUiElement->uiType) {
                     case UIElementType::Text: {
 
-                        ImGui::InputText("Text", pUiElement->text.data(), pUiElement->text.size());
+                        pUiElement->text.resize(pUiElement->text.length() + 200);
+                        ImGui::InputTextMultiline("Text", pUiElement->text.data(), pUiElement->text.size());
                         ImGui::DragFloat("Text Scale", &pUiElement->textScale, 0.01f, 0);
                         ImGui::ColorEdit4("Text Colour", pUiElement->textColour.f32);
                         ImGui::DragFloat("Outline Width", &pUiElement->outlineWidth, 0.01f, 0, 1.0f);

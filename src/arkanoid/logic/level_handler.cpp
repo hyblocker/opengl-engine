@@ -817,12 +817,7 @@ void LevelHandler::update(float deltaTime) {
     }
 
     if (m_bricksToProgressToNextLevel == 0) {
-        // level 20
-        if (m_level + 1 == 19) {
-            setWin();
-        } else {
-            setLevel(m_level + 1);
-        }
+        setLevel(m_level + 1);
     }
 
     // Update UI state
@@ -1039,14 +1034,19 @@ void LevelHandler::setLevelLayout(LevelBrickLayoutShape shape) {
 }
 
 void LevelHandler::setLevel(uint32_t levelId) {
-    ASSERT(levelId < k_MAX_LEVELS);
-
     LOG_INFO("Setting level to level {}", levelId + 1);
 
     if (levelId == 0) {
         // reset lives if restarting
         m_lives = k_INITIAL_LIVES;
     }
+
+    if (levelId > k_MAX_LEVELS)
+    {
+        setWin();
+        return;
+    }
+
     // keep current lives, kill ball, restore lives
     m_lives++;
     launchBall();

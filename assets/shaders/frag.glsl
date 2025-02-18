@@ -111,6 +111,7 @@ void main()
 {
     vec4 albedo = vec4(texture(diffuseTex, uv).rgb, 1.0f) * vec4(diffuse, 1.0);
     vec4 meta = pow(vec4(texture(metaTex, uv).rgb, 1.0f), vec4(1.0/2.2)); // read metaTex and convert to linear
+    vec4 emissionTexCol = texture(emissionTex, uv);
     float metal = meta.r * metallic;
     float roughness = meta.g * roughness;
     float perceptualRoughness = clamp(roughness, 0.01f, 0.99f);
@@ -131,7 +132,8 @@ void main()
         light0Contribution +
         light1Contribution +
         light2Contribution +
-        light3Contribution + glint;
+        light3Contribution + glint +
+        emissionTexCol.rgb * emissionColour * emissionIntensity;
 
     fragColor = vec4(finalColor.rgb, albedo.a);
 }
